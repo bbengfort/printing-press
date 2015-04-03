@@ -1,0 +1,74 @@
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage{graphicx}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{authblk}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage[parfill]{parskip}
+
+\pagestyle{fancyplain}
+\fancyhf{}
+\fancyfoot[R]{\footnotesize Page \thepage\ of \pageref{LastPage}}
+
+\renewcommand{\headrulewidth}{0.0pt} % No header rule
+\renewcommand{\footrulewidth}{0.4pt} % Thin footer rule
+
+\begin{document}
+
+\title{Visual Discovery of Communication Patterns in Email Networks}
+
+\author[ ]{Benjamin Bengfort}
+\author[ ]{Konstantinos Xirogiannopoulos}
+\affil[ ]{Department of Computer Science}
+\affil[ ]{University of Maryland}
+\affil[ ]{\textit{\{bengfort,kostasx\}@cs.umd.edu}}
+
+\date{April 6, 2015}
+
+\maketitle
+
+\section*{Introduction}
+
+Use Gephi \cite{gephi_gephi-open_2010} to visualize the network from a GraphML \cite{brandes_graph_2010} file. Gephi is used for visual exploration and mapping of networks \cite{bastian_gephi:_2009} and can do statistical analysis of small to medium networks \cite{mcsweeney_gephi_2009}.
+
+Force Atlas 2 Continuous Layout \cite{jacomy_forceatlas2_2014}
+
+Louvian Community Detection \cite{de_meo_generalized_2011}
+
+Edge Bundling \cite{pupyrev_edge_2012}
+
+Dynamic network connections within Twitter conversations are explored in \cite{bruns_how_2012}.
+
+\subsection*{Using Email as a Dataset}
+
+\subsection*{Data Wrangling for Gephi}
+
+\section*{Insights}
+
+In this section we describe the exploration of the email graphs of the authors - both independently and joined using Gephi.
+
+\subsection*{Headline 1}
+
+Explore motif simplification (complexity reduction) using edge bundling
+
+\subsection*{Headline 2}
+
+Explore centrality measures
+
+
+\subsection*{Headline 3}
+
+Explore clusters and communities
+
+\section*{Critique}
+
+\section*{Conclusion}
+
+\bibliographystyle{plain}
+\bibliography{paper}
+
+\end{document}
