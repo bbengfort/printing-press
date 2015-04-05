@@ -18,3 +18,11 @@ First a descriptive set of images will be created- just the whole graphs in thei
 ## Betweenness Centrality
 
 ## Clustering
+
+In order to make the clusters of the network emerge, we used the below techniques on the initial graph.
+
+1. Filter out nodes with small degree by using _K-Core_ filtering in Filters -> Topology -> K-Core. Using K=2. (This means filter out any nodes that have a degree of less than 2)
+2. Layout graph by running the _Fruchterman Reingold_ algorithm under Layout. Wait until it converges to a satisfactory layout and then _Stop_ it.
+3. Under Statistics, run _Modularity_. This creates the clusters. In the prompt, uncheck _"use weights"_. Depending on how many clusters the algorithm should return, use a lower _"resolution"_ value for many different clusters (1.0 is fine), and higher for a smaller number of clusters.
+4. Under _Partition_ -> _Nodes_, click the refresh button, and then select _Modularity Class_. The colors of the clusters can be altered as needed.
+5. Under _Ranking_ -> _Nodes_, under Size/Weight (symbol that looks like a ruby), choose _Betweenness Centrality_ to make the nodes more visible.
