@@ -28,6 +28,16 @@ Export to PNG:
 
 ## Motif Simplification
 
+1. Under statitics run HITS to get authority and hub data for each node
+2. Under statistics run network diameter to get centrality
+3. Under data laboratory, go to more actions, detect duplicates, merge groups, deduplicate by "hub" - this should simplifiy the graph a lot and group stuff togehter.
+4. Node Size --> related to "authority"
+5. Node Color --> related to "betweenness centrality"
+6. Edges weighted by rank, use logrithmic spline
+7. Use a good layout and good print out.
+8. Note can use filters k-core and giant if needed.
+
+
 ## Betweenness Centrality
 
 1. Filter --> _K-Core_ filtering in Filters -> Topology -> K-Core. Using K=2. (This means filter out any nodes that have a degree of less than 2)
