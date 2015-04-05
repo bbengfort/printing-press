@@ -4,6 +4,17 @@ In this document we describe the creation of the images using Gephi as a step-by
 
 First a descriptive set of images will be created- just the whole graphs in their complex form. Second a graph using motif simplification will be used. Third a graph for betweenness centrality will be used. Finally a graph for clustering will be demonstrated.
 
+Save images from "Preview" Mode with the following settings:
+
+1. Node border width 4.0, opacity 100%, color [0,0,0]
+2. Show edges, thickness 2.0, curved, radius 3.0
+
+Export to PNG:
+
+- transparent background
+- 5000px by 5000px 
+- Margin 2%
+
 ## Descriptive Graphs
 
 1. Nodes --> Rank Parameter is Degree
