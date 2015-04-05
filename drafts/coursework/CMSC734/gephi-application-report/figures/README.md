@@ -43,8 +43,8 @@ Export to PNG:
 1. Filter --> _K-Core_ filtering in Filters -> Topology -> K-Core. Using K=2. (This means filter out any nodes that have a degree of less than 2)
 2. Layout graph by running the _Fruchterman Reingold_ algorithm under Layout. Wait until it converges to a satisfactory layout and then _Stop_ it.
 3. Under Statistics, run _Network Diameter_.
-4. Under _Ranking_ --> _Nodes_ choose _Betweenness Centrality_.
-5. Under _Ranking_ --> _Nodes_, alter the color range to see less significant but existent users with higer than normal _Betweenness Centrality_
+4. Under _Ranking_ --> _Nodes_, alter size and choose _Degree_.
+5. Under _Ranking_ --> _Nodes_, alter the color, choose _Betweenness Centrality_, tweak the color range to see less significant but existent users with higer than normal _Betweenness Centrality_
 
 ## Clustering
 
