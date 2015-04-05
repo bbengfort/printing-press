@@ -9,6 +9,7 @@
 \usepackage{fancyhdr}
 \usepackage{lastpage}
 \usepackage[parfill]{parskip}
+\usepackage{subcaption}
 
 \pagestyle{fancyplain}
 \fancyhf{}
@@ -46,6 +47,24 @@ Dynamic network connections within Twitter conversations are explored in \cite{b
 Email is the most prominent form of communication of our time. We use email for both proffessional, as well as casual communication throughout daily life. Such large amounts of time spent on writing, reading and responding to email, yet email comes and goes, without there really being a way for users to have a slightly higher level overview of what groups of people they are communicating with or how often they are communicating with them. Therefore, for this assignment we decided to provide visualizations of our email networks. We believe that visualizing email networks are a great choice for this project as they will provide a broader overview of what our communication clusters look like, as well as allow insight about who the key-players are in our networks, and who are the ones  who have brought us closer to other people.
 
 \subsection*{Using Email as a Dataset}
+
+\begin{figure}[h]
+	\centering
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figures/benjamin_descriptive.png}
+		\caption{\textsf{Benjamin Bengfort (Large)}}
+        \label{fig:benjamin_descriptive}
+	\end{subfigure} \hfill
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figures/kostas_descriptive.png}
+		\caption{\textsf{Konstantinos Xirogiannopoulos (small)}}
+        \label{fig:kostas_descriptive}
+	\end{subfigure}
+    \caption{\textsf{Email networks, no matter the size are complex.}}
+    \label{fig:descriptive}
+\end{figure}
 
 Describe the nodes, edges, density and other network characteristics of the GraphML file.
 
