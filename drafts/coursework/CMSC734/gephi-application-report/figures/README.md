@@ -21,15 +21,20 @@ Export to PNG:
     - logarithmic spline both size & color
     - min size = 20, max size = 200
 2. Edges --> Rank Parameter is Weight, exponential spline
-3. Filter --> K-Core, Degree = 3 (only keep nodes with degree=4)
-4. Filter --> Giant Component 
-5. Layout --> Yifan Yu Proportional
+2. Filter --> K-Core, Degree = 3 (only keep nodes with degree=4)
+3. Layout --> Yifan Yu Proportional
     - optimal distance: 200
     - relative strenght: 0.6
 
 ## Motif Simplification
 
 ## Betweenness Centrality
+
+1. Filter --> _K-Core_ filtering in Filters -> Topology -> K-Core. Using K=2. (This means filter out any nodes that have a degree of less than 2)
+2. Layout graph by running the _Fruchterman Reingold_ algorithm under Layout. Wait until it converges to a satisfactory layout and then _Stop_ it.
+3. Under Statistics, run _Network Diameter_.
+4. Under _Ranking_ --> _Nodes_ choose _Betweenness Centrality_.
+5. Under _Ranking_ --> _Nodes_, alter the color range to see less significant but existent users with higer than normal _Betweenness Centrality_
 
 ## Clustering
 
@@ -38,5 +43,6 @@ In order to make the clusters of the network emerge, we used the below technique
 1. Filter out nodes with small degree by using _K-Core_ filtering in Filters -> Topology -> K-Core. Using K=2. (This means filter out any nodes that have a degree of less than 2)
 2. Layout graph by running the _Fruchterman Reingold_ algorithm under Layout. Wait until it converges to a satisfactory layout and then _Stop_ it.
 3. Under Statistics, run _Modularity_. This creates the clusters. In the prompt, uncheck _"use weights"_. Depending on how many clusters the algorithm should return, use a lower _"resolution"_ value for many different clusters (1.0 is fine), and higher for a smaller number of clusters.
-4. Under _Partition_ -> _Nodes_, click the refresh button, and then select _Modularity Class_. The colors of the clusters can be altered as needed.
-5. Under _Ranking_ -> _Nodes_, under Size/Weight (symbol that looks like a ruby), choose _Betweenness Centrality_ to make the nodes more visible.
+4. Under Statistics, run _Network Diameter_.
+5. Under _Partition_ -> _Nodes_, click the refresh button, and then select _Modularity Class_. The colors of the clusters can be altered as needed.
+6. Under _Ranking_ -> _Nodes_, under Size/Weight (symbol that looks like a ruby), choose _Betweenness Centrality_ to make the nodes more visible.
