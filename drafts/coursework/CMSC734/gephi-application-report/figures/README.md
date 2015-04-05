@@ -6,8 +6,15 @@ First a descriptive set of images will be created- just the whole graphs in thei
 
 ## Descriptive Graphs
 
+1. Nodes --> Rank Parameter is Degree
+    - logarithmic spline both size & color
+    - min size = 20, max size = 200
+2. Edges --> Rank Parameter is Weight, exponential spline
+2. Filter --> K-Core, Degree = 3 (only keep nodes with degree=4)
+3. Layout --> Yifan Yu Proportional
+
 ## Motif Simplification
 
 ## Betweenness Centrality
 
-## Clustering 
+## Clustering
