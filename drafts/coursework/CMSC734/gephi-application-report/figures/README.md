@@ -12,6 +12,8 @@ First a descriptive set of images will be created- just the whole graphs in thei
 2. Edges --> Rank Parameter is Weight, exponential spline
 2. Filter --> K-Core, Degree = 3 (only keep nodes with degree=4)
 3. Layout --> Yifan Yu Proportional
+    - optimal distance: 200
+    - relative strenght: 0.6
 
 ## Motif Simplification
 
