@@ -12,7 +12,7 @@ Save images from "Preview" Mode with the following settings:
 Export to PNG:
 
 - transparent background
-- 5000px by 5000px 
+- 5000px by 5000px
 - Margin 2%
 
 ## Descriptive Graphs
@@ -21,8 +21,9 @@ Export to PNG:
     - logarithmic spline both size & color
     - min size = 20, max size = 200
 2. Edges --> Rank Parameter is Weight, exponential spline
-2. Filter --> K-Core, Degree = 3 (only keep nodes with degree=4)
-3. Layout --> Yifan Yu Proportional
+3. Filter --> K-Core, Degree = 3 (only keep nodes with degree=4)
+4. Filter --> Giant Component 
+5. Layout --> Yifan Yu Proportional
     - optimal distance: 200
     - relative strenght: 0.6
 
