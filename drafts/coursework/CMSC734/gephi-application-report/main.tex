@@ -70,6 +70,22 @@ Describe the nodes, edges, density and other network characteristics of the Grap
 
 In email netowrks, the nodes represend the unique email addresses of the individuals who participate in the network. Two individuals in the network share an edge if they have somehow participated in a conversation. That includes direct emails that the center node has perticipated in, wether they play the role of the receiver or the sender. The thickness of each edge dictates the amount of back and forth communication between the two nodes (the number of email exchanged).
 
+\begin{table}[t!]
+    \centering
+    \label{tab:network_comparison}
+    \begin{tabular}{l | c c}
+        \hline
+        Metric & Benjamin & Kostas \\
+        \hline
+        Emails & 52,716 & 9879 \\
+        Nodes & 3,408 & 1,005 \\
+        Edges & 37,158 & 56,370 \\
+        Avg. Degree & 21.8063 & 112.1791 \\
+        \hline
+    \end{tabular}
+    \caption{Description of Email Datasets}
+\end{table}
+
 For the sake of comparison and diversity in our examples, we have extracted both of our email networks, and ran the same statistics on them. This will allow for more concrete and reliable insight on how network visualization can yield very important insights on vast and complex interconnected data.
 
 \subsection*{Data Wrangling for Gephi}
@@ -90,6 +106,24 @@ Explore motif simplification (complexity reduction) using edge Bundling
 
 Explore centrality measures
 % [My idea here, is to remove the center node (ourselves) and explore centrality measures between our interconnected clusters. We could figure out key players using Betweenness centrality. I have also figured this out in gephi in case you don't know how to do it.]
+
+\begin{figure}[h]
+	\centering
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figures/benjamin_centrality.png}
+		\caption{\textsf{Benjamin Bengfort (Large)}}
+        \label{fig:benjamin_centrality}
+	\end{subfigure} \hfill
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figures/kostas_centrality.png}
+		\caption{\textsf{Konstantinos Xirogiannopoulos (small)}}
+        \label{fig:kostas_centrality}
+	\end{subfigure}
+    \caption{\textsf{Nodes highlighted for their high betweenness centrality}}
+    \label{fig:centrality}
+\end{figure}
 
 \subsection*{Revealing Clusters and Communities}
 % [Here, we will have our two networks, where we show clusters in them, and compare/contrast the two different networks and the clusters that appear within. I have figured out how to do that and I think it looks cool and will show you my network soon]
