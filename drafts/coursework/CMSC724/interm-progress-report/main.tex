@@ -21,7 +21,7 @@
 
 \begin{document}
 
-\title{Graph-Based Analysis of Relational Data:\\Intermediate Progress Report}
+\title{Graph-Based Analysis of Relational Data:\\ An Intermediate Progress Report}
 
 \author[ ]{Konstantinos Xirogiannopoulos}
 \author[ ]{Benjamin Bengfort}
@@ -43,9 +43,9 @@ There are many motivations for utilizing graph algorithms in coordination with a
 
 Although there is utility in the implementation of graph algorithms there are also many tensions that are expressed by the wide array of current research on the topic. First - graph algorithms can be computed locally for a small group of nodes in a transactional fashion \cite{jadhav_comparative_2014}, or at scale across extremely large networks for population-wide analyses \cite{cuzzocrea_big_2014}. In both cases, the base data set is usually too large to fit into memory, requiring some form of data storage and management. This has led to two primary trends: the development of native graph databases that leverage ideas from the NoSQL movement and the development of large scale, parallel online analytical (OLAP) graph processing.
 
-Relational databases, on the other hand, have been well studied and optimized in their longer history. RDBMS systems are extremely performant as transactional systems where few records are selected, inserted or updated at transaction time. Although this model doesn't lend itself to larger scale analytics, RDBMS systems play vital operational and theoretical roles in the larger database space. Many studies have concluded that relational databases, while not specifically designed for graphs, are still tools that can be extended to provide graph-based algorithms \cite{welc_graph_2013}, \cite{najork_hammers_2012}, and \cite{vicknair_comparison_2010}.
+Relational databases, on the other hand, have been well studied and optimized in their longer history. RDBMS systems are extremely performant as transactional systems where few records are selected, inserted or updated at transaction time. Although this model doesn't lend itself to larger scale analytics, RDBMS systems play vital operational and theoretical roles in the larger database space. Many studies have concluded that relational databases, while not specifically designed for graphs, are still tools that can be extended to provide solutions for graph-based algorithms \cite{welc_graph_2013}, \cite{najork_hammers_2012}, and \cite{vicknair_comparison_2010}.
 
-In this paper, we outline the progress we have made towards creating a system for efficient in-memory graph analytics using relational data. Our ongoing work has mainly focused on defining some initial specifications of our declerative Datalog-based DSL, and various optimizations. The optimizations that we have implemented facilitate in a more efficient extraction of the graph from the relational schema, both in terms of time complexity and memory usage. For our implementation, we utilized the highly BluePrints API, and our current implementation is in Java. Our main progress paths at this point are the following:\\
+In this paper, we outline the ongoing progress towards creating a system for efficient in-memory graph analytics using relational data. Our ongoing work has mainly focused on defining some initial specifications of our declerative Datalog-based DSL, and various optimizations. The optimizations that we have implemented facilitate in a more efficient extraction of the graph from the relational schema, both in terms of time complexity and memory usage. For our implementation, we chose the highly used BluePrints API, and our current implementation is in Java. Our main paths of progress at this point are the following:\\
 
 \begin{enumerate}
 
@@ -98,25 +98,15 @@ In this paper, we outline the progress we have made towards creating a system fo
 %
 % Clearly, when considering this workflow, reduction in the scope of processing is vital as error, complexity, and time is injected at every phase of this workflow. Some online data store is required, and a relational database is a good choice. In order to further explore the use of relational data stores for computation, we should consider both transactional and local graph computation as well as whole-database OLAP computations. Parallelizing computation, especially using an in-memory, iterative framework will be extremely important to show how many types of pattern-matching and ML algorithms can be implemented leveraging relational resources like indices and lookup tables.
 
-\subsection*{Critique of Non-Relational Methods}
-
-The use of a distributed processing framework or graph native database for these efficient types of computations isn't necessarily a direct response to problems with a relational organization of data. Instead they can be seen as fulfilling of some other requirement - the use of distributed computation frameworks, or an optimization of vertex-by-vertex computation. However, since the advent of specialized systems, there has been some criticism from the relational community that a specific-framework isn't required. The primary line of thought is that relational databases can perform competitive or superior performance for most implementations and that the benefit of specialization is far outweighed by the cost of replacing an existing infrastructure \cite{welc_graph_2013}.
-
-There are certainly trade-offs for different types of computation. e.g. Najork et al. present an empirical comparison of five basic graph operations upon a large web graph using the three paradigms: relational (SQL Server), data parallel computation (DryadLINQ), and an in-memory native graph database (Scalable Hyperlink Store) \cite{najork_hammers_2012}, and found that no single platform performs best generally across all use cases. However, they did note that relational databases are competitive with graph specialized systems. Moreover, often business use cases go beyond performance - to include requirements like consistency, fault tolerance, partition repair and more. In one interesting comparative paper, MySQL and Neo4j are compared in terms of their ability to record and query data provenance information (often vital metadata in a business environment) \cite{vicknair_comparison_2010}. They found that both databases performed at acceptable levels for normal benchmark tests while Neo4j outperformed MySQL at structural type queries and full text search. However, of MySQL was preferred since Neo4j was lacking many features in terms of maturity and security, and the acceptable performance .
-
-\section*{Relational Graph Processing}
-
-In this section we will consider the body of work that is more closely related to our proposal (framed in the context of graph specialized systems). First we will look at the use of Datalog as a query language to create an API for graph computation on top of a logical store. Next we will look at an alternative approach, the export of a relational database to a graph format to perform computation. Finally we will explore three systems that give native graph processing capability to relational data storage.
-
-\subsection*{Use of Datalog as a facilitating language to SQL}
+\section*{Use of Datalog as a facilitating language to SQL}
 
 One of the primary critiques of the use of relational databases for graph computation is that the primary programming abstraction, SQL, is declarative and not well suited to the description of graph algorithms. Graph-specific query languages like Gremlin \cite{rodriguez_gremlin_2013}, Cypher \cite{miller_graph_2013}, and SPARQL \cite{prudhommeaux_sparql_2008} are able to easily express traversals and computations required for graph algorithms. Not only that, but the languages are directly related to a computational model that is fundamentally different than the iterator-model of relational databases. Gremlin exposes a pipeline-iterative mechanism of computation, and SPARQL can be directly translated to lambda calculus.
 
 As a result, there has been interest in the use of Datalog, a declarative programming language, to extend relational algebra into the graph algebra domain \cite{he_graphs-at--time:_2008}. When graph computations can be expressed as a query operation, selection operators are generalized to pattern matching and composition operators are included to rewrite graphs. Because Datalog is a syntactic subset of Prolog, it can also be used as a query language for deductive databases. Recent advances have adapted Datalog to recursion and extended Datalog specifically for graphs \cite{shkapsky_graph_2013}, \cite{green_datalog_2013}, allowing for aggregation, negation, and typing - monotonic constraints that are fundamentally a part of a relational database.
 
-The conversion of Datalog queries to SQL queries, thereby extending relational processing with graph aware processing is not just isolated to recursion on a single machine, but has also been shown to be parallelizable. Distributed Socialite \cite{seo_distributed_2013} is a large scale graph analytical framework whose query language is Datalog, which is transformed into efficient parallel code. Datalog has also been shown to be easily extensible to large scale machine learning on big data sets \cite{bu_scaling_2012}.
+The conversion of Datalog queries to SQL queries, thereby extending relational processing with graph aware processing is not just isolated to recursion on a single machine, but has also been shown to be parallelizable \cite{seo_distributed_2013}. Datalog has also been shown to be easily extensible to large scale machine learning on big data sets \cite{bu_scaling_2012}.
 
-Datalog is clearly a fascinating choice for research as it has been shown to be complete and effective at graph computation on a relational database as well as parallizable. Previous work has focused on the adaption to new graph domains, but so far there hasn't been a complete system where Datalog has augmented a relational database in a specific fashion for both parallel and efficient graph computation.
+Datalog is clearly a fascinating choice for research as it has been shown to be complete and effective at graph computation on a relational database as well as parallelizable. Previous work has focused on the adaption to new graph domains, but so far there hasn't been a complete system where Datalog has augmented a relational database in a specific fashion for both parallel and efficient graph computation.
 
 % \subsection*{Conversion of Relational to Graph}
 %
@@ -149,7 +139,7 @@ Datalog is clearly a fascinating choice for research as it has been shown to be 
 \label{fig:queries}
 \end{figure}
 
-A core part in the implementation of this project is correctly implementing the translation from our Datalog-based DSL, to SQL. Even though in the, majority of cases, there is a very straightforward mapping between the two languages, we could not find an open source implementation of this translation process, we were therefore required to write our own implementation.
+A core part in the implementation of this project is correctly implementing the translation from our Datalog-based DSL, to SQL. Even though in the, majority of cases, there is a very straightforward mapping between the two languages, we could not find an open source implementation of this translation process. We were therefore required to write our own implementation.
 
 The translation process from Datalog to SQL revolves around the process of mapping the predicate symbols of \textit{atoms} (predicate symbols along with the list of arguments) to database tables, and the terms to columns within those tables. The actual name of the term in the queries does not need to directly mirror the one in the database; it can simply be an alias. The way this mapping works, is that the ordering of arguments reflects the order of the columns in the database table. Each alias is therefore directly mapped to project the column that appears in that position in the table. The left-side terms also must appear in the right side, since the left side does not represent an existent predicate (table), but the view that will be generated using the right-side predicates. In Datalog, the arguments that begin with a capital letter signify variables.
 
@@ -202,7 +192,7 @@ SELECT e1u,e1v,array_agg(tag) FROM Result GROUP BY e1u,e1v;
 After the queries in our DSL are translated to SQL applying the above optimizations when necessairy, the next step is to generate and load the graph into memory. The size of the result-set after the produced SQL is executed against the database, depends on two factors; (1) the current size of the participating tables in the database, and (2) the amout of predicates in the query that could potentially narrow down the size of the result-set returned. In order for graph analytics to be as efficient as possible, the latencies associated with moving data back and forth from disk to memory can lead to substantial performance issues. To eliminate these costs, the entire graph is required to therefore reside in memory for the entirety of the computation. Our goal, was to decrease the memory footprint of the generated graphs by our system.
 
 %we did it with this high overview idea
-The way we accomplished this is by using a \textit{compressed representation} of the graph. Methods like this one been studied in the past \cite{compressedrep}, and revolve around the idea of compressing the number of edges in highly condensed cliques, to a minimum, by having each of the nodes in the clique connect to only a single \textit{virtual} node instead.
+The way we accomplished this is by using a \textit{compressed representation} of the graph. Methods like this one been studied in the past \cite{feder}, and revolve around the idea of compressing the number of edges in highly condensed cliques, to a minimum, by having each of the nodes in the clique connect to only a single \textit{virtual} node instead.
 
 %this is why we did it
 In most cases, graphs are comprised of nodes of the same \textbf{type}, being connected to each-other in various ways. In order to materialize these connections in the form of edges, a \textit{self join} is usually required. Self-joins are simply join operations where we are joining a table with itself, in order to find the intersections between two of its own columns. When the size of the table starts getting reasonably large however, these self-joins become increasingly slow to complete, quickly reaching a point where the query is essentially impossible to run in a reasonable amount of time.
@@ -213,17 +203,23 @@ Our solution to this problem is that instead of pushing the self-join to Postgre
 %this is what it gives us
 Since many large real-world graphs can contain a substantial amounts of very densely connected cliques, where many nodes are all connected to each-other via seperate, distinct edges. This representation will hence allow for substantial amounts of compression. As an example, going back to the aforementioned DBLP exaple dataset, for a publication with k authors, the co-authors graph contains $k(k-1)/2$ edges between those authors. By using the compressed representation, the number of edges per clique get compressed to the minimum of $k$ edges, just one for every one of the $k$ nodes, with the small trade-off of one extra node. The benefits of using such a representation of the graph are therefore two-fold; (1) By amortizing the latency of  self-joins, they allow for extracting larger graphs from very large tables, that were otherwise impossible to extract by doing the self-join and (2) they naturally result in graphs with a significantly smaller memory footprint, thus allowing for conducting efficient analytics on larger graphs.
 
+%Graph Processing on Relational Datastores
 
-\subsection*{Graph Processing on Relational Datastores}
+\subsection*{Related Work}
 
-If relational databases are competitive with specialized systems and in large scale use right now - there seems to be opportunity to augment these types of data stores with a graph-specific query language and processing model. So far we've discussed all the pieces related to this task, now we will discuss current research into the topic.
+% Critique of Non-Relational methods
+The use of a distributed processing framework or graph native database for these efficient types of computations isn't necessarily a direct response to problems with a relational organization of data. Instead they can be seen as fulfilling of some other requirement - the use of distributed computation frameworks, or an optimization of vertex-by-vertex computation. However, since the advent of specialized systems, there has been some criticism from the relational community that a specific-framework isn't required. The primary line of thought is that relational databases can perform competitive or superior performance for most implementations and that the benefit of specialization is far outweighed by the cost of replacing an existing infrastructure \cite{welc_graph_2013}.
+
+There is a fair amount of work currently being developed on using relational datastores for applying graph computation. This work mostly focuses on applying computation by means of SQL queries against the database. Most of these works support and expand on the notion that there may be no need for specialized graph computation frameworks, and attempt to prove it by creating these systems to run graph analytics on a relational database instead.
 
 Grail \cite{fan_case_2015} is a syntactic layer for querying a graph in a vertex-centric way such that the graph is stored in an relational database management system
 \cite{fan_case_2015}. The authors of Grail propose a query language that can then be translated into SQL and executed upon relational tables of vertices and edges. The authors hope to show that a relational datastore is both productive and performant in graph computations and that a specialized system is not necessary. They also lay the foundation for considering the construction of relational devices like indices and tables for graph-specific querying on existing data.
 
-Vertexicam \cite{jindal_vertexica:_2014} also provides a graph analysis toolkit on top of a relational database, similarly injecting data storage, query processing, and query interface support to the relational system for vertex-centric graph analysis \cite{jindal_vertexica:_2014}. Vertexica also uses a vertex/edge table for querying data, provides per-vertex transactions, and uses indices for fast retrieval of message passing. Vertexica also introduces many interesting graph-specific optimization techniques that are reminiscent of the columnar/relational database that the system sits on top of. In particular, they implement table unions to avoid expensive three way joins, parallel workers, batching, and late materialization.
+Vertexica \cite{jindal_vertexica:_2014} also provides a graph analysis toolkit on top of a relational database, similarly injecting data storage, query processing, and query interface support to the relational system for vertex-centric graph analysis \cite{jindal_vertexica:_2014}. Vertexica also uses a vertex/edge table for querying data, provides per-vertex transactions, and uses indices for fast retrieval of message passing. Vertexica also introduces many interesting graph-specific optimization techniques that are reminiscent of the columnar/relational database that the system sits on top of. In particular, they implement table unions to avoid expensive three way joins, parallel workers, batching, and late materialization.
 
 Finally the Trinity \cite{shao_trinity:_2013} database, while not on a traditional relational store, implements a distributed graph engine on a memory cloud (a key-value store that is loaded into memory) for low latency graph queries \cite{shao_trinity:_2013}. Trinity, similar to Grail and Vertexica, implements a graph query layer called TSL that allows users to declare a schema and vertex-centric computation that is translated to the storage layer. Trinity's storage layer is strikingly similar to the aforementioned systems, and the distributed hash table (DHT) for vertices seems to be implemented primarily for distributed storage and fast access by the Trinity cluster. Potentially a sharded relational cluster would serve the same requirement.
+
+It is therefore apparent that the main goals of this work are very different from the aforementioned systems. Our goal is to provide a layer of abstraction that will allow users to apply in-memorty graph analytics on their already existent relational data, without assuming that their data is already in graph format (tables of Vertices and Edges); in contrast with these related works.
 
 \section*{Discussion}
 
@@ -240,11 +236,11 @@ It is clear that the programming interface to graph computations on a relational
 
 Conversion techniques on top of existing relational stores indicate that graphs may be induced or inferred from existing structures with user intervention. This seems to indicate there is no need for predefined vertex, edge, and message tables. However, these tables might be useful as non-persistent in-memory indices or data structures to optimize or improve computation.
 
-Based on what we've learned from our previous survey \textit{A Survey of Graph Analyses using Databases}, our work has so far focused on the Flexible extraction of a graph from an existing data store into memory for computation (reducing the impact of join operations), and will continue by exploring:
+Based on what we've learned from our previous survey \textit{A Survey of Graph Analyses using Databases}, our work has so far focused on the Flexible extraction of a graph from an existing data store into memory for computation (reducing the impact of join operations), and will continue by potentially exploring:
 
 \begin{enumerate}
-	\item Extensible graph inference and creation from the schema of a relational database and exposure to these graphs from a graph-specific query language.
 	\item Use of existing relational tools (indices, stored procedures, operators) to improve graph processing in a meaningful way.
+	\item Extensible graph inference and creation from the schema of a relational database and exposure to these graphs from a graph-specific query language.
 \end{enumerate}
 
 Therefore while our proposal has some similarities to the Datalog papers, the conversion papers, and the three systems that produce graph operators on top of relational operators - we intended to produce a complete system that is both fast and efficient for graph processing on top of existing, native relational storage.
@@ -258,12 +254,6 @@ This interest and research has shown that it is easier to express computation pr
 This paper has also explored workflows for the conversion and ETL of graphs out of and into relational systems, the use of Datalog as a graph query language, and direct comparisons between graph databases and relational ones. This culminated with a specific look at three systems that are implementing graph processing on a relational store: Grail, Vertexica, and Trinity - though by the apriori creation of vertex, edge, and message tables to facilitate computation.
 
 We believe that there is a method to integrate these ideas into a single system that uses a graph-specific query language translated to relational algebra, inferring existing graphs from the schema. The computation process will be similar to the conversion process - extracting graphs into memory for computation on an augmenting system, but also leveraging existing database resources like indices or lookup tables.
-
-
-
-
-
-
 
 
 \clearpage
