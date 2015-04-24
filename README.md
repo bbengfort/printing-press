@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/bbengfort/printing-press.png?label=ready&title=Ready)](https://waffle.io/bbengfort/printing-press)
 # Printing Press
 
 **Repository for collaborative documents**
