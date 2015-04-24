@@ -1,5 +1,6 @@
-[![Stories in Ready](https://badge.waffle.io/bbengfort/printing-press.png?label=ready&title=Ready)](https://waffle.io/bbengfort/printing-press)
 # Printing Press
+
+[![Stories in Ready](https://badge.waffle.io/bbengfort/printing-press.png?label=ready&title=Ready)](https://waffle.io/bbengfort/printing-press) [![Issue Stats](http://issuestats.com/github/bbengfort/printing-press/badge/pr)](http://issuestats.com/github/bbengfort/printing-press) [![Issue Stats](http://issuestats.com/github/bbengfort/printing-press/badge/issue)](http://issuestats.com/github/bbengfort/printing-press)
 
 **Repository for collaborative documents**
 
