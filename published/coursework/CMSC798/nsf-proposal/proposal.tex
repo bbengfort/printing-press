@@ -1,0 +1,59 @@
+\documentclass{proposalnsf}
+\usepackage{epsfig}
+
+% NSF proposal generation template style file.
+% based on latex stylefiles  written by Stefan Llewellyn Smith and
+% Sarah Gille, with contributions from other collaborators.
+
+\renewcommand{\refname}{\centerline{References cited}}
+
+% this handles hanging indents for publications
+% \def\rrr#1\\{\par
+% \medskip\hbox{\vbox{\parindent=2em\hsize=6.12in
+% \hangindent=4em\hangafter=1#1}}}
+%
+% \def\baselinestretch{1}
+
+\begin{document}
+
+\begin{center}
+{\Large{\bf Evolving the Internet for Scalability and Security \\
+with Content-Centric Networking}}\\*[3mm]
+{\bf Response to NSF 14597: Computer and Network Systems (CNS): Core Programs} \\*[3mm]
+
+B. Bengfort, S.\ Herwig, A.\ Mathur, M.\ Shao\\
+University of Maryland, College Park
+
+\end{center}
+
+\noindent
+{\large{\bf Overview}}
+
+%objectives and scientific, engineering, or educational significance of the%
+%proposed work.  Present the merits of the the proposed project clearly.
+\noindent
+While the Internet has become a platform for content dissemination, the underlying host-centric, conversation-model of TCP/IP is inefficient for massive content distribution. New information domains, such as mobile technologies and the Internet of the Things, challenge the current assumptions for constant connectivity, while perennial data breaches highlight the insufficiency of current privacy and security solutions. This project proposes extending the research of the Named-Data Networking (NDN) project for achieving scalable and secure communications based on a content-centric networking paradigm; particularly by exploring models for distributed, decentralized trust for the purposes of signing and verifying named data.
+
+%suitability of the methods to be employed.
+In contrast to TCP/IP, which places responsibility for security on the endpoints (primarily through the inflexible PKI scheme that dominates the current Internet), NDN secures content by requiring data producers to cryptographically sign every data packet. The publisher's signature ensures integrity and enables determination of data provenance. Moreover, clients assess the trust of a data packet independent of where or how the data was obtained. A critical problem is therefore how the client verifies the authenticity of a publisher's public key.
+
+Over the course of three years, this project seeks to extend the concepts of a web of trust to NDN, thereby enabling secure communication without requiring pre-agreed trust anchors. The project will do so by exploring concepts of reputation-based trust as a means of providing redundancy of verification, and allowing data and key names to be independent. In the first year the research will provide a viable prototype for secure, reputation-based NDN as a proof of concept of content-centric networking. In the second year, the prototype will be extended and evaluated according to scalability (increasing size of networks), resiliency (partition repair or fault tolerance), and security (ability to withstand service attacks). Finally in the last year, we will propose an algebra of trust that theoretically describes the functioning of the secure NDN.
+
+%amount of funding required.
+To support these objectives, we requests 300K a year for three years. The funds will support the researchers, allow for the purchase of networking and server equipment, and provide for the sharing of research at yearly academic and industrial conferences.
+
+\noindent
+{\large{\bf Intellectual Merit}}
+
+\noindent
+The project will explore fundamental issues in communication theory, as well as theoretical research in the evaluation of trust. The applied research will also formulate a basis for many lines of investigation on secure, content-driven networking. The theoretical foundation for the project is to construct an algebra for describing trust and the measurement of trust throughout a system. The proposal will take into account the temporal nature of trust and the need for expiration and revocation. As a result, our theoretical contribution will allow the validation of authenticity for new, untrusted parties and provide a framework for computable trust in communication.
+
+\noindent
+{\large{\bf Broader Impacts}}
+
+%effect of the activity on the infrastructure of science, engineering, and
+%education.
+\noindent
+As the communications infrastructure of the Internet grows to support more users, more devices, and more geographic availability the cost of the fixed infrastructure will also continue to grow. These costs are not only in terms of inflexibility and capital costs - but also those costs related to malicious actors who use the anonymity of the Internet to cause harm. This proposal ties content-driven scalability with security in the hopes to lay the theoretical framework for the multi-modal communications infrastructure of the future, one which will be resilient to wide-scale societal changes and social and culteral changes.
+
+\end{document}

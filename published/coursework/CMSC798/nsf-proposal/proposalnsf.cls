@@ -12,7 +12,6 @@
 %\RequirePackage{newcent}
 \usepackage{mathptmx}
 
-
 \setlength{\paperheight}{11in}
 \setlength{\paperwidth}{8.5in}
 \addtolength{\voffset}{-1in}
@@ -37,6 +36,8 @@
 \lfoot{}
 \cfoot{}
 \rfoot{}
+
+\newcommand\Large{\@setfontsize\Large\@xviipt{40}}
 
 %\def\@makefnmark{\hbox{$^{\fnsymbol{\@mpfn}}\m@th$}}
 \renewcommand\floatpagefraction{.9}
