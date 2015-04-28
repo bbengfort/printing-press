@@ -1,49 +1,32 @@
-% TEMPLATE for Usenix papers, specifically to meet requirements of
-%  USENIX '05
-% originally a template for producing IEEE-format articles using LaTeX.
-%   written by Matthew Ward, CS Department, Worcester Polytechnic Institute.
-% adapted by David Beazley for his excellent SWIG paper in Proceedings,
-%   Tcl 96
-% turned into a smartass generic template by De Clarke, with thanks to
-%   both the above pioneers
-% use at your own risk.  Complaints to /dev/null.
-% make it two column with no page numbering, default is 10 point
+\documentclass{proposalnsf}
+\usepackage{epsfig}
 
-% Munged by Fred Douglis <douglis@research.att.com> 10/97 to separate
-% the .sty file from the LaTeX source template, so that people can
-% more easily include the .sty file into an existing document.  Also
-% changed to more closely follow the style guidelines as represented
-% by the Word sample file. 
+% NSF proposal generation template style file.
+% based on latex stylefiles  written by Stefan Llewellyn Smith and
+% Sarah Gille, with contributions from other collaborators.
 
-% Note that since 2010, USENIX does not require endnotes. If you want
-% foot of page notes, don't include the endnotes package in the 
-% usepackage command, below.
+\renewcommand{\refname}{\centerline{References cited}}
 
-% This version uses the latex2e styles, not the very ancient 2.09 stuff.
-\documentclass[letterpaper,twocolumn,10pt]{article}
-\usepackage{usenix,epsfig,endnotes}
+% this handles hanging indents for publications
+% \def\rrr#1\\{\par
+% \medskip\hbox{\vbox{\parindent=2em\hsize=6.12in
+% \hangindent=4em\hangafter=1#1}}}
+%
+% \def\baselinestretch{1}
+
 \begin{document}
 
-%don't want date printed
-\date{}
+\begin{center}
+{\Large{\bf Evolving the Internet for Scalability and Security with
+    Content-Centric Networking}}\\*[3mm]
+{\bf Proposal Summary} \\*[3mm]
 
-%make title bold and 14 pt font (Latex default is non-bold, 16 pt)
-\title{\Large \bf Evolving the Internet for Scalability and Security with
-    Content-Centric Networking}
-
-%for single author (just remove % characters)
-\author{
-{\rm B. Bengfort, S.\ Herwig, A.\ Mathur, M.\ Shao}\\
+B. Bengfort, S.\ Herwig, A.\ Mathur, M.\ Shao\\
 University of Maryland, College Park
-} % end author
 
-\maketitle
+\end{center}
 
-% Use the following at camera-ready time to suppress page numbers.
-% Comment it out when you first submit the paper for review.
-\thispagestyle{empty}
 
-\section{Objectives}
 %objectives and scientific, engineering, or educational significance of the%
 %proposed work.  Present the merits of the the proposed project clearly.
 The Internet has become a platform for content dissemination.  Unfortunately,
@@ -59,7 +42,9 @@ content-centric networking paradigm.  In particular, the project will
 explore models for distributed, decentralized, trust for the purposes of
 signing and verifying named data.
 
-\section*{Methods}
+\noindent
+{\bf Methods}
+
 %suitability of the methods to be employed.
 In contrast to TCP/IP, which places responsibilty for security on the
 endpoints, NDN secures content by requiring data producers to cryptographically
@@ -75,24 +60,29 @@ pre-agreed trust anchors.  The project will also explore concepts of
 reputation-based trust, as a means of providing redundancy of verification, and
 allowing data and key names to be independent.
 
-\section*{Qualifications}
+\noindent
+{\bf Qualifications}
+
 %qualifications of the investigator and the grantee organization.
 The submitters of this proposal are the chief investigators.  They are computer
 science PhD students at the University of Maryland with a focus on networking
-and systems. 
+and systems.
 
-\section*{Intellectual Merit}
+\noindent
+{\bf Intellectual Merit}
+
 The project will explore fundamental issues in communication theory, as well as
-theoretical research in the evaluation of trust.  
+theoretical research in the evaluation of trust.
 
 In particular, the project will explore prior work in constructing an algebra
 for describing trust and measuring the propagation of trust throughout a
 system.  A key element in such an algebra is an allowance for the temporal
 nature of trust, and the need for expiration and revocation.  Moreover, the
-alegebra must allow for the validation of authenticity of a new, untrusted, party
-that is introduced into a system.
+alegebra must allow for the validation of authenticity of a new, untrusted, party that is introduced into a system.
 
-\section*{Broader Impact}
+\noindent
+{\bf Broader Impacts}
+
 %effect of the activity on the infrastructure of science, engineering, and
 %education.
 The project proposes research that supports evolving the Internet to better
@@ -102,7 +92,9 @@ and emerging use-cases.  As the existing Internet has caused wide-scale
 societal changes, a component of this project is assessing the societal impacts
 of any proposed changes to the current Internet.
 
-\section*{Funding}
+\noindent
+{\bf Funding}
+
 %amount of funding required.
 The projects requests 300K a year for three years.  The funds will support the
 researchers, allow for the purchase of networking and server equipment, and
@@ -110,5 +102,3 @@ provide for the sharing of research at yearly academic and industrial
 conferences.
 
 \end{document}
-
-
