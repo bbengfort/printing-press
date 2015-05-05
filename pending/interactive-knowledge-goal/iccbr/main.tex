@@ -6,20 +6,16 @@
 \usepackage[pdftex]{graphicx} % use this when importing PDF files
 
 
-\ShortHeadings{Interactive Reasoning to Solve Knowledge Goals}
-              {B.\ Bengfort and M.T.\ Cox}
-
 \begin{document}
 
 \title{Interactive Knowledge-Goal Reasoning}
 
-\author{Benjamin Bengfort}{bengfort@cs.umd.edu}
-\address{Department of Computer Science, University of Maryland,
-         College Park, MD 20742 USA}
-\author{Michael T. Cox}{michael.cox@wright.edu}
-\address{Wright State Research Institute, Wright State University,
-         Dayton, OH 45435 USA}
-\vskip 0.2in
+\author{Benjamin Bengfort\inst{1} \and Michael T. Cox\inst{2}}
+
+\institute{University of Maryland \email{bengfort@cs.umd.edu}
+\and Wright State Research Institute \email{michael.cox@wright.edu}}
+
+\maketitle
 
 % Title (1000 readers)
 % Abstract (4 sentences, 100 readers)
@@ -87,7 +83,7 @@ The decomposition method of solving fact-based retrieval questions can also be a
 
 \begin{figure}
 	\centering
-	    \includegraphics[width=\textwidth]{figures/simple_trajectory.png}
+	    \includegraphics[width=\textwidth]{../figures/simple_trajectory.png}
     \caption{\label{fig:simple_trajectory.png}A complex knowledge goal solution with trajectory change.}
 \end{figure}
 
@@ -153,7 +149,7 @@ Our vision to solve complex knowledge goals is an \textit{interactive case-based
 
 \begin{figure}
 	\centering
-	    \includegraphics[width=0.5\textwidth]{figures/architecture.png}
+	    \includegraphics[width=0.5\textwidth]{../figures/architecture.png}
     \caption{\label{fig:architecture.png}An architecture for interactive knowledge-goal reasoning.}
 \end{figure}
 
@@ -195,7 +191,7 @@ Asked questions are then answered by other users who can specify free text about
 
 \begin{figure}
 	\centering
-	    \includegraphics[width=0.75\textwidth]{figures/kyudo_screenshot.png}
+	    \includegraphics[width=0.75\textwidth]{../figures/kyudo_screenshot.png}
     \caption{\label{fig:kyudo_screenshot.png}A screenshot of Kyudo, our preliminary case acquisition system.}
 \end{figure}
 
@@ -243,26 +239,7 @@ In this paper we proposed a vision for an interactive case-based reasoning syste
 
 To date, we have built a case acquisition system called Kyudo to begin generating a case base for further exploration. In the future we hope to refine and develop our ideas related to the case representation, indexing of case relations, knowledge-based generalization and case adaptation, and explore the use of goal trajectories for creative investigative processes.
 
-% \newpage
-
-% \begin{acknowledgements}
-% \noindent
-% % Please place your acknowledgements in an unnumbered section at the
-% % end of the paper. Typically, this will include thanks to reviewers
-% % who gave useful comments, to colleagues who contributed to the ideas,
-% % and to funding agencies or corporate sponsors that provided financial
-% % support.
-% \end{acknowledgements}
-
-\vspace{-0.25in}
-
-{\parindent -10pt\leftskip 10pt\noindent
-\bibliographystyle{cogsysapa}
+\bibliographystyle{splncs}
 \bibliography{kgworkshop}
-
-}
-
-% Leave a blank line before the closing brace to ensure the final
-% reference has the proper indentation.
 
 \end{document}
