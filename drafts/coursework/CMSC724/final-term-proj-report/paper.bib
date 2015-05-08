@@ -1,0 +1,436 @@
+@article{green_datalog_2013,
+	title = {Datalog and {Recursive} {Query} {Processing}.},
+	volume = {5},
+	url = {http://www.qjps.com/article/Download/DBS-017},
+	abstract = {In recent years, we have witnessed a revival of the use of recursive queries in a variety of emerging application domains such as data integration and exchange, information extraction, networking, and program analysis. A popular language used for expressing these queries is Datalog. This paper surveys for a general audience the Datalog language, recursive query processing, and optimization techniques. This survey differs from prior surveys written in the eighties and nineties in its comprehensiveness of topics, its coverage of recent developments and applications, and its emphasis on features and techniques beyond “classical” Datalog which are vital for practical applications. Specifically, the topics covered include the core Datalog language and various extensions, semantics, query optimizations, magic-sets optimizations, incremental view maintenance, aggregates, negation, and types. We conclude the paper with a survey of recent systems and applications that use Datalog and recursive queries.},
+	number = {2},
+	urldate = {2015-02-10},
+	journal = {Foundations and Trends in Databases},
+	author = {Green, Todd J. and Huang, Shan Shan and Loo, Boon Thau and Zhou, Wenchao},
+	year = {2013},
+	keywords = {datalog},
+	pages = {105--195},
+	file = {Green-Vol5-DBS-017.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/QZCJJ3ZN/Green-Vol5-DBS-017.pdf:application/pdf}
+}
+
+@article{fan_case_2015,
+	title = {The case against specialized graph analytics engines},
+	url = {http://pages.cs.wisc.edu/~jignesh/publ/Grail.pdf},
+	abstract = {Graph analytic processing has started to become a nearly ubiquitous component in the enterprise data analytics ecosystem. In response to this growing need, various specialized graph processing engines have been created in recent years. Sadly, the use of relational database management systems (RDBMSs) for graph processing is largely ignored in most enterprise settings. This oversight is surprising since in most enterprise settings, RDBMSs are already present and used for a variety of other analytic tasks. This situation then begs the question of whether the use of RDBMS for graph processing is fundamentally lacking in some respect compared to the specialized graph processing engines. In this paper, we aim to address this question both from the programmer productivity perspective and from the performance perspective. We present Grail a syntactic layer for querying graph in a vertex-centric way in an RDBMS, which can be compiled to translate graph queries to SQL. In a single node setting, we also compare Grail to GraphLab and Giraph, and examine the performance implications of using Grail, showing that the RDBMS engine is competitive to these specialized engines. Given that RDBMSs are ubiquitous in enterprise settings, and have a robust and mature technology that has been hardened over decades, and are part of existing administrative methods in place, we argue that it is time to reconsider if specialized graph engines have a role to play in most enterprises.},
+	urldate = {2015-03-17},
+	author = {Fan, Jing and Gerald, Adalbert and Raj, Soosai and Patel, Jignesh M.},
+	year = {2015},
+	keywords = {rdbms},
+	file = {[PDF] from wisc.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/ZH29N4C5/Fan et al. - The case against specialized graph analytics engin.pdf:application/pdf}
+}
+
+@inproceedings{he_graphs-at--time:_2008,
+	title = {Graphs-at-a-time: query language and access methods for graph databases},
+	shorttitle = {Graphs-at-a-time},
+	url = {http://dl.acm.org/citation.cfm?id=1376660},
+	abstract = {With the prevalence of graph data in a variety of domains, there is an increasing need for a language to query and manipulate graphs with heterogeneous attributes and structures. We propose a query language for graph databases that supports arbitrary attributes on nodes, edges, and graphs. In this language, graphs are the basic unit of information and each query manipulates one or more collections of graphs. To allow for flexible compositions of graph structures, we extend the notion of formal languages from strings to the graph domain. We present a graph algebra extended from the relational algebra in which the selection operator is generalized to graph pattern matching and a composition operator is introduced for rewriting matched graphs. Then, we investigate access methods of the selection operator. Pattern matching over large graphs is challenging due to the NP-completeness of subgraph isomorphism. We address this by a combination of techniques: use of neighborhood subgraphs and profiles, joint reduction of the search space, and optimization of the search order. Experimental results on real and synthetic large graphs demonstrate that our graph specific optimizations outperform an SQL-based implementation by orders of magnitude.},
+	urldate = {2015-02-13},
+	booktitle = {Proceedings of the 2008 {ACM} {SIGMOD} international conference on {Management} of data},
+	publisher = {ACM},
+	author = {He, Huahai and Singh, Ambuj K.},
+	year = {2008},
+	pages = {405--418},
+	file = {[PDF] from ucsb.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/45J5HSF4/He and Singh - 2008 - Graphs-at-a-time query language and access method.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/7HIZI9A8/citation.html:text/html}
+}
+
+@book{rodriguez_gremlin_2013,
+	title = {Gremlin graph traversal language},
+	author = {Rodriguez, M. A. and {others}},
+	year = {2013},
+	keywords = {gremlin}
+}
+
+@article{rodriguez_exploring_2012,
+	title = {Exploring {Wikipedia} with {Gremlin} {Graph} {Traversals}},
+	url = {http://markorodriguez.com/2012/03/07/exploring-wikipedia-with-gremlin-graph-traversals/},
+	urldate = {2015-02-13},
+	journal = {Marko A. Rodriguez},
+	author = {Rodriguez, Marko A.},
+	year = {2012},
+	keywords = {gremlin},
+	file = {[HTML] from markorodriguez.com:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/EHBZTSJ9/exploring-wikipedia-with-gremlin-graph-traversals.html:text/html}
+}
+
+@inproceedings{miller_graph_2013,
+	title = {Graph {Database} {Applications} and {Concepts} with {Neo}4j},
+	url = {http://sais.aisnet.org/2013/MillerJ.pdf},
+	abstract = {Graph databases (GDB) are now a viable alternative to Relational Database Systems (RDBMS). Chemistry, biology, semantic web, social networking and recommendation engines are all examples of applications that can be represented in a much more natural form. Comparisons will be drawn between relational database systems (Oracle, MySQL) and graph databases (Neo4J) focusing on aspects such as data structures, data model features and query facilities. Additionally, several of the inherent and contemporary limitations of current offerings comparing and contrasting graph vs. relational database implementations will be explored.},
+	urldate = {2015-02-13},
+	booktitle = {Proceedings of the {Southern} {Association} for {Information} {Systems} {Conference}, {Atlanta}, {GA}, {USA} {March} 23rd-24th},
+	author = {Miller, Justin J.},
+	year = {2013},
+	file = {[PDF] from aisnet.org:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/3PHXAX4J/Miller - 2013 - Graph Database Applications and Concepts with Neo4.pdf:application/pdf}
+}
+
+@inproceedings{hert_comparison_2011,
+	title = {A comparison of {RDB}-to-{RDF} mapping languages},
+	url = {http://dl.acm.org/citation.cfm?id=2063522},
+	abstract = {Mapping Relational Databases (RDB) to RDF is an active field of research. The majority of data on the current Web is stored in RDBs. Therefore, bridging the conceptual gap between the relational model and RDF is needed to make the data available on the Semantic Web. In addition, recent research has shown that Semantic Web technologies are useful beyond the Web, especially if data from different sources has to be exchanged or integrated. Many mapping languages and approaches were explored leading to the ongoing standardization effort of the World Wide Web Consortium (W3C) carried out in the RDB2RDF Working Group (WG). The goal and contribution of this paper is to provide a feature-based comparison of the state-of-the-art RDB-to-RDF mapping languages. It should act as a guide in selecting a RDB-to-RDF mapping language for a given application scenario and its requirements w.r.t. mapping features. Our comparison framework is based on use cases and requirements for mapping RDBs to RDF as identified by the RDB2RDF WG. We apply this comparison framework to the state-of-the-art RDB-to-RDF mapping languages and report the findings in this paper. As a result, our classification proposes four categories of mapping languages: direct mapping, read-only general-purpose mapping, read-write general-purpose mapping, and special-purpose mapping. We further provide recommendations for selecting a mapping language.},
+	urldate = {2015-02-13},
+	booktitle = {Proceedings of the 7th {International} {Conference} on {Semantic} {Systems}},
+	publisher = {ACM},
+	author = {Hert, Matthias and Reif, Gerald and Gall, Harald C.},
+	year = {2011},
+	keywords = {rdbms, rdf},
+	pages = {25--32},
+	file = {Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/B97ADRKA/citation.html:text/html}
+}
+
+@inproceedings{ghelli_query_2010,
+	title = {Query {Languages} for {Graph} {Databases}},
+	url = {http://wigowin.di.unipi.it/wp/abstracts/15Ghelli.pdf},
+	urldate = {2015-02-13},
+	booktitle = {1st {Internal} {Conference} on {What} is {Going} on and {What} is {Next}?},
+	author = {Ghelli, Giorgio and Pardini, Luca},
+	year = {2010},
+	pages = {50},
+	file = {[PDF] from unipi.it:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/6WRHMKPP/Ghelli and Pardini - 2010 - Query Languages for Graph Databases.pdf:application/pdf}
+}
+
+@book{robinson_graph_2013,
+	title = {Graph databases},
+	url = {https://books.google.com/books?hl=en&lr=&id=SbYaAAAAQBAJ&oi=fnd&pg=PR2&dq=Graph+Databases+Ian+Robinson+Jim+Weber&ots=Z_oEkTEtsx&sig=Q2NDLywbJUSa52awAnWmIqajqck},
+	urldate = {2015-03-17},
+	publisher = {O'Reilly Media, Inc.},
+	author = {Robinson, Ian and Webber, Jim and Eifrem, Emil},
+	year = {2013},
+	file = {Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/76R8FQWV/books.html:text/html}
+}
+
+@article{bu_scaling_2012,
+	title = {Scaling datalog for machine learning on big data},
+	url = {http://arxiv.org/abs/1203.0160},
+	abstract = {In this paper, we present the case for a declarative foundation for data-intensive machine learning systems. Instead of creating a new system for each specific flavor of machine learning task, or hardcoding new optimizations, we argue for the use of recursive queries to program a variety of machine learning systems. By taking this approach, database query optimization techniques can be utilized to identify effective execution plans, and the resulting runtime plans can be executed on a single unified data-parallel query processing engine. As a proof of concept, we consider two programming models—Pregel and Iterative Map-Reduce-Update—from the machine learning domain, and show how they can be captured in Datalog, tuned for a specific task, and then compiled into an optimized physical plan. Experiments performed on a large computing cluster with real data demonstrate that this declarative approach can provide very good performance while offering both increased generality and programming ease.},
+	urldate = {2015-03-17},
+	journal = {arXiv preprint arXiv:1203.0160},
+	author = {Bu, Yingyi and Borkar, Vinayak and Carey, Michael J. and Rosen, Joshua and Polyzotis, Neoklis and Condie, Tyson and Weimer, Markus and Ramakrishnan, Raghu},
+	year = {2012},
+	keywords = {big data, datalog, machine learning},
+	file = {[PDF] from arxiv.org:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/STQVWZM8/Bu et al. - 2012 - Scaling datalog for machine learning on big data.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/EI4G726J/1203.html:text/html}
+}
+
+@inproceedings{najork_hammers_2012,
+	title = {Of hammers and nails: an empirical comparison of three paradigms for processing large graphs},
+	shorttitle = {Of hammers and nails},
+	url = {http://dl.acm.org/citation.cfm?id=2124310},
+	abstract = {Many phenomena and artifacts such as road networks, social networks and the web can be modeled as large graphs and analyzed using graph algorithms. However, given the size of the underlying graphs, efficient implementation of basic operations such as connected component analysis, approximate shortest paths, and link-based ranking (e.g.PageRank) becomes challenging.
+
+This paper presents an empirical study of computations on such large graphs in three well-studied platform models, viz., a relational model, a data-parallel model, and a special-purpose in-memory model. We choose a prototypical member of each platform model and analyze the computational efficiencies and requirements for five basic graph operations used in the analysis of real-world graphs viz., PageRank, SALSA, Strongly Connected Components (SCC), Weakly Connected Components (WCC), and Approximate Shortest Paths (ASP). Further, we characterize each platform in terms of these computations using model-specific implementations of these algorithms on a large web graph. Our experiments show that there is no single platform that performs best across different classes of operations on large graphs. While relational databases are powerful and flexible tools that support a wide variety of computations, there are computations that benefit from using special-purpose storage systems and others that can exploit data-parallel platforms.},
+	urldate = {2015-03-17},
+	booktitle = {Proceedings of the fifth {ACM} international conference on {Web} search and data mining},
+	publisher = {ACM},
+	author = {Najork, Marc and Fetterly, Dennis and Halverson, Alan and Kenthapadi, Krishnaram and Gollapudi, Sreenivas},
+	year = {2012},
+	pages = {103--112},
+	file = {[PDF] from msr-waypoint.net:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/VXA57KF3/Najork et al. - 2012 - Of hammers and nails an empirical comparison of t.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/TVWC4KK5/citation.html:text/html}
+}
+
+@article{seo_distributed_2013,
+	title = {Distributed socialite: {A} datalog-based language for large-scale graph analysis},
+	volume = {6},
+	shorttitle = {Distributed socialite},
+	url = {http://dl.acm.org/citation.cfm?id=2556572},
+	number = {14},
+	urldate = {2015-03-17},
+	journal = {Proceedings of the VLDB Endowment},
+	author = {Seo, Jiwon and Park, Jongsoo and Shin, Jaeho and Lam, Monica S.},
+	year = {2013},
+	pages = {1906--1917},
+	file = {[PDF] from stanford.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/C27EHPFV/Seo et al. - 2013 - Distributed socialite A datalog-based language fo.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/HIXKE9BS/citation.html:text/html}
+}
+
+@article{shkapsky_graph_2013,
+	title = {Graph queries in a next-generation datalog system},
+	volume = {6},
+	url = {http://dl.acm.org/citation.cfm?id=2536290},
+	abstract = {Recent theoretical advances have enabled the use of special monotonic aggregates in recursion. These special aggregates make possible the concise expression and efficient implementation of a rich new set of advanced applications. Among these applications, graph queries are particularly important because of their pervasiveness in data intensive application areas. In this demonstration, we present our Deductive Application Language (DeAL) System, the first of a new generation of Deductive Database Systems that support applications that could not be expressed using regular stratification, or could be expressed using XY-stratification (also supported in DeAL) but suffer from inefficient execution. Using example queries, we will (i) show how complex graph queries can be concisely expressed using DeAL and (ii) illustrate the formal semantics and efficient implementation of these powerful new monotonic constructs.},
+	number = {12},
+	urldate = {2015-03-17},
+	journal = {Proceedings of the VLDB Endowment},
+	author = {Shkapsky, Alexander and Zeng, Kai and Zaniolo, Carlo},
+	year = {2013},
+	pages = {1258--1261},
+	file = {[PDF] from ucla.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/PVXMGBCB/Shkapsky et al. - 2013 - Graph queries in a next-generation datalog system.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/TM5AMZP6/citation.html:text/html}
+}
+
+@article{jindal_vertexica:_2014,
+	title = {Vertexica: your relational friend for graph analytics!},
+	volume = {7},
+	shorttitle = {Vertexica},
+	url = {http://dl.acm.org/citation.cfm?id=2733057},
+	abstract = {In this paper, we present Vertexica, a graph analytics tools on top of a relational database, which is user friendly and yet highly efficient. Instead of constraining programmers to SQL, Vertexica offers a popular vertex-centric query interface, which is more natural for analysts to express many graph queries. The programmers simply provide their vertex-compute functions and Vertexica takes care of efficiently executing them in the standard SQL engine. The advantage of using Vertexica is its ability to leverage the relational features and enable much more sophisticated graph analysis. These include expressing graph algorithms which are difficult in vertex-centric but straightforward in SQL and the ability to compose end-to-end data processing pipelines, including pre- and post- processing of graphs as well as combining multiple algorithms for deeper insights. Vertexica has a graphical user interface and we outline several demonstration scenarios including, interactive graph analysis, complex graph analysis, and continuous and time series analysis.},
+	number = {13},
+	urldate = {2015-03-17},
+	journal = {Proceedings of the VLDB Endowment},
+	author = {Jindal, Alekh and Rawlani, Praynaa and Wu, Eugene and Madden, Samuel and Deshpande, Amol and Stonebraker, Mike},
+	year = {2014},
+	pages = {1669--1672},
+	file = {p1669-jindal.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/EKS4JC34/p1669-jindal.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/G4ZSFDID/citation.html:text/html}
+}
+
+@inproceedings{bronson_tao:_2013,
+	title = {{TAO}: {Facebook}'s {Distributed} {Data} {Store} for the {Social} {Graph}.},
+	shorttitle = {{TAO}},
+	url = {http://dl.frz.ir/FREE/papers-we-love/datastores/tao-facebook-distributed-datastore.pdf},
+	abstract = {We introduce a simple data model and API tailored for serving the social graph, and TAO, an implementation of this model. TAO is a geographically distributed data store that provides efficient and timely access to the social graph for Facebook’s demanding workload using a fixed set of queries. It is deployed at Facebook, replacing memcache for many data types that fit its model. The system runs on thousands of machines, is widely distributed, and provides access to many petabytes of data. TAO can process a billion reads and millions of writes each second.},
+	urldate = {2015-03-17},
+	booktitle = {{USENIX} {Annual} {Technical} {Conference}},
+	author = {Bronson, Nathan and Amsden, Zach and Cabrera, George and Chakka, Prasad and Dimov, Peter and Ding, Hui and Ferris, Jack and Giardullo, Anthony and Kulkarni, Sachin and Li, Harry C. and {others}},
+	year = {2013},
+	pages = {49--60},
+	file = {[PDF] from frz.ir:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/WE7UB6AG/Bronson et al. - 2013 - TAO Facebook's Distributed Data Store for the Soc.pdf:application/pdf}
+}
+
+@inproceedings{de_virgilio_converting_2013,
+	title = {Converting relational to graph databases},
+	url = {http://dl.acm.org/citation.cfm?id=2484426},
+	abstract = {Graph Database Management Systems provide an effective and efficient solution to data storage in current scenarios where data are more and more connected, graph models are widely used, and systems need to scale to large data sets. In this framework, the conversion of the persistent layer of an application from a relational to a graph data store can be convenient but it is usually an hard task for database administrators. In this paper we propose a methodology to convert a relational to a graph database by exploiting the schema and the constraints of the source. The approach supports the translation of conjunctive SQL queries over the source into graph traversal operations over the target. We provide experimental results that show the feasibility of our solution and the efficiency of query answering over the target database.},
+	urldate = {2015-03-17},
+	booktitle = {First {International} {Workshop} on {Graph} {Data} {Management} {Experiences} and {Systems}},
+	publisher = {ACM},
+	author = {De Virgilio, Roberto and Maccioni, Antonio and Torlone, Riccardo},
+	year = {2013},
+	pages = {1},
+	file = {[PDF] from unibo.it:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/Q5VKJZU5/De Virgilio et al. - 2013 - Converting relational to graph databases.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/XN7653US/citation.html:text/html}
+}
+
+@misc{kallen_flockdb_2012,
+	title = {{FlockDB}},
+	url = {https://github.com/twitter/flockdb},
+	abstract = {FlockDB is a distributed graph database for storing adjancency lists. FlockDB is much simpler than other graph databases such as neo4j because it tries to solve fewer problems. It scales horizontally and is designed for on-line, low-latency, high throughput environments such as web-sites.},
+	publisher = {Twitter, Inc.},
+	author = {Kallen, Nick and Pointer, Robey and Kalucki, John and Ceaser, Ed},
+	month = mar,
+	year = {2012}
+}
+
+@inproceedings{jain_graphbuilder:_2013,
+	title = {Graphbuilder: scalable graph etl framework},
+	shorttitle = {Graphbuilder},
+	url = {http://dl.acm.org/citation.cfm?id=2484429},
+	abstract = {Graph abstraction is essential for many applications from finding a shortest path to executing complex machine learning (ML) algorithms like collaborative filtering. Graph construction from raw data for various applications is becoming challenging, due to exponential growth in data, as well as the need for large scale graph processing. Since graph construction is a data-parallel problem, MapReduce is well-suited for this task. We developed GraphBuilder, a scalable framework for graph Extract-Transform-Load (ETL), to offload many of the complexities of graph construction, including graph formation, tabulation, transformation, partitioning, output formatting, and serialization. GraphBuilder is written in Java, for ease of programming, and it scales using the MapReduce model. In this paper, we describe the motivation for GraphBuilder, its architecture, MapReduce algorithms, and performance evaluation of the framework. Since large graphs should be partitioned over a cluster for storing and processing and partitioning methods have significant performance impacts, we develop several graph partitioning methods and evaluate their performance. We also open source the framework at https://01.org/graphbuilder/.},
+	urldate = {2015-03-17},
+	booktitle = {First {International} {Workshop} on {Graph} {Data} {Management} {Experiences} and {Systems}},
+	publisher = {ACM},
+	author = {Jain, Nilesh and Liao, Guangdeng and Willke, Theodore L.},
+	year = {2013},
+	pages = {4},
+	file = {[PDF] from cwi.nl:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/ZKRKQA4F/Jain et al. - 2013 - Graphbuilder scalable graph etl framework.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/9GNKTNAV/citation.html:text/html}
+}
+
+@misc{ching_apache_2014,
+	title = {Apache {Giraph}},
+	url = {http://giraph.apache.org/},
+	publisher = {Apache Software Foundation},
+	author = {Ching, Avery and Choi, Hyunsik and Homan, Jakob and Kunz, Christian and O'Malley, Owen and Mannix, Jake and Ryaboy, Dmitriy and Martella, Claudio and Shaposhnik, Roman and Schelter, Sebastian and Koontz, Eugene and Presta, Allessandro and Reisman, Eli and Kabiljo, Maja and Joffe, Nitay},
+	month = oct,
+	year = {2014}
+}
+
+@inproceedings{malewicz_pregel:_2010,
+	title = {Pregel: a system for large-scale graph processing},
+	shorttitle = {Pregel},
+	url = {http://dl.acm.org/citation.cfm?id=1807184},
+	abstract = {Many practical computing problems concern large graphs. Standard examples include the Web graph and various social networks. The scale of these graphs - in some cases billions of vertices, trillions of edges - poses challenges to their efficient processing. In this paper we present a computational model suitable for this task. Programs are expressed as a sequence of iterations, in each of which a vertex can receive messages sent in the previous iteration, send messages to other vertices, and modify its own state and that of its outgoing edges or mutate graph topology. This vertex-centric approach is flexible enough to express a broad set of algorithms. The model has been designed for efficient, scalable and fault-tolerant implementation on clusters of thousands of commodity computers, and its implied synchronicity makes reasoning about programs easier. Distribution-related details are hidden behind an abstract API. The result is a framework for processing large graphs that is expressive and easy to program.},
+	urldate = {2015-03-17},
+	booktitle = {Proceedings of the 2010 {ACM} {SIGMOD} {International} {Conference} on {Management} of data},
+	publisher = {ACM},
+	author = {Malewicz, Grzegorz and Austern, Matthew H. and Bik, Aart JC and Dehnert, James C. and Horn, Ilan and Leiser, Naty and Czajkowski, Grzegorz},
+	year = {2010},
+	pages = {135--146},
+	file = {[PDF] from shikee.net:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/3XBVV82W/Malewicz et al. - 2010 - Pregel a system for large-scale graph processing.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/4CA9I4Z8/citation.html:text/html}
+}
+
+@inproceedings{salihoglu_gps:_2013,
+	title = {Gps: {A} graph processing system},
+	shorttitle = {Gps},
+	url = {http://dl.acm.org/citation.cfm?id=2484843},
+	abstract = {GPS (for Graph Processing System) is a complete open-source system we developed for scalable, fault-tolerant, and easy-to-program execution of algorithms on extremely large graphs. This paper serves the dual role of describing the GPS system, and presenting techniques and experimental results for graph partitioning in distributed graph-processing systems like GPS. GPS is similar to Google's proprietary Pregel system, with three new features: (1) an extended API to make global computations more easily expressed and more efficient; (2) a dynamic repartitioning scheme that reassigns vertices to different workers during the computation, based on messaging patterns; and (3) an optimization that distributes adjacency lists of high-degree vertices across all compute nodes to improve performance. In addition to presenting the implementation of GPS and its novel features, we also present experimental results on the performance effects of both static and dynamic graph partitioning schemes, and we describe the compilation of a high-level domain-specific programming language},
+	urldate = {2015-03-17},
+	booktitle = {Proceedings of the 25th {International} {Conference} on {Scientific} and {Statistical} {Database} {Management}},
+	publisher = {ACM},
+	author = {Salihoglu, Semih and Widom, Jennifer},
+	year = {2013},
+	pages = {22},
+	file = {[PDF] from stanford.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/H5E8NZ2F/Salihoglu and Widom - 2013 - Gps A graph processing system.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/ADP4JE4B/citation.html:text/html}
+}
+
+@inproceedings{welc_graph_2013,
+	title = {Graph analysis: do we have to reinvent the wheel?},
+	shorttitle = {Graph analysis},
+	url = {http://dl.acm.org/citation.cfm?id=2484432},
+	urldate = {2015-03-17},
+	booktitle = {First {International} {Workshop} on {Graph} {Data} {Management} {Experiences} and {Systems}},
+	publisher = {ACM},
+	author = {Welc, Adam and Raman, Raghavan and Wu, Zhe and Hong, Sungpack and Chafi, Hassan and Banerjee, Jay},
+	year = {2013},
+	pages = {7},
+	file = {[PDF] from adamwelc.org:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/JNV5JKST/Welc et al. - 2013 - Graph analysis do we have to reinvent the wheel.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/GBX9JKCZ/citation.html:text/html}
+}
+
+@inproceedings{shao_trinity:_2013,
+	title = {Trinity: {A} distributed graph engine on a memory cloud},
+	shorttitle = {Trinity},
+	url = {http://dl.acm.org/citation.cfm?id=2467799},
+	abstract = {Computations performed by graph algorithms are data driven, and require a high degree of random data access. Despite the great progresses made in disk technology, it still cannot provide the level of efficient random access required by graph computation. On the other hand, memory-based approaches usually do not scale due to the capacity limit of single machines. In this paper, we introduce Trinity, a general purpose graph engine over a distributed memory cloud. Through optimized memory management and network communication, Trinity supports fast graph exploration as well as efficient parallel computing. In particular, Trinity leverages graph access patterns in both online and offline computation to optimize memory and communication for best performance. These enable Trinity to support efficient online query processing and offline analytics on large graphs with just a few commodity machines. Furthermore, Trinity provides a high level specification language called TSL for users to declare data schema and communication protocols, which brings great ease-of-use for general purpose graph management and computing. Our experiments show Trinity's performance in both low latency graph queries as well as high throughput graph analytics on web-scale, billion-node graphs.},
+	urldate = {2015-03-17},
+	booktitle = {Proceedings of the 2013 {ACM} {SIGMOD} {International} {Conference} on {Management} of {Data}},
+	publisher = {ACM},
+	author = {Shao, Bin and Wang, Haixun and Li, Yatao},
+	year = {2013},
+	pages = {505--516},
+	file = {[PDF] from microsoft.com:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/QB7GBA3H/Shao et al. - 2013 - Trinity A distributed graph engine on a memory cl.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/Z7VTFD3Z/citation.html:text/html}
+}
+
+@misc{broecheler_titan_2015,
+	title = {Titan},
+	url = {http://thinkaurelius.github.io/titan/},
+	abstract = {Titan is a highly scalable graph database optimized for storing and querying large graphs with billions of vertices and edges distributed across a multi-machine cluster. Titan is a transactional database that can support thousands of concurrent users.},
+	publisher = {Aurelius},
+	author = {Broecheler, Matthias and LaRocque, Dan and Rodriquez, Marko A. and Mallette, Stephen and Yaskevich, Pavel},
+	month = feb,
+	year = {2015}
+}
+
+@misc{eifrem_neo4j_2014,
+	title = {Neo4j},
+	url = {http://neo4j.com/},
+	abstract = {Neo4j is the world’s leading Graph Database. It is a high performance graph store with all the features expected of a mature and robust database, like a friendly query language and ACID transactions. The programmer works with a flexible network structure of nodes and relationships rather than static tables — yet enjoys all the benefits of enterprise-quality database. For many applications, Neo4j offers orders of magnitude performance benefits compared to relational DBs.},
+	publisher = {Neo Technology, Inc.},
+	author = {Eifrem, Emil and Svensson, Johan},
+	month = feb,
+	year = {2014}
+}
+
+@misc{iordanov_hypergraphdb_2012,
+	title = {{HyperGraphDB}},
+	url = {http://www.hypergraphdb.org/},
+	abstract = {HyperGraphDB is a general purpose, open-source data storage mechanism based on a powerful knowledge management formalism known as directed hypergraphs. While a persistent memory model designed mostly for knowledge management, AI and semantic web projects, it can also be used as an embedded object-oriented database for Java projects of all sizes. Or a graph database. Or a (non-SQL) relational database.},
+	publisher = {Kobrix Software},
+	author = {Iordanov, Borislav},
+	month = dec,
+	year = {2012}
+}
+
+@misc{_graphx_2015,
+	title = {{GraphX}},
+	url = {http://amplab.github.io/graphx/},
+	abstract = {Unifying Graphs and Tables. GraphX extends the distributed fault-tolerant collections API and interactive console of Spark with a new graph API which leverages recent advances in graph systems (e.g., GraphLab) to enable users to easily and interactively build, transform, and reason about graph structured data at scale.},
+	publisher = {Apache Software Foundation},
+	month = mar,
+	year = {2015}
+}
+
+@misc{_orientdb_2015,
+	title = {{OrientDB}},
+	url = {http://www.orientechnologies.com/},
+	abstract = {OrientDB is a 2nd Generation Distributed Graph Database with the flexibility of Documents in one product with an Open Source commercial friendly license (Apache 2 license). First generation Graph Databases lack the features that Big Data demands: multi-master replication, sharding and more flexibility for modern complex use cases.},
+	publisher = {Orient Technologies LTD},
+	month = jan,
+	year = {2015}
+}
+
+@article{stonebraker_what_2005,
+	title = {What goes around comes around},
+	volume = {4},
+	url = {https://books.google.com/books?hl=en&lr=&id=7a48qSMuVcUC&oi=fnd&pg=PA2&dq=what+goes+around+comes+around&ots=taje6wQt1j&sig=RTT17IrzcZ7yMreChmHBiHHD83c},
+	urldate = {2015-03-18},
+	journal = {Readings in Database Systems},
+	author = {Stonebraker, Michael and Hellerstein, Joey},
+	year = {2005},
+	file = {[PDF] from wisc.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/B8G6GTXH/Stonebraker and Hellerstein - 2005 - What goes around comes around.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/NC62F7EJ/books.html:text/html}
+}
+
+@inproceedings{vicknair_comparison_2010,
+	title = {A comparison of a graph database and a relational database: a data provenance perspective},
+	shorttitle = {A comparison of a graph database and a relational database},
+	url = {http://dl.acm.org/citation.cfm?id=1900067},
+	abstract = {Relational databases have been around for many decades and are the database technology of choice for most traditional data-intensive storage and retrieval applications. Retrievals are usually accomplished using SQL, a declarative query language. Relational database systems are generally efficient unless the data contains many relationships requiring joins of large tables. Recently there has been much interest in data stores that do not use SQL exclusively, the so called NoSQL movement. Examples are Google’s BigTable and Facebook’s Cassandra. This paper reports on a comparison of one such NoSQL graph database called Neo4j with a common relational database system, MySQL, for use as the underlying technology in the development of a software system to record and query data provenance information.},
+	urldate = {2015-03-18},
+	booktitle = {Proceedings of the 48th annual {Southeast} regional conference},
+	publisher = {ACM},
+	author = {Vicknair, Chad and Macias, Michael and Zhao, Zhendong and Nan, Xiaofei and Chen, Yixin and Wilkins, Dawn},
+	year = {2010},
+	pages = {42},
+	file = {[PDF] from olemiss.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/DXE7VTXJ/Vicknair et al. - 2010 - A comparison of a graph database and a relational .pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/TWNNXKFS/citation.html:text/html}
+}
+
+@article{berretti_efficient_2001,
+	title = {Efficient matching and indexing of graph models in content-based retrieval},
+	volume = {23},
+	url = {http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=954600},
+	number = {10},
+	urldate = {2015-03-18},
+	journal = {Pattern Analysis and Machine Intelligence, IEEE Transactions on},
+	author = {Berretti, Stefano and Del Bimbo, Alberto and Vicario, Enrico},
+	year = {2001},
+	pages = {1089--1105},
+	file = {Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/G3J447JU/login.html:text/html}
+}
+
+@article{prudhommeaux_sparql_2008,
+	title = {{SPARQL} query language for {RDF}},
+	volume = {15},
+	journal = {W3C recommendation},
+	author = {Prud’Hommeaux, Eric and Seaborne, Andy and {others}},
+	year = {2008}
+}
+
+@inproceedings{cuzzocrea_big_2014,
+	title = {Big {Graph} {Analytics}: {The} {State} of the {Art} and {Future} {Research} {Agenda}},
+	shorttitle = {Big {Graph} {Analytics}},
+	url = {http://dl.acm.org/citation.cfm?id=2668454},
+	abstract = {Analytics over big graphs is becoming a first-class challenge in database research, with fast-growing interest from both the academia and the industrial community. This problem arises in several application scenarios, ranging from social networks to large-scale network systems, from knowledge discovery to cybersecurity, and so forth. Following this major trend, this paper explores actual state-of-the-art results in the area of analytics over big graphs and discusses open research issues and actual trends in such area.},
+	urldate = {2015-03-23},
+	booktitle = {Proceedings of the 17th {International} {Workshop} on {Data} {Warehousing} and {OLAP}},
+	publisher = {ACM},
+	author = {Cuzzocrea, Alfredo and Song, Il-Yeol},
+	year = {2014},
+	pages = {99--101},
+	file = {p99-cuzzocrea.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/4IP649CJ/p99-cuzzocrea.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/4UXI6T83/citation.html:text/html}
+}
+
+@inproceedings{jadhav_comparative_2014,
+	title = {Comparative {Analysis} of {Different} {Graph} {Databases}},
+	volume = {3},
+	url = {http://www.ijert.org/view-pdf/11196/comparative-analysis-of-different-graph-databases},
+	urldate = {2015-03-23},
+	booktitle = {International {Journal} of {Engineering} {Research} and {Technology}},
+	publisher = {ESRSA Publications},
+	author = {Jadhav, Pradeep and Oberoi, Ruhi},
+	year = {2014},
+	file = {Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/HN7NWB74/comparative-analysis-of-different-graph-databases.html:text/html;V3I9-IJERTV3IS090721.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/7SES3REV/V3I9-IJERTV3IS090721.pdf:application/pdf}
+}
+
+@article{page_pagerank_1999,
+	title = {The {PageRank} citation ranking: {Bringing} order to the web.},
+	shorttitle = {The {PageRank} citation ranking},
+	url = {http://ilpubs.stanford.edu:8090/422},
+	urldate = {2015-03-23},
+	author = {Page, Lawrence and Brin, Sergey and Motwani, Rajeev and Winograd, Terry},
+	year = {1999},
+	file = {[PDF] from stanford.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/VG77PNSV/Page et al. - 1999 - The PageRank citation ranking Bringing order to t.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/6U223Q7X/422.html:text/html}
+}
+
+@article{low_graphlab:_2011,
+	title = {Graphlab: {A} distributed framework for machine learning in the cloud},
+	shorttitle = {Graphlab},
+	url = {http://arxiv.org/abs/1107.0922},
+	urldate = {2015-03-23},
+	journal = {arXiv preprint arXiv:1107.0922},
+	author = {Low, Yucheng and Gonzalez, Joseph and Kyrola, Aapo and Bickson, Danny and Guestrin, Carlos},
+	year = {2011},
+	file = {[PDF] from arxiv.org:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/T7CG964Q/Low et al. - 2011 - Graphlab A distributed framework for machine lear.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/HP6HU357/1107.html:text/html}
+}
+
+@article{feder_1995,
+    author = {Feder, T. and Motwani, R.},
+    title = {Clique partitions, graph compression and speeding-up algorithms},
+    journal = {JCSS},
+    year = {1995},
+}
