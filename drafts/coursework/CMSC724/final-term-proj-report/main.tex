@@ -9,7 +9,7 @@
 \usepackage[titletoc,toc,title]{appendix}
 \usepackage{fancyhdr}
 \usepackage{lastpage}
-\usepackage{listings}
+\usepackage{listings,url}
 \usepackage[parfill]{parskip}
 
 \pagestyle{fancyplain}
@@ -17,7 +17,7 @@
 \fancyfoot[R]{\footnotesize Page \thepage\ of \pageref{LastPage}}
 
 \renewcommand{\headrulewidth}{0.0pt} % No header rule
-\renewcommand{\footrulewidth}{0.4pt} % Thin footer rule
+\renewcommand{\footrulewidth}{0.4pt} % Thin xfooter rule
 
 \begin{document}
 
@@ -49,13 +49,14 @@ However, relational databases have been well studied and optimized in their long
 
 % Nice paragraph below!
 
-In this paper, we outline the ongoing progress towards creating a system for efficient in-memory graph analytics using relational data. Our ongoing work has mainly focused on defining some initial specifications of our declarative Datalog-based DSL, and various optimizations. The optimizations that we have implemented facilitate a more efficient extraction of the graph from the relational schema -- both in terms of time complexity and memory usage. For our implementation, we used Java and the popular BluePrints library to expose an API familiar to many users. Our main paths of progress to date include the following:\\
+In this paper, we outline our work towards creating a system for efficient in-memory graph analytics using relational data. Our ongoing work has mainly focused on defining some initial specifications of our declarative Datalog-based DSL, and various optimizations. The optimizations that we have implemented facilitate a more efficient extraction of the graph from the relational schema -- both in terms of time complexity and memory usage. For our implementation, we used Java and the popular BluePrints library to expose an API familiar to many users. The features of our system in its current version are the following:\\
 
 \begin{enumerate}
 
 	\item Defining initial specifications for our declarative DSL, and writing a parser and translator to SQL.
 	\item Expanding the functionality of the DSL towards and optimizing extraction for ego-networks.
-	\item Minimizing the memory footprint of the extracted graph via a \textit{compressed representation} %compressed Report
+	\item Minimizing the memory footprint of the extracted graph via a \textit{compressed representation}
+	\item Exploring the space of space efficient graph representations and implementing our custom CSR-like structure. %compressed Report
 
 \end{enumerate}
 
@@ -212,18 +213,32 @@ Many large real-world graphs can contain a substantial amounts of very densely c
 
 \subsection*{Moving away from TrinkerGraph}
 
-\texttt{TinkerGraph} is the default graph implementation that the standard BluePrints implementations package called Tinkerpop, uses in order to implement a grpah structure. This is a full featured property graaph. -> large memory overhead in storing useless features. Uses HashMaps and Sets. -> Stores Edges as seperate objects ( This is the main drawback)
+In the implementation of the system thus far, the underlying graph structure has been based on \texttt{TinkerGraph}. TinkerGraph is the default graph implementation of the widely used BluePrints API (which is part if the Tinkerpop \cite{tinkerpop} stack) and it serves as an example of how one should go about when implementing the Graph interfaces of Blueprints.
+As we know, there is a variety of ways a graph can be represented in memory. Some of these ways are optimized edge or vertex traversal, some are implemented for optimal iteration of the neighboring vertices. In the same ways, some are designed with space efficiency in mind, and some are not. The approach we are taking considering our ideas for the condensed representation dictate that our graph needs to be space optimal since  the primary purpose of the condensed representation is for the graph to take up as small amounts of space as possible, and thus give users the ability to load larger graphs for in-memory processing.
 
-While doing experiments with the imdb databse (describe), with cast\_info table having 30M rows etc...While trying to use the condensed representation mentioned in section x, we found that we would run out of memory with tinkergraph. With our custom graph implementation, however, we were able to fit the entire condensed graph in memory (fingers crossed I find the bug). A graph with over a billion edges, condensed. Very powerful stuff.
+As such, even though TinkerGraph provides a complete implementation of the property graph, it is certainly not built with space efficiency in mind. One of the reasons this is true is because it stores Edges as seperate explicit objects in order to adhere to fully supporting the entirety of BluePrints API.
 
-We researched In-Memory Graph Representations. People use CSR {cite ppl who use CSR}.
+In search of the most efficient graph representation for our purposes, we looked into what other in-memory graph computation frameworks like Ligra \cite{ligra}, Green-Marl \cite{greenmarl}, Galois \cite{galois} have chosen to use before us, as their goals are very similar to ours.  Each of these frameworks is striving to minimize the amount of space usage to allow as large graphs as possible to be loaded and computed upon. As it turns out, every single one of these systems for the most part utilizes the \textit{CSR} (Compressed Sparse Row) representation. CSR is essentially an adjacency matrix, that is compressed in the sense that it does not store the zero values since sparse matices can get very space inefficient. While CSR seems to be optimal when it comes to space, it flaws in the fact that it is an \textit{immutable} structure. (There has been recent work in exploring ways to make this representation mutable by means of \textit{snapshots} in LLAMA \cite{llama}, however we have not further exploited this path.)
 
-There is LLAMA, but it's meh.
+The immutability of CSR constitutes a problem in our case, because we want to be able to construct the graph from the result-set we obtain from querying the database (PostgreSQL) and load the graph to its final format at the same time without needing to use other data structures only to copy everything back into a CSR at the end of the loading phase.
 
-Thing is, CSR is immutable... we NEED to create the graph while constructing it, and since thered doesn't seem to be any substantial overhead in our approach , at least at a high level, we used combination of Adjacency Map and Adjacency lists, with a CSR flavor. In graph analysis and machine learning tasks, the most important operation, that is crucial to be supported in as efficient a manner as possible, is iterating over the INcoming and OUTgoing edges/ neighbors. Since the only operation that we can't perform efficiently in theory is deletion of an edge, and it doesn't seem that deletion is something that is too important to be supported efficiently, there doesn't seem to be an issue with this implementation.
+As pointed out however in \cite{usman2006performance}, the CSR representation does not have significantly different performance than by using an adjacency list representation with the same concepts in mind. The Adjacency List would keep all of the in and out vertices, of the graph and would have the same exact performance. The only difference is that Adjacency lists provide capability for the efficient addition of new vertices (and inefficiently support edge removal), which is perfect for our case because for purposes of loading the graph. We ended up coding up three simple graph representations, where the fundamental differences were only the way that the \textit{in} and \textit{out} neighbors were stored for each vertex. We tried the following apporaches:
+\begin{enumerate}
+	\item Using singly linked linked lists of single vertices.
+	\item A scheme of using a linked list of \textit{arrays} of vertices. This is the most sophisticated scheme, where the size of the array that resides within each linked-list grows \textit{exponentially}, until reaching a specific value (in our case 16), to optimize the cost of storing the empty values in each array.
+	\item Using Java ArrayLists in a CSR flavor.
+\end{enumerate}
 
-\ref{fig:ourGraphImpl}
+\subsection*{Experiments}
+For the purposes of choosing the best representation, we conducted a few simple experiments to test the performance of these three different representations. We used the \textit{cast\_info} table in the imdb database in order to load the condensed graph of actors, where an actor is connected with another actor if they've played together in the same movie. We set the java a heap space to maximize at 12GB, and our finding were as such:
 
+ (space) -> (time it took to load graph)
+Using Linked List : 8.3GB -> 65 seconds
+Using Exponentially Growing Array : 9.99GB -> 100 seconds
+Using CSR ArrayLists: 8.04GB -> 64 seconds
+Using TinkerGraph: (?) Never Completes
+
+As seen in Table X, there is a (relatively small) overhead  associated with storing the pointers of a linked list, versus using ArrayLists. Our most surprising finding was that the ArrayList approach did not take longer than the LinkedList approach, even though one would expect it to, considering the fact that re-sizing an ArrayList requires copying over the entirety of the elements to the new ArrayList. Finally, the performance of our custom implementation of an exponencially growing array, was both slower and less memory efficient than the other two simpler methods, which is something that we need to further explore.
 
 \subsection*{Related Work}
 
@@ -242,7 +257,7 @@ Finally the Trinity \cite{shao_trinity:_2013} database, while not on a tradition
 
 It is therefore apparent that the main goals of this work are very different from the aforementioned systems. Our goal is to provide a layer of abstraction that will allow users to apply in-memorty graph analytics on their already existent relational data, without assuming that their data is already in graph format (tables of Vertices and Edges), in contrast to these related works.
 
-\section*{Discussion}
+\section*{Discussion and Future Work}
 
 Because specialized systems for parallel graph processing and native graph computation exist, any system that is researched or developed must be at least comparable to the specialized systems. Two considerations for the system are related to the non-relational techniques:
 
@@ -260,7 +275,7 @@ Conversion techniques on top of existing relational stores indicate that graphs 
 Based on what we've learned from our previous survey \textit{A Survey of Graph Analyses using Databases}, our work has so far focused on the Flexible extraction of a graph from an existing data store into memory for computation (reducing the impact of join operations), and will continue by potentially exploring:
 
 \begin{enumerate}
-	\item Efficient implementation of the condensed representation, moving away from the TinkerGraph model.
+	\item Explore optimizations and generalization of the Compressed Representation.
 	\item Use of existing relational tools (indices, stored procedures, operators) to improve graph processing in a meaningful way.
 	\item Extensible graph inference and creation from the schema of a relational database and exposure to these graphs from a graph-specific query language.
 \end{enumerate}
@@ -275,7 +290,7 @@ This interest and research has shown that it is easier to express computation pr
 
 This paper has also explored workflows for the conversion and ETL of graphs out of and into relational systems, the use of Datalog as a graph query language, and direct comparisons between graph databases and relational ones. This culminated with a specific look at three systems that are implementing graph processing on a relational store: Grail, Vertexica, and Trinity - though by the apriori creation of vertex, edge, and message tables to facilitate computation.
 
-We believe that there is a method to integrate these ideas into a single system that uses a graph-specific query language translated to relational algebra, inferring existing graphs from the schema. The computation process will be similar to the conversion process - extracting graphs into memory for computation on an augmenting system, but also leveraging existing database resources like indices or lookup tables.
+We have made substantial progress towards integrating these ideas into a single working system that uses a graph-specific query language translated to relational algebra, inferring existing graphs from the schema.
 
 % \clearpage
 
