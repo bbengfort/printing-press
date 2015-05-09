@@ -230,7 +230,7 @@ As pointed out however in \cite{usman2006performance}, the CSR representation do
 \end{enumerate}
 
 \subsection*{Experiments}
-For the purposes of choosing the best representation, we conducted a few simple experiments to test the performance of these three different representations. We used the \textit{cast\_info} table in the imdb database in order to load the condensed graph of actors, where an actor is connected with another actor if they've played together in the same movie. We set the java a heap space to maximize at 12GB, and our finding were as such:
+For the purposes of choosing the best representation, we conducted a few simple experiments to test the performance of these three different representations. We used the \textit{cast\_info} table (~30M rows) in the imdb database in order to load the condensed graph of actors, where an actor is connected with another actor if they've played together in the same movie. In order for this graph to be constructed normally, join of the \textit{cast\_info} with itself is need, which would normally be impossible. We set the java a heap space to maximize at 12GB, and our finding were as such:
 
  (space) -> (time it took to load graph)
 Using Linked List : 8.3GB -> 65 seconds
