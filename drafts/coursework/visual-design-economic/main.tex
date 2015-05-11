@@ -1,16 +1,21 @@
 \documentclass{sigchi}
 
-
-% Arabic page numbers for submission.
-% Remove this line to eliminate page numbers for the camera ready copy
-%\pagenumbering{arabic}
-
+\toappear{}
+\pagenumbering{arabic}
 
 % Load basic packages
-\usepackage{balance}  % to better equalize the last page
-\usepackage{graphics} % for EPS, load graphicx instead
-\usepackage{times}    % comment if you want LaTeX's default font
-\usepackage{url}      % llt: nicely formatted URLs
+\usepackage{balance}
+\usepackage{graphics}
+\usepackage[T1]{fontenc}
+\usepackage{txfonts}
+\usepackage{times}
+\usepackage{url}
+\usepackage{color}
+\usepackage{textcomp}
+\usepackage{booktabs}
+\usepackage{ccicons}
+\usepackage{todonotes}
+\usepackage[pdftex]{hyperref}
 
 % llt: Define a global style for URLs, rather that the default one
 \makeatletter
@@ -18,7 +23,6 @@
   \@ifundefined{selectfont}{\def\UrlFont{\sf}}{\def\UrlFont{\small\bf\ttfamily}}}
 \makeatother
 \urlstyle{leo}
-
 
 % To make various LaTeX processors do the right thing with page size.
 \def\pprw{8.5in}
@@ -29,47 +33,46 @@
 \setlength{\pdfpagewidth}{\pprw}
 \setlength{\pdfpageheight}{\pprh}
 
-% Make sure hyperref comes last of your loaded packages,
-% to give it a fighting chance of not being over-written,
-% since its job is to redefine many LaTeX commands.
-\usepackage[pdftex]{hyperref}
-\hypersetup{
-    pdftitle={SIGCHI Conference Proceedings Format},
-    pdfauthor={LaTeX},
-    pdfkeywords={SIGCHI, proceedings, archival format},
-    bookmarksnumbered,
-    pdfstartview={FitH},
-    colorlinks,
-    citecolor=black,
-    filecolor=black,
-    linkcolor=black,
-    urlcolor=black,
-    breaklinks=true,
+% Make sure hyperref comes last of your loaded packages, to give it a
+% fighting chance of not being over-written, since its job is to
+% redefine many LaTeX commands.
+\definecolor{linkColor}{RGB}{6,125,233}
+\hypersetup{%
+  pdftitle={SIGCHI Conference Proceedings Format},
+  pdfauthor={LaTeX},
+  pdfkeywords={SIGCHI, proceedings, archival format},
+  bookmarksnumbered,
+  pdfstartview={FitH},
+  colorlinks,
+  citecolor=black,
+  filecolor=black,
+  linkcolor=black,
+  urlcolor=linkColor,
+  breaklinks=true,
 }
 
 % create a shortcut to typeset table headings
-\newcommand\tabhead[1]{\small\textbf{#1}}
-
+% \newcommand\tabhead[1]{\small\textbf{#1}}
 
 % End of preamble. Here it comes the document.
 \begin{document}
 
-\title{Visual Design for Economic Labor Measurement Report}
+\title{Visual Design for Employment Situation Report}
 
-\numberofauthors{3}
-\author{
-  \alignauthor Benjamin Bengfort\\
+\numberofauthors{4}
+\author{%
+  \alignauthor{Benjamin Bengfort\\
     \affaddr{University of Maryland}\\
-    \email{benjamin@bengfort.com}
-  \alignauthor Xintong Han\\
+    \email{bengfort@cs.umd.edu}}\\
+  \alignauthor{Xintong Han\\
     \affaddr{University of Maryland}\\
-    \email{hixintonghan@gmail.com}
-  \alignauthor Assaf Magen\\
+    \email{hixintonghan@gmail.com}}\\
+  \alignauthor{Assaf Magen\\
     \affaddr{University of Maryland}\\
-    \email{amagen@umd.edu}
-  \alignauthor Hao Zhou\\
+    \email{amagen@umd.edu}}\\
+  \alignauthor{Hao Zhou\\
     \affaddr{University of Maryland}\\
-    \email{zhhoper@gmail.com}
+    \email{zhhoper@gmail.com}}\\
 }
 
 \maketitle
@@ -309,6 +312,16 @@ Based on the results of the usability study, we have improved our visualization 
 \section{Conclusion}
 In this project, we design a web application to visualize the employment situation of the United States. This interface mainly contains 3 parts, a Time Series part to visualize and compare different statistics over time, a Geography part to visualize the employment situation for different states, an a wealth of nations part. It is developed mainly in JavaScript using D3, and a small Python web server is used to send JSON data to the D3 front-end. With a data ingestion component, it allows admins to gather data quickly from the BLS and from the monthly job release. Moreover, we conduct usability study to help improve the project development.
 
+\balance{}
+
+% If you want to use smaller typesetting for the reference list,
+% uncomment the following line:
+% \small
+\bibliographystyle{acm-sigchi}
+\bibliography{paper}
+
+\newpage{}
+
 \section{Credit}
 
 Benjamin Bengfort:
@@ -319,31 +332,4 @@ Assaf Magen:
 
 Hao Zhou:
 
-
-% Balancing columns in a ref list is a bit of a pain because you
-% either use a hack like flushend or balance, or manually insert
-% a column break.  http://www.tex.ac.uk/cgi-bin/texfaq2html?label=balance
-% multicols doesn't work because we're already in two-column mode,
-% and flushend isn't awesome, so I choose balance.  See this
-% for more info: http://cs.brown.edu/system/software/latex/doc/balance.pdf
-%
-% Note that in a perfect world balance wants to be in the first
-% column of the last page.
-%
-% If balance doesn't work for you, you can remove that and
-% hard-code a column break into the bbl file right before you
-% submit:
-%
-% http://stackoverflow.com/questions/2149854/how-to-manually-equalize-columns-
-% in-an-ieee-paper-if-using-bibtex
-%
-% Or, just remove \balance and give up on balancing the last page.
-%
-\balance
-
-% If you want to use smaller typesetting for the reference list,
-% uncomment the following line:
-% \small
-\bibliographystyle{acm-sigchi}
-\bibliography{paper}
 \end{document}

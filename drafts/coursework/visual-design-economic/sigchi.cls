@@ -1,12 +1,71 @@
-% chi & iui 2012 cls
-% Jean-Daniel Fekete, August 28, 2011.
-% llt 2011: re-added flushleft in \terms \category & \classification
+% CHI Proceedings Template.
+%
+% FILENAME: sigchi.cls
+%
+% SOURCE: See https://github.com/sigchi for latest official version.
+%
+% NOTE: If you wish to edit this document, please list edits properly
+% in the CHANGELOG section and not scattered through the code.
+%
+% CHANGELOG:
+%
+% 2015-03-21 David A. Shamma Updating for new format and Github
+% repo for CHI 2016.
+%
+% 2014-07-30 Scooter Morris Updated to add DOI text to copyright
+% footer
+%
+% 2011-10-19 DanCo Added \sloppy to reduce overfull lines per Sheridan
+%
+% 2011-08-28 Jean-Daniel Fekete Re-added flushleft in \terms &
+% \category, added compatibility for the caption package
+%
+% 2006 Andrew Duchowski Updated the metafont names to use more
+% modern Berry font naming schemes.
+%
+% 2002-07-30 JS/GM Fix to vertical spacing before Proofs
+%
+% 2002-07-29 Georgia Fixed bug in sub-sub-section numbering in
+% paragraphs
+%
+% 1999-09-11 Gerry Murry Allowance Made to switch default fonts
+% between those systems using METAFONT and those using 'Type 1' or
+% 'Truetype' fonts.  See LINE NUMBER 266 for details.  Also provided
+% for enumerated/annotated Corollaries 'surrounded' by enumerated
+% Theorems (line 838).
+%
+% Modified from ACM_PROC_ARTICLE-SP DOCUMENT STYLE by G.K.M. Tobin
+% August-October 1999.  Adapted from ARTICLE document style by Ken
+% Traub, Olin Shivers also using elements of esub2acm.cls.  Modified
+% from ARTICLE DOCUMENT STYLE -- Released 16 March 1988 for LaTeX
+% version 2.09 by Leslie Lamport, 16 March 1988.
+%
+% MISC:
+%
+% Fixed the format to match the Word template and added a \teaser
+% command to add a teaser image.
+%
+% Made the Permission Statement / Conference Info / Copyright Info
+% 'user definable' in the source .tex file OR automatic if not
+% specified.  This 'sp' version does NOT produce the permission block.
+%
+% Major change in January 2000 was to include a "blank line" in
+% between new paragraphs. This involved major changes to the, then,
+% acmproc-sp.cls 1.0SP file, precipitating a 'new' name:
+% "acm_proc_article-sp.cls" V2.01SP.  Footnotes inside table cells
+% using \minipage (Oct. 2002)
+%
+% LICENSE: Public domain: You are free to do whatever you want with
+% this template.  If you improve this in any way, please submit a
+% pull request to the Github repository.
 %
 % ---- Start of example  ----
 %
-% \documentclass{chi2012}
+% \documentclass{sigchi}
 % \usepackage{times}
-% \pagenumbering{arabic}  % Arabic page numbers for submission.  Remove this line to eliminate page numbers for the camera ready copy
+% \pagenumbering{arabic} % Arabic page numbers for submission.
+%                        % Remove this line to eliminate page numbers
+%                        % for the camera ready copy
 % \title{The Title}
 % \numberofauthors{2}
 % \author{
@@ -31,54 +90,15 @@
 %
 % ---- End of example  ----
 %
-% ---- Start of 'updates'  ----
-%
-% Fixed the format to match the Word template and added a \teaser
-% command to add a teaser image.
-%
-% Allowance made to switch default fonts between those systems using
-% METAFONT and those using 'Type 1' or 'Truetype' fonts.
-% See LINE NUMBER 266 for details.
-% Also provided for enumerated/annotated Corollaries 'surrounded' by
-% enumerated Theorems (line 838).
-% Gerry November 11th. 1999
-% Updated the metafont names to use more modern Berry font naming schemes.
-% Andrew Duchowski.  2006
-%
-% Made the Permission Statement / Conference Info / Copyright Info
-% 'user definable' in the source .tex file OR automatic if
-% not specified.
-% This 'sp' version does NOT produce the permission block.
-%
-% Major change in January 2000 was to include a "blank line" in between
-% new paragraphs. This involved major changes to the, then, acmproc-sp.cls  1.0SP
-% file, precipitating a 'new' name: "acm_proc_article-sp.cls" V2.01SP.
-%
-% Georgia fixed bug in sub-sub-section numbering in paragraphs (July 29th. 2002)
-% JS/GM fix to vertical spacing before Proofs (July 30th. 2002)
-%
-% Footnotes inside table cells using \minipage (Oct. 2002)
-%
-% ---- End of 'updates' ----
-%
-\def\fileversion{V0.18}            % [jdf] for ACM's tracking purposes 
-\def\filedate{August, 28, 2011}    % [jdf] tracking data
-\def\docdate {Thursday, August 28th 2011} % [jdf] 
+% For the ACM Tracking Purposes
+\def\fileversion{V0.20}
+\def\filedate{March 21, 2015}
+\def\docdate {\filedate}
+% Packages
 \usepackage{epsfig}
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{amsfonts}
-%
-% ACM_PROC_ARTICLE-SP  DOCUMENT STYLE
-% G.K.M. Tobin August-October 1999
-%    adapted from ARTICLE document style by Ken Traub, Olin Shivers
-%    also using elements of esub2acm.cls
-% LATEST REVISION V2.6SP - OCTOBER 2002
-% ARTICLE DOCUMENT STYLE -- Released 16 March 1988
-%    for LaTeX version 2.09
-% Copyright (C) 1988 by Leslie Lamport
-%
-%
 %%% ACM_PROC_ARTICLE-SP is a document style for producing two-column camera-ready pages for
 %%% ACM conferences, according to ACM specifications.  The main features of
 %%% this style are:
@@ -127,15 +147,35 @@
 %%%     dvips -e 0 foo.dvi >foo.ps
 %%%
 
-\typeout{Document Class `chi2012' <Oct 19, 2011>. Updated for chi 2012
-  based on chi2012.cls by William Hudson and Jean-Daniel Fekete.} % DLC
-\typeout{Document Class `chi2011' <October 19, 2010>. Tweaked by Manas Tungare.} % DLC
+\typeout{}
+
+\typeout{Document Class SIGCHI}
+
+\typeout{Available at https://github.com/sigchi.}
+
+\typeout{}
+
+\typeout{- <March 21, 2105> Updated by David A. Shamma for CHI 2016.}
+
+\typeout{- <July 30, 2014> Updated for for 2014 by William Hudson and
+  Jean-Daniel Fekete.}
+
+\typeout{- <October 19, 2010> Updated for 2011 by Manas Tungare.}
+
 \typeout{Shamelessly copied from}
-\typeout{`chiproceedings' <7th Sep. '00>. Modified by Jan O. Borchers}        % DLC
-\typeout{`acm_proc_article-sp' <2nd. October '02>.  Modified by G.K.M. Tobin} % DLC
-\typeout{`acmconf' <22 May 89>. Hacked 4/91 by shivers@cs.cmu.edu, 4/93 by theobald@cs.mcgill.ca}
+
+\typeout{- <September 7, 2000> Modified by Jan O. Borchers from
+  `chiproceedings'}
+
+\typeout{- <October 2, 2002> Modified by G.K.M. Tobin from
+  `acm_proc_article-sp'}
+
+\typeout{- <May 22, 1989> Hacked from `acmconf' 4/91 by
+  shivers@cs.cmu.edu, 4/93 by theobald@cs.mcgill.ca}
+
 \typeout{Excerpts were taken from (Journal Style) 'esub2acm.cls'.}
-% \typeout{****** Bugs/comments/suggestions to Manas Tungare -- manas@tungare.name ******} %DLC
+
+\typeout{}
 
 \oddsidemargin 1.9cm            % [jdf] stick to CHI Formating Guidelines
 \evensidemargin 1.9cm           % [jdf] idem
@@ -218,7 +258,7 @@
 %\partopsep 2pt plus 1pt minus 1pt% Extra vertical space, in addition to
                                  % \parskip and \topsep, added when user
                                  % leaves blank line before environment.
-\partopsep 0pt                                                              % 00-09-07 job
+\partopsep 0pt                   % 00-09-07 job
 
 \doublehyphendemerits=9999        % No consecutive line hyphens
 \brokenpenalty=9999               % No broken words across pages
@@ -577,7 +617,7 @@
   \hrule width .4\columnwidth
   \kern 2.6\p@}                 % The \hrule has default height of .4pt .
 % ------
-\long\def\@makefntext#1{\noindent 
+\long\def\@makefntext#1{\noindent
 %\hbox to .5em{\hss$^{\@thefnmark}$}#1}   % original
 \hbox to .5em{\hss\textsuperscript{\@thefnmark}}#1}  % C. Clifton / GM Oct. 2nd. 2002
 % -------
@@ -601,14 +641,14 @@
 
 % According to the CHI specifications, captions should be centered.
 % This looks kind of bad for multi-line captions, so I only center
-% 1-line captions.  
+% 1-line captions.
 \long\def\@makecaption#1#2{
   \vskip 2pt % \baselineskip
   \setbox\@tempboxa\hbox{\small
 \textbf{#1. #2}} % DLC
   \ifdim \wd\@tempboxa >\hsize % IF longer than one line:
      \small\textbf{#1. #2}\par     %   THEN set as ordinary paragraph.
-    \else                      %   ELSE  center. 
+    \else                      %   ELSE  center.
      \hbox to\hsize{\hfil\box\@tempboxa\hfil}\par
   \fi}
 
@@ -658,11 +698,8 @@
  \let\maketitle\relax
  \let\@maketitle\relax
  \gdef\@thanks{}\gdef\@author{}\gdef\@title{}\gdef\@subtitle{}\let\thanks\relax
- %\@copyrightspace
- } % JRB 2008-08-13 this line was commented out for some reason
-                   % which meant that the copyright space wasn't reserved.
-                   % I re-enabled it.
-
+ }
+ 
 %% CHANGES ON NEXT LINES
 \newif\if@ll % to record which version of LaTeX is in use
 
@@ -673,7 +710,7 @@
 
 \if@ll
   \NeedsTeXFormat{LaTeX2e}
-  \ProvidesClass{chi2012} [2011/06/06 - V0.16]  % DLC
+  \ProvidesClass{sigchi} [2011/06/06 - V0.16]  % DLC
   \RequirePackage{latexsym}% QUERY: are these two really needed?
   \let\dooptions\ProcessOptions
 \else
@@ -865,19 +902,20 @@
 
 \def\endabstract{\if@twocolumn\else\endquotation\fi}
 
-\def\keywords#1{\if@twocolumn
+\def\keywords#1{%\if@twocolumn
 \section*{Author Keywords}
 \begin{flushleft}#1\end{flushleft}
-\else \small
-\quotation #1
-\fi}
+%\else \small
+%\quotation #1
+%\fi
+}
 
 \def\classification#1{%\if@twocolumn
 \section*{ACM Classification Keywords}
 \begin{flushleft}#1\end{flushleft}
 %\else \small
 %\quotation\the\parskip
-%\fi}
+%\fi
 }
 
 % I've pulled the check for 2 cols, since proceedings are _always_
@@ -887,7 +925,7 @@
 \begin{flushleft}#1\end{flushleft}
 %\else \small
 %\quotation\the\parskip
-%\fi}
+%\fi
 }
 
 % -- Classification needs to be a bit smart due to optionals - Gerry/Georgia November 2nd. 1999
@@ -898,15 +936,13 @@
 \ifnum\catcount=1
 \section*{ACM Classification Keywords}  % DLC
 \advance\catcount by 1\else{\unskip; }\fi
-\begin{flushleft}%
     \@ifnextchar [{\@category{#1}{#2}{#3}}{\@category{#1}{#2}{#3}[]}%
-\end{flushleft}%
 }
 
 \def\@category#1#2#3[#4]{%
     \begingroup
         \let\and\relax
-%            #1 [\textbf{#2}]% 
+%            #1 [\textbf{#2}]%
             #1 #2%   % DLC
             \if!#4!%
                 \if!#3!\else : #3\fi
@@ -926,6 +962,7 @@
 %%% caption).
 %%%
 \newtoks\copyrightnotice
+\newcounter{copyrightbox} % llt: enable compatibility with the caption package
 \def\ftype@copyrightbox{8}
 \def\@copyrightspace{
 \@float{copyrightbox}[b]
@@ -938,7 +975,7 @@
 \end@float}
 
 \def\@toappear{} % Default setting blank - commands below change this.
-\long\def\toappear#1{\def\@toappear{\parbox[b]{20pc}{\baselineskip 9pt#1}}}
+\long\def\toappear#1{\def\@toappear{\parbox[b]{20pc}{\scriptsize\baselineskip 8pt#1}}}
 \def\toappearbox#1{\def\@toappear{\raisebox{5pt}{\framebox[20pc]{\parbox[b]{19pc}{#1}}}}}
 
 \newtoks\conf
@@ -1520,32 +1557,64 @@
 \newtoks\copyrightetc
 \global\copyrightetc{\ } %  Need to have 'something' so that adequate space is left for pasting in a line if "confinfo" is supplied.
 
-%\toappear{
-%Permission to make digital or hard copies of all or part of this work for
-%personal or classroom use is granted without fee provided that copies are
-%not made or distributed for profit or commercial advantage and that copies
-%bear this notice and the full citation on the first page. To copy otherwise,
-%or republish, to post on servers or to redistribute to lists, requires prior
-%specific permission and/or a fee.\\
-%{\confname{CHI'12}}, May 5--10, 2012, Austin, Texas, USA.\\
-%Copyright 2012 ACM 978-1-4503-1015-4/12/05...\$10.00.
-%}
-% End of chi2012.cls - version 0.01	
+\toappear{
+Paste the appropriate copyright statement here. ACM now supports three different copyright statements:\\
+$\bullet$ ACM copyright: ACM holds the copyright on the work. This is the historical approach.\\
+$\bullet$ License: The author(s) retain copyright, but ACM receives an exclusive publication license.\\
+$\bullet$ Open Access: The author(s) wish to pay for the work to be open access. The additional fee must be paid to ACM.\\
+This text field is large enough to hold the appropriate release statement assuming it is single spaced.
+\newline
+\textcolor{red}{Every submission will be assigned their own unique DOI string to be included here.}
+}
+\clubpenalty=10000
+\widowpenalty = 10000
+
+%%
+% For the CCSXML 2012 Categories
+
+\let\@concepts\@empty
+% Support for CCSXML file
+\RequirePackage{comment}
+\excludecomment{CCSXML}
+
+% New concepts scheme
+%
+% The first argument is the significance, the
+% second is the concept(s)
+%
+\newcommand\ccsdesc[2][100]{%
+  \ccsdesc@parse#1~#2~}
+%
+% The parser of the expression Significance~General~Specific
+%
+\def\ccsdesc@parse#1~#2~#3~{%
+  \expandafter\ifx\csname CCS@#2\endcsname\relax
+    \expandafter\gdef\csname CCS@#2\endcsname{\textbullet\textbf{#2} $\to$ }%
+  \g@addto@macro{\@concepts}{\csname CCS@#2\endcsname}\fi
+  \expandafter\g@addto@macro\expandafter{\csname CCS@#2\endcsname}{%
+    \ifnum#1>499\textbf{#3; }\else
+    \ifnum#1>299\textit{#3; }\else
+    #3; \fi\fi}}
+
+\newcommand\printccsdesc{%
+  \ifx\@concepts\@empty\else
+  \if@twocolumn
+    \section*{CCS Concepts}
+    \@concepts
+    \else \small
+    \quotation{\@concepts}%
+    \fi
+    \fi}
 
 
 %% DanCo, 10/19/11: Added this to reduce overfull lines per Sheridan
 %% request; it leads to occasionally unpleasant extra whitespace,
-%% though actually no worse and perhaps better than the 
+%% though actually no worse and perhaps better than the
 %% default Word template.
 %%
 %% This can be manually controlled instead by authors in text
-%% by putting \sloppy before and \fussy immediately 
+%% by putting \sloppy before and \fussy immediately
 %% after troublesome paras.  Idea found at
 %% http://www.economics.utoronto.ca/osborne/latex/PMAKEUP.HTM
 
 \sloppy
-
-%%% Local Variables: 
-%%% mode: latex
-%%% TeX-master: "survey"
-%%% End:
