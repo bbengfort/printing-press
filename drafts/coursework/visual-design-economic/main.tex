@@ -79,7 +79,7 @@
 \author{%
     \alignauthor{Benjamin Bengfort, Xintong Han, Assaf Magen, and Hao Zhou\\
         \affaddr{Department of Computer Science, University of Maryland}\\
-        \email{\texttt{\{bengfort,xintong,amagen,hzhou\}@cs.umd.edu}}\\
+        \email{\texttt{\{bengfort,hzhou\}@cs.umd.edu, \{xintong,amagen\}@umd.edu}}\\
     }\\
 }
 
@@ -139,7 +139,7 @@ All of these data sets can be affected by seasonal events which follow a regular
 
 \subsection{Data Ingestion}
 
-The Bureau of Labor statistics provides two public data APIs that use RESTful state transfer mechanisms to deliver data on demand to the user for particular time series information in various BLS programs. The APIs accept HTTP requests for information to URL endpoints that describe the required resource, then return information in paginated JSON format. We used the Version 2.0 implementation of the BLS API, which requires registration to obtain an API key. Such registration allows BLS to better understand what applications are using its data, but also allows developers more flexible access to the BLS data source.
+The Bureau of Labor statistics provides two public data APIs that use RESTful state transfer mechanisms to deliver data on demand to users for particular time series information in various BLS programs. The APIs accept HTTP requests for information to URL endpoints that describe the required resource, then return information in paginated JSON format. We used the Version 2.0 implementation of the BLS API, which requires registration to obtain an API key. Such registration allows BLS to better understand what applications are using its data, but also allows developers more flexible access to the BLS data source.
 
 We created a general Python tool for downloading BLS data by providing a list of BLS IDs for time series. There are three primary ways of ingesting time series: by downloading a single source or multiple sources to an endpoint that only allows downloading of data for the past three years, or by using the registration endpoint to specify the start and end years for ingesting multiple time series. We ingested data for the current millennium: from January, 2000 to February, 2015, obtaining over 305,445 records from 1,684 time series. To obtain a list of time series to target our downloads, we wrote a web scraper which scraped the ``most popular'' pages from the BLS website itself.
 
@@ -152,7 +152,7 @@ The data wrangling system also computed ``extra'' data sources that we thought m
 \begin{figure*}[!ht]
     \centering
     \includegraphics[width=1.75\columnwidth]{figures/time_series_new_1.png}
-    \caption{The time series explorer dashboard allows the user to visualize multiple raw time series information in two different charts for ease of comparison with different data ranges. The year slider allows zooming and filtering by year. Finally, this dashboard attempts to add important headlines as listed by the Jobs Report.}
+    \caption{The time series explorer dashboard allows users to visualize multiple raw time series information in two different charts for ease of comparison with different data ranges. The year slider allows zooming and filtering by year. Finally, this dashboard attempts to add important headlines as listed by the Jobs Report.}
     \label{fig:time_series}
 \end{figure*}
 
@@ -173,22 +173,22 @@ We implemented four dashboards to explore these techniques, each in their own se
     \item \textbf{Time Series Explorer}: explore and compare specific time series data sets in a dual-graph display.
     \item \textbf{Geographic Choropleth}: explore time series according to their regional factors and influences, and how regions change over time.
     \item \textbf{Wealth of Nations}: inspired by a classic visualization, this is a four dimensional analysis of regional data.
-    \item \textbf{Data Export Utility}: other visualization tools might benefit from the ingestion and wrangling work we've undertaken, data export allows you to use the data in your tool of choice.
+    \item \textbf{Data Export Utility}: other visualization tools might benefit from the ingestion and wrangling work we've undertaken, data export allows users to use the data in their tool of choice.
 \end{enumerate}
 
-The visual analytical process requires a ``dashboard'' methodology - where a user can interactively control as many aspects of the visualization as possible, and where multiple visualizations are adapted simultaneously. Each tab described above is a dashboard with its own custom controls. The Time Series Explorer allows users to explore all of the time series with two chart windows and filter and zoom by a range of years. This explorer also has a ``headline view'' which attempts to highlight key information. The Geography Choropleth allows the user to explore regional information in the continental United States, while also filtering for percent change. The ``Wealth of Nations'' attempts to minimize the affect of the geographic size on analytical ability from the Choropleth maps and is based on a classic visualization made famous by Hans Rosling's 2006 TED Talk \cite{_wealth_????}. Finally, a data export dashboard allows the user to download specific data with filters applied so that they can manipulate the data in their favorite visualization tools.
+The visual analytical process requires a ``dashboard'' methodology - where a user can interactively control as many aspects of the visualization as possible, and where multiple visualizations are adapted simultaneously. Each tab described above is a dashboard with its own custom controls. The Time Series Explorer allows users to explore all of the time series with two chart windows and filter and zoom by a range of years. This explorer also has a ``headline view'' which attempts to highlight key information. The Geography Choropleth allows users to explore regional information in the continental United States, while also filtering for percent change. The ``Wealth of Nations'' attempts to minimize the affect of the geographic size on analytical ability from the Choropleth maps and is based on a classic visualization made famous by Hans Rosling's 2006 TED Talk \cite{_wealth_????}. Finally, a data export dashboard allows users to download specific data with filters applied so that they can manipulate the data in their favorite visualization tools.
 
 \subsection{Time Series Explorer}
 
-Figure~\ref{fig:time_series} shows our design of time series dashboard. The primary focus of this dashboard are two, stacked time series graphs, which allow for multiple visual analysis of time series with different $Y$ dimensions or scales, but with the same $X$ dimension - that is the period of the time series. In order to better describe the dashboard, we have divided it into six regions labeled A-F, which we will describe in detail below.
+Figure~\ref{fig:time_series} shows our design of time series dashboard. The primary focus of this dashboard are two, stacked time series graphs, which allow for multiple visual analysis of time series with different $Y$ dimensions or scales, but with the same $X$ dimension - that is the period of the time series. In order to better describe the dashboard, we have divided it into six regions labeled A-F.
 
-Region A shows four tab navigation bars which allow the user to switch between the four implemented dashboards. The tab display is consistent across all dashboards, and as more visualizations are added to the ELMR interactive visual analysis tool, more tabs can be added as well. If the list of tabs grows too long, in the future we intend to allow the user to select tabs for a personalized display that gives them quick access to the dashboards they use most (for example, national reporters may be less interested in local employment statistics).
+Region A shows four tab navigation bars which allow users to switch between the four implemented dashboards. The tab display is consistent across all dashboards, and as more visualizations are added to the ELMR interactive visual analysis tool, more tabs can be added as well. If the list of tabs grows too long, in the future we intend to allow users to select tabs for a personalized display that gives them quick access to the dashboards they use most (for example, national reporters may be less interested in local employment statistics).
 
 Region B contains an ``at-a-glance headline view'' and year slider control. The headline view is intended to be an eye-catching ``at-a-glance'' instant insight framework that is based heavily on the headline in the Employment Situation Report. The headline is tied to the two major pieces of information that are published at the top of the report - the unemployment rate and the number of non-farm jobs. The at-a-glance headline also displays important information regarding the amount of \textit{change} from the last period - a major piece of information that most users want to know right off the bat. It is for this reason that these headlines have such a prominent place in our application.
 
-The year slider control also shown in Region B is one of the primary mechanisms for zooming and filtering information for every dashboard in the app. The year range slider allows the user to select a window of time periods within the analytical time span, to zoom the data into that range. Other dashboards have period selectors rather than ranges, which allows the user to identify trends or data for a specific period.
+The year slider control also shown in Region B is one of the primary mechanisms for zooming and filtering information for every dashboard in the app. The year range slider allows users to select a window of time periods within the analytical time span, to zoom the data into that range. Other dashboards have period selectors rather than ranges, which allows users to identify trends or data for a specific period.
 
-Regions C and D contain the primary controls for the time series displays in regions E and F respectively. There are many BLS Time Series, for this application we have downloaded 1684 data sets, each of which can be displayed. The challenge is how to allow a user to select data sets of interest quickly. Although we toyed with using an autocomplete or search mechanism, our prototype implementation simply uses a grouped, auto complete dropdown as shown in Figure~\ref{fig:select}. This design follows ``prevent error'' rule in the Eight Golden Rules of User Interface Design \cite{shneiderman_eight_????} as the user can only select the databases that are available through our drag-down menu.
+Regions C and D contain the primary controls for the time series displays in regions E and F respectively. There are many BLS Time Series, for this application we have downloaded 1684 data sets, each of which can be displayed. The challenge is how to allow a user to select data sets of interest quickly. Although we considered using an autocomplete or search mechanism, our prototype implementation simply uses a grouped, auto complete dropdown as shown in Figure~\ref{fig:select}. This design follows ``prevent error'' rule in the Eight Golden Rules of User Interface Design \cite{shneiderman_eight_????} as users can only select the databases that are available through our drag-down menu.
 
 \begin{figure}[h]
     \centering
@@ -210,11 +210,11 @@ Region E and F are used to show two time series graphs. The graphs shown in regi
 
 Our second visual dashboard focused particularly on regional or state visual analyses by implementing a highly interactive choropleth map of the United States using the AlbersUSA projection, as shown in Figure~\ref{fig:Geography}. The dominant feature of this dashboard is the choropleth map of the United States which is directly connected to a selectable dataset from either the CESSM or LAUS datasets. By interacting with the controls on the left, users can set the data set, whether or not to implement seasonal adjustments, select the rate of change dataset, and even select the color map. A slider at the top of the visualization controls the year for the map.
 
-This style map was our first design for the application, and we focused heavily on its implementation. However, we discovered that the datasets were heavily weighted towards the larger states of California and Texas, reducing the usability of a chorolpleth, which requires a color scale to be effective. We normalized the data set using "percent change" computations as described in the wrangling section. In this case the user can explore the magnitude of change in a specific time series per state, which is much more effective in the choropleth setting. Discussion of specific regions of the visualization is discussed below.
+This style map was our first design for the application, and we focused heavily on its implementation. However, we discovered that the datasets were heavily weighted towards the larger states of California and Texas, reducing the usability of a choropleth, which requires a color scale to be effective. We normalized the data set using "percent change" computations as described in the wrangling section. In this case users can explore the magnitude of change in a specific time series per state, which is much more effective in the choropleth setting. Discussion of specific regions of the visualization is discussed below.
 
-Region D is designed for users to select and adapt the data set they want to visualize. A grouped, alphabetized drag-down menu is used for the users to select a data source from either LAUS or CESSM. Two check boxes allow users to specify whether they want to show ``seasonally adjusted'' data and the other to specify whether to show the percentage of change of the data compared with the previous month. After users making changes for these two check boxes, they need to click on ``Change Database'' button to refresh the map. To follow the rule of ``Cater to universal usability'' of the Eight Golden Rules for User Interface Design, we provide several color options for the heat map for users to select the color scale that best represents the map.
+Region D is designed for users to select and adapt the data set they want to visualize. A grouped, alphabetized drag-down menu is used for users to select a data source from either LAUS or CESSM. Two check boxes allow users to specify whether they want to show ``seasonally adjusted'' data and the other to specify whether to show the percentage of change of the data compared with the previous month. After users making changes for these two check boxes, they need to click on ``Change Database'' button to refresh the map. To follow the rule of ``Cater to universal usability'' of the Eight Golden Rules for User Interface Design, we provide several color options for the heat map for users to select the color scale that best represents the map.
 
-Region E is the main choropleth that displays the main continental United States as well as Alaska and Hawaii. The legend shows the scale of the colors at the bottom left. If you hover over an individual state, a tooltip pops up with detail information. You can also click on a state to zoom in and see specific information about that state.
+Region E is the main choropleth that displays the main continental United States as well as Alaska and Hawaii. The legend shows the scale of the colors at the bottom left. If users hover over an individual state, a tooltip pops up with detail information. Users can also click on a state to zoom in and see specific information about that state.
 
 \subsection{Wealth of Nations Dashboard}
 
@@ -229,11 +229,11 @@ Our final dashboard implements the ``Wealth and Health of Nations'' visualizatio
 
 Region C is the main part of this dashboard which contains the scatter plot, which incodes data in 5 dimensions: $x$ and $y$ axes, color, raidus, and time. The $x$-axis represents the size of labor-force and the $y$-axis represents unemployment rate. Each dot represents a state and the radius of the dot represents the employment level of that state. Each state is colored according to their economic region (e.g. northeast, midwest, west, etc). Moreover, user can select the time point of the data by moving the mouse left and right in the time region. By hovering the mouse over the plate, the name of that state will be shown. This dashboard provides a easy way of exploring insights based on two or even more different dimensions of the data for all the states simultaneously.
 
-Region B does not appear in our original design. However, when we carried out our usability study, we found that many users complain about the difficulty to choose the time by just moving the mouse left and right on the time region, especially when the user want to fix the time point and hover on the plate to show the name of the state. In order to fix this question raised in the study, the common year slider is added to the top, consistent with other slider designs.
+Region B does not appear in our original design. However, when we carried out our usability study, we found that many users complain about the difficulty to choose the time by just moving the mouse left and right on the time region, especially when users want to fix the time point and hover on the plate to show the name of the state. In order to fix this question raised in the study, the common year slider is added to the top, consistent with other slider designs.
 
 \subsection{Data Export}
 
-Finally, the last dashboard implements a data exporting feature. Although this utility is not a visual analysis tool, it is meant to augment users who are using Excel or Tableau to perform their own analyses. The ingestion and wrangling of time series data is not difficult, but it is time consuming. By allowing users to directly export the data from our tool, we hope to increase the number of analyses available, and the insights that can be gained. This tool has similar controls to the dashboards whose data you can export from. Datasets are then downloaded in CSV or JSON format.
+Finally, the last dashboard implements a data exporting feature. Although this utility is not a visual analysis tool, it is meant to augment users who are using Excel or Tableau to perform their own analyses. The ingestion and wrangling of time series data is not difficult, but it is time consuming. By allowing users to directly export the data from our tool, we hope to increase the number of analyses available, and the insights that can be gained. This tool has similar controls to the dashboards whose data users can export from. Datasets are then downloaded in CSV or JSON format.
 
 \subsection{Data Management}
 
@@ -252,75 +252,64 @@ By creating an open utility that shows the ingestion process and the state of th
 
 \section{Usability Study}
 
-To evaluate the usability of our ELMR for analyzing the employment situation, we recruited 8 participants to carry our usability study. All these participants are male PhD students from ECE or computer science department of UMD who has no professional knowledge of economics and labor force. Our usability study contains five main parts: background introduction, training, testing by completing research-driven tasks, testing by exploring features of user interests and questionnaire. The test takes around 10~15 minutes.
+To evaluate the effectiveness of the ELMR application for analyzing the current employment situation in the United States, we recruited 8 participants for a usability study. All participants were PhD students from the ECE and CS departments at the University of Maryland who had no professional knowledge of economics or labor force statistics. Our usability study contained five parts: background introduction, training, testing through research-driven tasks, testing user-driven exploration, and a final questionnaire. The test took approximately 10-15 minutes.
 
 \subsection{Background Introduction}
-We first give a very brief introduction of our project by showing a pre-recorded video. Since none of our participants is familiar with the employment data, we also introduce the three data sets we use: CPS, CES and LAU in a little more detail.
 
+All participants were introduced to the project with a training video, \url{http://ter.ps/983}. Since none of the participants was familiar with employment statistics, we also briefed them on the three data sets used in the project.
 
 \subsection{Training}
-To train the participants how to use ELMR, we first introduce the main components of the dashboard. Then we give an example of how to draw ``Employment ratio'' and ``employment-Population ratio'' using our time series data. During the training process, we encourage the participants to think-out-loud and ask any questions they cannot understand.
+All participants were given a short training session on the primary components of each dashboard interface. The study administrators provided the participants with an example of how to draw ``Employment Ratio'' and ``Employment-Population Ratio'' time series. During training, participants were encouraged to ask questions to validate that they understood the training.
 
-\subsection{Testing by Completing Research-Driven Tasks}
-After the training session, the participants are asked to work on themselves to complete 5 research driven tasks using our tool. The eight questions are as follows:
+\subsection{Research-Driven Tasks}
+The first part of the usability study required participants to complete 5 research-driven tasks using the ELMR application. These tasks were provided to participants through eight questions:
+
 \begin{enumerate}
-\item    Show the time series of unemployment rate for Asian and White people. From 2008-2010, which group of people has higher relative changes of unemployment rate.
+\item    Show the unemployment rate for Asian and White people. From 2008-2010, which group of people had higher relative changes of unemployment rate?
 
-\item    which state has the highest unemployment rate in Oct. 2011
-\item    In Mar 2011, which five states has the highest size of labor force, do they also have the highest employment level
-\item     Show the time series of unemployment rate for Maryland and Florida
+\item    Which state had the highest unemployment rate in Oct, 2011?
+\item    In Mar, 2011, which five states had the largest labor force? Do these states also have the highest employment level?
+\item     Show the unemployment rate for Maryland and Florida.
 \item     Download a data set you are interested in.
 \end{enumerate}
 
-During the test session, we will record the time the participants spend on each of these questions. We encourage the user to think through each of these questions, telling us their thoughts when they try to answer each questions.
+During the test session, we recorded the time that participants spent on each question. We encouraged them to work carefully and to use a  ``think aloud'' methodology as they completed the tasks.
 
-\subsection{Exploring User Interests feature}
-After answering the 5 research driven questions. The participants are asked to propose one or two questions which are interests to them about the employment status of US and explore the answer their questions using our tool. Similarly, the participants are encouraged to think-out-loud, telling us any thoughts they have during answering the questions.
+\subsection{User-Driven Exploration}
+The second part of the usability study was focused on hypothesis-driven analyses and user-driven exploration. Participants were asked to propose several questions they found interesting and to explore those questions using the tool. As in other testing, participants were encouraged to use a ``think aloud'' methodology during their exploration.
 
-\subsection{questionnaire}
-After finishing answering the above questions, the participants are asked to do a questionnaire which asks the participants to give their evaluation about our tool, and how difficult it is to answer each of our research driven questions.
+\subsection{Questionnaire}
+After completing both testing sections, particiapnts were asked to complete a questionnaire. Questions were designed to evaluate the tool on a usability scale, and to report how difficult it was to complete the testing tasks.
 
+\subsection{Results}
 
-\subsection{Results of Usability Test}
-The typical responses of subjects regarding the questions are shown in the following:
-
+Qualitative responses during the research-driven ``think aloud'' session had the most impact on our design. Helpful feedback for each task is reported in this section.
 
 \begin{enumerate}
-\item    Show the time series of unemployment rate for As and white people. From 2008-2010, which group of people has higher relative changes of unemployment rate.
+\item    Show the time series of unemployment rate for Asian and White people. From 2008-2010, which group of people has higher relative changes of unemployment rate?
+
+Users were easily able to answer the first part of this question by using the Time Series Explorer dashboard and selecting time series data from the CPS. Users quickly brought up visual displays of the data, but were surprised that they had to place the data into two separate charts, rather than using multiple lines on the same chart. The primary suggestion was that questions of this kind, where data sets share the same scale, could be answered more efficiently with multiple line charts. Users agreed that for time series that did not have the same scale, e.g. unemployment rate and labor force, two separate charts allowed for more easy comparison.
+
+\item    Which state has the highest unemployment rate in Oct, 2011?
+
+When we designed the question, we expected participants to use the Geography Choropleth dashboard to find an answer, and several participants did. However, since the Wealth of Nations dashboard also visualized the unemployment rate of states over time, a participant used this view to find the right answer. There were some complaints that when the data of two states are very similar, they could not tell which one is bigger. They suggested that when the mouse is hovering on a state, the corresponding data should be shown for easier comparison. Most of the participants were not happy with the the slider to choose a specific time period, and would have prefered a dater picker. But they did use the slider to see animated change over time. In general, all participants liked the choropleth for its visual information and appeal.
 
 
-All of the subjects were able to answer this question by using the time series visualization, but they complained that if the y axis are aligned or they could put different series in one chart, they could have answered this kind of questions more efficiently.
+\item    In Mar, 2011, which five states has the highest size of labor force, do they also have the highest employment level?
 
-\item    which state has the highest unemployment rate in Oct. 2011
+This question was the most difficult according to user feedback. All participants attempted to answer this question using the Wealth of Nations dashboard, but they still could not answer it quickly; for two reasons: the difficulty in choosing the time in this dashboard (the slider is sensitive to the mouse), and difficulty understanding the legends.
 
+\item     Show the unemployment rate for Maryland and Florida.
 
-When design this question, we suppose subjects to use the geography view to find the answer. However, since the wealth of nations part also visualize the unemployment rate of states over time, one subjects used this view to find the right answer. The other 4 subjects chose the geography view. Some of them complained that when the data of two states are very similar, they could not tell which one is bigger, so they suggested that when mouse is hovering on a state, the corresponding data should be shown for easier comparison. Most of the subjects were not happy with the the way they can choose the date, they wanted a time picker to pick a specific time point, but they all liked the slide bar because it enables them to see the animated change over time. In general, they all like the heat map since it is very visually informative and appealing.
-
-
-\item    In Mar 2011, which five states has the highest size of labor force, do they also have the highest employment level?
-
-This question is the most difficult question according to the feedback of users. They all attempted to answer this question using the Wealth of Nations view, but they still could not answer it quickly due to two reasons: it is pretty hard to choose time in this view, users have to be very careful about moving their mouse; the second reason is they are not sure what the size of the bubble stands for, so some of they were not able to answer the second part of the question.
-
-
-\item     Show the time series of unemployment rate for Maryland and Florida
-This seems to be an easy problem for the subjects, though two of them had a little difficulty to find these two data in the drop menu in the Time Series part, they were overwhelmed by the large dataset. They thought it would be good to organize the data or choose the data in a better fashion,
+This was the easiest questions for the participants, though two had difficulty finding the correct datasets in the dropdown. Users mentioned that they were overwhelmed by the large number of datasets. Participants suggested organization strategies for the data sets like autocomplete or search.
 
 \item     Download a data set you are interested in.
 
-Subjects finished this task very quickly, and they liked this feature because in this way, they can download the data they want and use other powerful visualization tools to find more insights.
+Users were delighted to find this feature in our tool. They believed that they could complete initial analyses using ELMR, perform data exploration, then download the data to do more sophisticated statistical analyses.
 
 \end{enumerate}
 
-Based on the results of the usability study, we have improved our visualization with more functions like hints and more details to help users use it. For example, in the final version of our visualization, we have added a slide bar in the wealth of nations part to help users accurately select time. To help users compare two time series, we have aligned the x-axis of the . We also added an option to select different color scale in the heat map.
-
-%\subsection{Usability Study Settings}
-%Our usability test follow the guidelines stated in class:
-%\begin{itemize}
-
-%\item We conduct the test with several users using the "thinking aloud" method of data collection
-%\item We ask several research driven questions and require users to find the answers with our tool
-%\item The result of our study will be bugs, features, problems, etc. to add to our tool along with their severity and priority
-%\end{itemize}
+The results of the usability study were used to generate a list of prioritized changes and feature additions to the application. This priortized list is tracked on a development board on our Github repository. Several of those features have already been implemented. For example, we have added more hints and detail to the dashboards, added slider bars to the Wealth of Nations view, and aligned the X-axes of the Time Series Explorer. Other details like user-ability to select the color scale in the choropleth were inferred from user feedback, though not directly suggested. 
 
 \section{Related Work}
 
@@ -339,9 +328,9 @@ Since the employment statistics are mostly time series data, some papers \cite{f
 
 \subsection{Geography-Based Data Visualization}
 
-For many users, they may want to visualize and compare the data for different regions or states. For example, a user may want to see how the unemployment ratio changes in the state where he or she lives. As a result, an informative visualization should give the option that users can visualize the data for different states. To achieve this function, many visualizations use a map and visualize the data by painting the map with colors, in which users can compare the regions they are interested in. For example, \cite{rodrigues_estimating_2013} invests the relationship between employment size and points-of-interest by proposing several visualization techniques to visualize this relationship in Boston metropolitan area. \cite{feldt_tailor-made_2005} creates a coordinates view that contains a Swedish map to show statistics of Sweden, and help users to explore various kinds of data that they are interested in.
+For many users, they may want to visualize and compare the data for different regions or states. For example, a user may want to see how the unemployment ratio changes in the state where he or she lives. As a result, an informative visualization should give the option that users can visualize the data for different states. To achieve this function, many visualizations use a map and visualize the data by painting the map with colors, in which users can compare the regions they are interested in. For example, \cite{rodrigues_estimating_2013} investigates the relationship between employment size and points-of-interest by proposing several visualization techniques to visualize this relationship in Boston metropolitan area. \cite{feldt_tailor-made_2005} creates a coordinates view that contains a Swedish map to show statistics of Sweden, and help users to explore various kinds of data that they are interested in.
 
-Choropleths are also widely explored - and are available in a number of analytical tools. These types of charts are often criticized because they hide important data in regions that are geographically small. They also suffer from similar problems as heatmaps because color scale is vital in their creation. In \cite{brewer_mapping_1997}, the use of color in choropleths is explored to show how mortality can be better analyzed with different color schemes. Because we used both D3 \cite{bostock_d3_2011} and ColorBrewer in our work, we tried to alleviate some of these color concerns by allowing the user to select the color scale.
+Choropleths are also widely explored - and are available in a number of analytical tools. These types of charts are often criticized because they hide important data in regions that are geographically small. They also suffer from similar problems as heatmaps because color scale is vital in their creation. In \cite{brewer_mapping_1997}, the use of color in choropleths is explored to show how mortality can be better analyzed with different color schemes. Because we used both D3 \cite{bostock_d3_2011} and ColorBrewer in our work, we tried to alleviate some of these color concerns by allowing users to select the color scale.
 
 \section{Conclusion}
 
@@ -352,6 +341,17 @@ For future work, we hope to continue to augment the system and fix bugs. In part
 \section{Acknowledgments}
 
 We would like to especially say thanks to Jonathan Schwabish of the Urban Institute for being our mentor, responding to emails, and giving us the idea for the project in the first place. We would also like to thank Tyrone Grandison, a Presidential Innovation Fellow at the Department of Labor for giving us guidance with using the BLS API and to Emily Liddel, also at BLS, who gave us specific information and guidance on what data sets to use. All three of our mentors helped us push the project forward when we were stalled. We'd also like to thank those folks who participated in our usability study, and who critiqued our work to help make it better. We'd also like to thank our professor Ben Shneiderman for being so enthusiastic about our project and the opportunity to present at BLS.
+
+\section{Links and Resources}
+
+The following links contain more information relevant to the project as well as resources for further exploration (they have been shortened by the ter.ps URL shortner project for print format).
+
+\begin{enumerate}
+    \item ELMR Application: \url{http://ter.ps/985}
+    \item Video Tutorial and Demo: \url{http://ter.ps/983}
+    \item Github Repository: \url{http://ter.ps/984}
+    \item Project Wiki: \url{http://ter.ps/986}
+\end{enumerate}
 
 \balance{}
 
@@ -382,6 +382,7 @@ The section lists the contributions of each member of the team.
     \item Created presentation
     \item Presented in class and at BLS
     \item Wrote the final draft of the paper
+    \item Revised final draft for BLS
 \end{enumerate}
 
 \subsection{Xintong Han}
@@ -399,7 +400,6 @@ The section lists the contributions of each member of the team.
     \item Revised the inital proposal
     \item Created initial design 1
     \item Wrote the script for the video
-    \item Contributed statistical methodologies
     \item Performed data exploration and wrangling
     \item Assisted in software development tasks
 \end{enumerate}
