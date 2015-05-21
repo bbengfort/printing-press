@@ -247,8 +247,8 @@
 %% Usage: \cogsysworkshopheading{}
 %%	  \cogsysworkshipheading{}
 
-\def\cogsysworkshopheading{\def\ps@cogsystps{\let\@mkboth\@gobbletwo%
-\def\@oddhead{\scriptsize }%
+\def\cogsysworkshopheading#1{\def\ps@cogsystps{\let\@mkboth\@gobbletwo%
+\def\@oddhead{\scriptsize \hfill #1 Annual Conference on Advances in Cognitive Systems: Workshop on Goal Reasoning \hfill }%
 \def\@oddfoot{\scriptsize  \hfill}%
 \def\@evenhead{}\def\@evenfoot{}}%
 \thispagestyle{cogsystps}}
