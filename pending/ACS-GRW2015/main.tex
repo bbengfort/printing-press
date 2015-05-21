@@ -96,7 +96,7 @@ The decomposition method of solving fact-based retrieval questions can also be a
 \begin{figure}
 	\centering
 	    \includegraphics[width=\textwidth]{figures/simple_trajectory.png}
-    \caption{\label{fig:simple_trajectory.png}A complex knowledge goal solution with trajectory change.}
+    \caption{\label{fig:simple_trajectory.png}Interactive knowledge goal reasoning on the complex goal, ``What courses should I take next semester?''. The system resolves context dependencies, then proposes a plan of simpler sub-goals that lead to database queries using information from prior goals (represented as \texttt{\small\$VAR)}. Depending on the interaction, a goal trajectory can modify the original goal to ``Can I graduate next semester?'', which continues the process.}
 \end{figure}
 
 Consider an example complex knowledge goal, ``\textit{What courses should I take next semester?}'', outlined in Figure \ref{fig:simple_trajectory.png}. This knowledge goal is routine, executed by the same user on a regular interval and common enough that a casebase of solutions is readily available. The task of this knowledge goal is to create a list of courses which are available next semester and which the student will presumably be able to register for. The concept of the question is the domain of courses that are available at a particular university during a particular semester. The context for a user determines preference in terms of the selected major or course level as well as geographical context (which specific university) and temporal context (which specific semester).
@@ -161,8 +161,8 @@ Our vision to solve complex knowledge goals is an \textit{interactive case-based
 
 \begin{figure}
 	\centering
-	    \includegraphics[width=0.5\textwidth]{figures/architecture.png}
-    \caption{\label{fig:architecture.png}An architecture for interactive knowledge-goal reasoning.}
+	    \includegraphics[width=\textwidth]{figures/architecture.png}
+    \caption{\label{fig:architecture.png}An architecture for interactive knowledge-goal reasoning. The goal reasoning system decomposes complex knowledge goals expressed as natural language queries into plans of simpler goals.}
 \end{figure}
 
 An interactive knowledge-goal reasoning system would require the ability to correctly identify \textit{concepts} through some semantic parsing task. Knowledge goal \textit{concepts} would be used to identify similar knowledge goals in the casebase for retrieval. The system would also require the ability to classify the \textit{task} of the question in order to determine the execution context and to reuse previous cases. Finally the system would utilize the \textit{context} of the questioner to adapt or revise cases for the specific scenario. Knowledge goals and their trajectories would be retained in the casebase along with their relationships such that the system learns over time and can anticipate future knowledge goals, for example by detecting common goal trajectories and proposing shorter paths to those anticipated goals. The required components and architecture of such an interactive knowledge goal system are described in Figure \ref{fig:architecture.png}.
@@ -203,7 +203,7 @@ Asked questions are then answered by other users who can specify free text about
 
 \begin{figure}
 	\centering
-	    \includegraphics[width=0.75\textwidth]{figures/kyudo_screenshot.png}
+	    \frame{\includegraphics[width=0.75\textwidth]{figures/kyudo_screenshot.png}}
     \caption{\label{fig:kyudo_screenshot.png}A screenshot of Kyudo, our preliminary case acquisition system.}
 \end{figure}
 
