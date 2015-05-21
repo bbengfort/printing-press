@@ -1,0 +1,92 @@
+                          REVIEWERS' COMMENTS
+
+----------------------------------------------
+REVIEW NO. 1
+
+Originality:              Accept
+Significance of topic:    Accept
+Technical quality:        Accept
+Relevance to SSCI 2014:   Strong Accept
+Presentation:             Neutral
+Overall rating:           Accept
+
+Reviewer's expertise on the topic: High
+Suggested form of presentation:    Any
+Best Paper Award nomination:       No
+
+Comments to the authors:
+    In this paper, a self-organizing particle swarm optimization method based on
+    evolutionary design is proposed for collective problem solving. In this
+    design, the evolutionary computing techniques has been applied to design
+    particles, not only to optimize the parameters for movement but also the
+    structure of controlling finite state machines that enable collective
+    intelligence. Based on such design, the particles in the swarm exhibit
+    emergent, self-organizing behavior. The over-all quality of this paper is
+    above the acceptance line.  However, there are some comments need to be
+    addressed to further improve the manuscript as follows:
+    1.  Figure 1 and Figure 6 convey not too much information, could the
+    authors re-plot these figure more informatively?
+    2.  What is the x axis and y axis in Figure 2, Figure 3, Figure 4 and
+    Figure 5? These information should be provided in these figures.
+    3.  A comparison with other evolutionary based methods, such as original
+    PSO, in the simulation section is highly appreciated.
+
+----------------------------------------------
+REVIEW NO. 2
+
+Originality:              Accept
+Significance of topic:    Accept
+Technical quality:        Accept
+Relevance to SSCI 2014:   Accept
+Presentation:             Accept
+Overall rating:           Accept
+
+Reviewer's expertise on the topic: High
+Suggested form of presentation:    Any
+Best Paper Award nomination:       No
+
+Comments to the authors:
+    An interesting paper, and well written. There are apparently enough details to
+    reproduce the experiments, at least in principle, which is a good point.
+    Just a few minor remarks (see below).
+
+    -------------------
+    p. 2
+    "we are more interested in the, opposite application, using evolutionary
+    techniques to create particles that exhibit swarm behavior and collective
+    problem solving."
+    It would be  very interesting to try to apply the same method to automatically
+    "build" particles and rules  in the context of Particle Swarm optimisation.
+    Any suggestion how it could be possible?
+
+    p. 2
+    "The task is competitive, as there are two teams in the environment competing
+    for the resources and therefore the simulation is non-deterministic "
+    Competition does not necessarily implies randomness, and could be deterministic.
+    Please reformulate.
+
+    p. 6
+    "The simulated world was a 3000 x3000 world "
+    ??
+
+----------------------------------------------
+REVIEW NO. 3
+
+Originality:              Accept
+Significance of topic:    Accept
+Technical quality:        Neutral
+Relevance to SSCI 2014:   Accept
+Presentation:             Accept
+Overall rating:           Accept
+
+Reviewer's expertise on the topic: Medium
+Suggested form of presentation:    Any
+Best Paper Award nomination:       No
+
+Comments to the authors:
+    A fascinating account of a multi-agent system that combines Reynold's flocking rules with working
+    memories and finite state machines. The system is tested on a locate-and-collect task, and compared to
+    the best human evolved agent.  The work would really come alive if an online video of the tasks could be
+    made available. There is some confusion between swarms and flocks: these are flocks by virtue of rule no.
+    2 (alignment). The paper is well organised and written and, although a longer and more complete account
+    would have been desirable, fairly well explained given the submission constraints.
