@@ -51,13 +51,16 @@
   breaklinks=true,
 }
 
+\newcommand\Peter[1]{{\color{red}#1}}	% Assigns macro to text color
+\newcommand\Ben[1]{{\color{blue}#1}}	% Assigns macro to text color
+
 % create a shortcut to typeset table headings
 % \newcommand\tabhead[1]{\small\textbf{#1}}
 
 % End of preamble. Here it comes the document.
 \begin{document}
 
-\title{An Interactive Visual Analytics Dashboard for the Employment Situation Report}
+\title{Interactive Exploration for the Employment Situation Report: From Fixed Tables to Dynamic Discovery.}
 
 % \numberofauthors{4}
 % \author{%
@@ -75,45 +78,56 @@
 %     \email{zhhoper@gmail.com}}\\
 % }
 
-\numberofauthors{1}
+\numberofauthors{3}
 \author{%
-    \alignauthor{Benjamin Bengfort, Xintong Han, Assaf Magen, and Hao Zhou\\
-        \affaddr{Department of Computer Science, University of Maryland}\\
-        \email{\texttt{\{bengfort,hzhou\}@cs.umd.edu, \{xintong,amagen\}@umd.edu}}\\
-    }\\
+  \alignauthor{Benjamin Bengfort\\
+    \affaddr{University of Maryland}\\
+    \email{bengfort@cs.umd.edu}}\\
+  \alignauthor{Peter Mancini\\
+    \affaddr{University of Maryland}\\
+    \email{pmancini@umd.edu}}\\
+  \alignauthor{Ben Shneiderman\\
+    \affaddr{University of Maryland}\\
+    \email{ben@cs.umd.edu}}\\
 }
 
 \maketitle
 
 \begin{abstract}
-The \textit{Employment Situation Report} is a monthly news release by the Bureau of Labor Statistics which describes the results of the Current Population Survey \cite{_employment_2015}. Its release is widely anticipated by economists, journalists, and politicians as it is used to forecast the economic condition of the United States by describing ongoing trends and has a broad impact on public and corporate economic confidence leading directly to investment decisions. The report itself is in a PDF format that is comprised primarily of text and tabular information. Quickly and correctly interpreting the results of the jobs report is vital for quality reporting and decision making, but the report is more suited for longer study than deriving insights. In this project we explore the use of an interactive dashboard for visual analytics upon the released BLS data. Using an application demonstration and a usability study we will show that visually interacting with the most current employment data, users are able to rapidly achieve rich insights similar to those reported on in the text of the Employment Situation Report.
+The \textit{Employment Situation Report} is a monthly news release by the Bureau of Labor Statistics which describes the results of the Current Population Survey \cite{_employment_2015}. Its release is widely anticipated by economists, journalists, and politicians as it is used to forecast the economic condition of the United States by describing ongoing trends and has a broad impact on public and corporate economic confidence leading directly to investment decisions. The report itself is in a PDF format that is comprised primarily of text and tabular information. Quickly and correctly interpreting the results of the jobs report is vital for quality reporting and decision making, but the report is more suited for longer study than deriving insights. In this paper we present two prototype applications that leverage visual analysis methodologies to transform data in fixed tables to provide dynamic discoveries through visual interaction.
 \end{abstract}
 
 \keywords{
-	Employment Situation Report; Information Visualization; Visual Analytics; Dashboard; D3; Data Science Pipeline
+	Bureau of Labor Statistics; Employment Situation Report; Information Visualization; Visual Analytics; Dashboard; D3; Data Science Pipeline; Tree Structure
 }
 
 
 \section{Introduction}
-The \textit{Employment Situation Report} is a critical, monthly assessment of the state of labor in the United States which is released by the Bureau of Labor Statistics (BLS) at 8:30 AM on the first Friday of the month. The ``Jobs Report'', as it's popularly called, is based on the Current Population Survey, which surveys individual households and the Current Employment Statistics Survey, which surveys employers. Together, these two surveys give a snapshot view of the number of employed and unemployed Americans, how many hours they are working, and a variety of other facts and figures. In recent years, this report has been used to measure economic and political solutions to the 2008 downturn, as well as the performance of politicians themselves. As a result, news media widely publicizes the upcoming release of the report each month, then follows the publication with widespread analyses and critiques. Perhaps thanks to its publicity the report is more recently being used as a forecasting tool by firms on Wall Street because the report is an indicator of investor and employer confidence in the growth of the economy since more jobs mean more consumer spending \cite{mahorney_what_2013}.
+
+\Peter{Since 1984, the Bureau of Labor Statistics (BLS) has served as the principal Federal agency responsible for measuring labor market activity, working conditions, and price changes in the economy. Data collected by the BLS can be sorted into four categories: Prices (e.g. Consumer Price Index, CPI), employment and unemployment, compensation and working conditions, and productivity. This data is collected via surveys designed by economists and statisticians. The surveys are sent to both businesses and households to acquire information regarding demographic and industrial statistics, which are then released in a report to the public.}
+
+\Ben{The \textit{Employment Situation Report} is a critical, monthly assessment of the state of labor in the United States which is released by the Bureau of Labor Statistics (BLS) at 8:30 AM on the first Friday of the month. The ``Jobs Report'', as it's popularly called, is based on the Current Population Survey, which surveys individual households and the Current Employment Statistics Survey, which surveys employers. Together, these two surveys give a snapshot view of the number of employed and unemployed Americans, how many hours they are working, and a variety of other facts and figures. In recent years, this report has been used to measure economic and political solutions to the 2008 downturn, as well as the performance of politicians themselves. As a result, news media widely publicizes the upcoming release of the report each month, then follows the publication with widespread analyses and critiques. Perhaps thanks to its publicity the report is more recently being used as a forecasting tool by firms on Wall Street because the report is an indicator of investor and employer confidence in the growth of the economy since more jobs mean more consumer spending \cite{mahorney_what_2013}.
 
 The report is delivered in both PDF and HTML format, comprised mostly of text and tabular information and is well suited to deep study rather than rapid analysis. Because of the report's forecasting power and journalistic impact, fast and correct interpretation of the report's information is essential; however, the current format does not lend itself well to the quick derivation of insights. Moreover, the report is not as easily accessible to a general audience, favoring economic language and measurements. We believe that a \textit{visual analytics} methodology \cite{keim_mastering_2010} using information visualization techniques would benefit the \textit{Employment Situation Report}, allowing for fast, correct interpretation of the current employment situation in the United States, as well as making the report more generally accessible.
 
-The combination of computer analytical processes with the human ability to quickly understand patterns leads to a reasoning system of discovery through interaction \cite{green_visual_2008}. Computer systems that enhance a user's sense-making process of ``overview first, zoom and filter, and details on demand'' allow the fast formulation and verification of hypothesis and will often lead to richer, deeper insights than can be extracted simply through statistical techniques \cite{heer_interactive_2012}. Importantly, few prerequisites are required for these types of analyses as essential domain knowledge can be incorporated into the analytical framework, leading to accessibility beyond those traditionally required for research. By creating a visual analytical system that adheres to these requirements, the Jobs Report will be made more widely available and reporting on the employment situation more verifiable.
+The combination of computer analytical processes with the human ability to quickly understand patterns leads to a reasoning system of discovery through interaction \cite{green_visual_2008}. Computer systems that enhance a user's sense-making process of ``overview first, zoom and filter, and details on demand'' allow the fast formulation and verification of hypothesis and will often lead to richer, deeper insights than can be extracted simply through statistical techniques \cite{heer_interactive_2012}. Importantly, few prerequisites are required for these types of analyses as essential domain knowledge can be incorporated into the analytical framework, leading to accessibility beyond those traditionally required for research. By creating a visual analytical system that adheres to these requirements, the Jobs Report will be made more widely available and reporting on the employment situation more verifiable.}
 
-In this project, we explore the development of an interactive ``Employment Report Dashboard'' web application (nicknamed ELMR), which implements a variety of visual tools for the exploration of the vast amount of time series data generated by BLS surveys. ELMR combines data from national surveys as released in the \textit{Employment Situation Report} as well as geographic-specific surveys that deal with state and metropolitan populations. Through interactive exploration with the tools on the application, users are able to explore both current and historical contexts for the employment situation and rapidly develop and verify hypotheses that could lead to important insights.
 
-\begin{figure*}[!ht]
-  \centering
-  \includegraphics[width=1.6\columnwidth]{figures/dashboard.png}
-  \caption{The ELMR application focuses on interactive visual analyses of employment data at both the national and state level. This screen grab shows the primary dashboard for time series exploration, as well as the tabs for selecting other visual analyses.}~\label{fig:dashboard}
-\end{figure*}
+We will combine these:
 
-The rest of the paper is structured as follows. We will first describe the ingestion framework required for dealing with BLS data and preparing a web application that must be updated on a monthly basis. We will then describe the four dashboards that we have implemented for visual exploration: a Time Series Explorer, a Geography Choropleth, a four dimensional ``Wealth of Nations'' visualization, and data exporter. We will evaluate the utility of our tool for visual analytics on the employment situation report via a usability study, and finally will conclude with a discussion including related and future work.
+\Peter{The present work is focused on compiling and arranging the tabular BLS data into an easily navigable, user-friendly interface that allows the user to see trends in the data, from which to potentially draw immediate insights. The goal of BLSVisalizer is to significantly improve the user interface of the current BLS website and benefit the labor statistics community by providing this simple, interactive visual tool.}
+
+ \Ben{In this project, we explore the development of an interactive ``Employment Report Dashboard'' web application (nicknamed ELMR), which implements a variety of visual tools for the exploration of the vast amount of time series data generated by BLS surveys. ELMR combines data from national surveys as released in the \textit{Employment Situation Report} as well as geographic-specific surveys that deal with state and metropolitan populations. Through interactive exploration with the tools on the application, users are able to explore both current and historical contexts for the employment situation and rapidly develop and verify hypotheses that could lead to important insights.}
+
+\begin{figure}[t]
+    \includegraphics[width = 3.5in]{figures/BLSSurvey_ppt.png}
+    \caption{BLS customer satisfaction survey for July, 1 2009 - June, 30 2011.}
+    \label{CustSat}
+\end{figure}
 
 \section{The BLS Data Pipeline}
 
-The Jobs Report is released monthly based primarily on two national surveys: the Current Population Survey and the Current Employment Statistics survey. In order to achieve a ``dashboard of visualizations'', described in the section on design and as shown in Figure~\ref{fig:dashboard}, we also ingested data from state and metropolitan surveys: the Local Area Unemployment Statics survey and Current Employment Statistics for State and Metropolitan economic divisions. Using these data sources created a unique challenge for a visual analytics data product - the system had to be able to adapt and acquire new information automatically, and to display important headlines on demand.
+\Ben{The Jobs Report is released monthly based primarily on two national surveys: the Current Population Survey and the Current Employment Statistics survey. In order to achieve a ``dashboard of visualizations'', described in the section on design and as shown in Figure~\ref{fig:dashboard}, we also ingested data from state and metropolitan surveys: the Local Area Unemployment Statics survey and Current Employment Statistics for State and Metropolitan economic divisions. Using these data sources created a unique challenge for a visual analytics data product - the system had to be able to adapt and acquire new information automatically, and to display important headlines on demand.
 
 Our initial architecture therefore relied on the pedagogical model of the ``data science pipeline'' as described in \cite{ojeda_practical_2014}. The data science pipeline is an analytical framework, describing preparatory analytical steps of ingestion, wrangling, storage, and pre-computation. We replaced inferential and modeling statistical methodologies with a visual analysis methodology. The resulting ``BLS Data Pipeline'' is described by Figure~\ref{fig:pipline}. The ingestion component utilized the BLS API to download individual time series, which then had to be wrangled to normalize the data and impute missing values for storage. Initial computations were then run on the data set to generate other data sources (for example a rate of change data set was computed on each time series). The data storage then powered an interactive API that was utilized by our visual front-end.
 
@@ -157,26 +171,29 @@ The data wrangling system also computed ``extra'' data sources that we thought m
 \end{figure*}
 
 
-Data wrangling also involved our initial data exploration efforts. We discovered that in order to power our geographic analyses, we needed some sort of regional information (e.g. FIPS identification codes or larger economic areas). The BLS website, while providing information particularly related to a time series, provided no \textit{meta information} about the data source, which required other data sources. For example, although we might download a time series entitled ``Tennessee, Professional and Business Services, Not seasonally adjusted - labor force'' - we still had to do the work of assigning the Tennessee FIPS code, 42, and to parse out whether or not the data set was seasonally adjusted, what dataset it related to (labor force) and what its modifier was (Professional and Business Services). To do this for 1684 data sources, we needed an automated mechanism to parse time series names. The challenges of adapting the data straight from the BLS website took up over 80\% of our development effort, and perhaps highlight how vital a visual analysis tools is to augment straight data flow.
+Data wrangling also involved our initial data exploration efforts. We discovered that in order to power our geographic analyses, we needed some sort of regional information (e.g. FIPS identification codes or larger economic areas). The BLS website, while providing information particularly related to a time series, provided no \textit{meta information} about the data source, which required other data sources. For example, although we might download a time series entitled ``Tennessee, Professional and Business Services, Not seasonally adjusted - labor force'' - we still had to do the work of assigning the Tennessee FIPS code, 42, and to parse out whether or not the data set was seasonally adjusted, what dataset it related to (labor force) and what its modifier was (Professional and Business Services). To do this for 1684 data sources, we needed an automated mechanism to parse time series names. The challenges of adapting the data straight from the BLS website took up over 80\% of our development effort, and perhaps highlight how vital a visual analysis tools is to augment straight data flow.}
+
+Similar thought:
+\Peter{This data was then organized into a pseudo-tree structure with labels denoting the level of the tree and and name of its category. For proper organizational purposes, the prefix of a child category was set to be the name of the parent category. Although, because the data was batch pulled from the BLS website and automatically sorted into the aforementioned hierarchical format, some of the data was sorted non-optimally. For example, several categories that should be grouped together as a ``parent'' result in several ``children'' with extensively long titles, e.g. two separate nodes ``Full time labor force looking for full time work - Men'' and ``Full time labor force looking for full time work - Women''. These two nodes can clearly be consolidated into a group ``Full time labor force looking for full time work'' with children for men and women. This issue can potentially be fixed by switching to a manual data importing and sorting process for BLSVisualizer; however, there are simply so many categories that this is likely unfeasible, or at least highly undesirable.  }
 
 \subsection{System Architecture}
 
-The ingestion mechanism can be polled on a monthly basis to retrieve new information from the BLS API, keeping the application up to date for immediate use by journalists. The data backend then powers a RESTful API built using Python and the Flask framework that serves a front-end javascript single page application, which primarily uses D3 for visualization methodologies. Other notable implementation details can be found on the Github project page: \url{https://github.com/bbengfort/jobs-report/}, where we have made our system open source using the MIT license. The ELMR project itself is currently deployed on Heroku and can be accessed via \url{http://elmr.herokuapp.com/}. It is our intent that this project can be explored in detail by the scientific and data community.
+\Ben{The ingestion mechanism can be polled on a monthly basis to retrieve new information from the BLS API, keeping the application up to date for immediate use by journalists. The data backend then powers a RESTful API built using Python and the Flask framework that serves a front-end javascript single page application, which primarily uses D3 for visualization methodologies. Other notable implementation details can be found on the Github project page: \url{https://github.com/bbengfort/jobs-report/}, where we have made our system open source using the MIT license. The ELMR project itself is currently deployed on Heroku and can be accessed via \url{http://elmr.herokuapp.com/}. It is our intent that this project can be explored in detail by the scientific and data community.}
 
-\section{ELMR Design}
+\Ben{\section{ELMR Design}
 
 The data provided by BLS that powered our web application came in the form of time series data. Although each individual time series did not contain massive amounts of information (approximately 182 data points representing each month in this millenium), the number of time series themselves exceed the ability for a human to organize and digest the various information. In order to provide a visual mechanism of exploration and interactive reasoning our design philosophy was that of a ``dashboard of visualizations'' where users could select appropriate visualizations, and interact with them though the ``overview first, zoom and filter, details on demand'' sense-making process. The primary filtering process involved time sliders to create windows of time to explore, as well as selectively choose which data to include in the visualizations.
 
 We implemented four dashboards to explore these techniques, each in their own seperate tabs across the top of the application:
 
 \begin{enumerate}
-    \item \textbf{Time Series Explorer}: explore and compare specific time series data sets in a dual-graph display.
-    \item \textbf{Geographic Choropleth}: explore time series according to their regional factors and influences, and how regions change over time.
-    \item \textbf{Wealth of Nations}: inspired by a classic visualization, this is a four dimensional analysis of regional data.
-    \item \textbf{Data Export Utility}: other visualization tools might benefit from the ingestion and wrangling work we've undertaken, data export allows users to use the data in their tool of choice.
+    \item \textbf{Time Series Explorer}: Explore and compare specific time series data sets in a dual-graph display.
+    \item \textbf{Geographic Choropleth}: Explore time series according to their regional factors and influences, and how regions change over time.
+    \item \textbf{Wealth of Nations}: Inspired by a classic visualization, this is a four dimensional analysis of regional data.
+    \item \textbf{Data Export Utility}: Other visualization tools might benefit from the ingestion and wrangling work we've undertaken. Data export allows users to use the data in their tool of choice.
 \end{enumerate}
 
-The visual analytical process requires a ``dashboard'' methodology - where a user can interactively control as many aspects of the visualization as possible, and where multiple visualizations are adapted simultaneously. Each tab described above is a dashboard with its own custom controls. The Time Series Explorer allows users to explore all of the time series with two chart windows and filter and zoom by a range of years. This explorer also has a ``headline view'' which attempts to highlight key information. The Geography Choropleth allows users to explore regional information in the continental United States, while also filtering for percent change. The ``Wealth of Nations'' attempts to minimize the affect of the geographic size on analytical ability from the Choropleth maps and is based on a classic visualization made famous by Hans Rosling's 2006 TED Talk \cite{_wealth_????}. Finally, a data export dashboard allows users to download specific data with filters applied so that they can manipulate the data in their favorite visualization tools.
+The visual analytical process requires a ``dashboard'' methodology - where a user can interactively control as many aspects of the visualization as possible, and where multiple visualizations are adapted simultaneously. Each tab described above is a dashboard with its own custom controls. The Time Series Explorer allows users to explore all of the time series with two chart windows and filter and zoom by a range of years. This explorer also has a ``headline view'' which attempts to highlight key information} [Peter: More specifically, it provides the percent change over the selected time range]. \Ben{The Geography Choropleth allows users to explore regional information in the continental United States, while also filtering for percent change. The ``Wealth of Nations'' attempts to minimize the effect of the geographic size on analytical ability from the Choropleth maps} [Peter: Does this just mean ``normalized by the population''? If so, let's just say that.] \Ben{and is based on a classic visualization made famous by Hans Rosling's 2006 TED Talk \cite{_wealth_????}. Finally, a data export dashboard allows users to download specific data with filters applied so that they can manipulate the data in their favorite visualization tools.
 
 \subsection{Time Series Explorer}
 
@@ -241,7 +258,7 @@ Because the ingestion utility is real time and because we expect that the visual
 
 Other details include the current version of the application, and the timestamps of the updates or ingestions. The ELMR Status bar gives a quick view of any required maintenance for the system. A GREEN status indicates that the app is within a month of the last ingestion, YELLOW indicates that the app is less than six months since ingestion, and RED indicates that the app is unusable due to the amount of time since the ingestion. Database records also indicate the state and size of the database.
 
-By creating an open utility that shows the ingestion process and the state of the database, we hope to allow users to have transparency in our analytical and systems methodology so that collaborative efforts can improve the system. Along these lines, our software is open source on Github, with links to full documentation, agile development boards, API documentation, and more all in the drop down. In the future, we hope to allow direct administration from this page, by kicking off ingestion, or editing time series directly.
+By creating an open utility that shows the ingestion process and the state of the database, we hope to allow users to have transparency in our analytical and systems methodology so that collaborative efforts can improve the system. Along these lines, our software is open source on Github, with links to full documentation, agile development boards, API documentation, and more all in the drop down. In the future, we hope to allow direct administration from this page, by kicking off ingestion, or editing time series directly.}
 
 \begin{figure*}[!ht]
     \centering
@@ -250,93 +267,133 @@ By creating an open utility that shows the ingestion process and the state of th
     \label{fig:admin}
 \end{figure*}
 
+
+\Peter{\section{Overview of Design}}
+
+(Peter's Time Series Tool)
+
+\Peter{In order to assess the quality and user friendliness of their website, the BLS, characteristically, conducts a survey on customer satisfaction. Figure \ref{CustSat} provides the customer satisfaction results from July 1, 2009 - June, 30 2011. The average satisfaction level was 75, which implies that the website has considerable room for improvement. The present work aims to increase customer satisfaction and provide a more enjoyable experience for the data-seeking users. The purpose of BLSVisualizer is to gather data contained in thousands of tables and present it in such a manner that is easily navigable and provides the user with an immediate visual representation of the dataset.
+
+BLSVisualizer was designed with the intent of being an easy to use, visually clear product with a powerful capability to evoke insights from the user based on the presented data. From a design standpoint, it is the designers job to manipulate the perception, cognition, and communicative intent of a visualization \cite{Agrawala2011} by understanding the principles of what makes a good design. Producing a ``freindly data graphic'' \cite{Tufte} requires the designers to include a balance of useful features while also remaining aesthetically pleasing and not overwhelming to the user. Concepts such as color \cite{MacDonald1999}, font \cite{Moere2011}, and transitions \cite{Heer2007} have been shown to affect usability of a visualization and have been strategically considered in the present work.
+
+The main feature of BLSVisualizer is the use of an \textbf{interactive tree structure} to obtain data. The tree structure is generated by implementing a parent-children hierarchy, from which the user can select his or her desired dataset. Much work has gone into studying the effectiveness of tree structures from both practical \cite{Barlow2001} and aesthetic \cite{Wetherell1979, Reingold1981} standpoints. Barlow and Neville performed a parameter study on hierarchy visualizations by asking users to perform decision tree analyses on four different chart types: Organizational chart (or tree structure), icicle plot, tree ring, and treemap. Based on user response time and response accuracy, the authors concluded that the tree structure and icicle plots produced the most effective visualizations. The present study has considered the suggestions from previous work and decided to implement the hierarchical tree structure, due to its universal familiarity, ease of implementation, and aesthetic appeal.
+
+The second feature of BLSVisualizer is the real-time \textbf{drag-and-drop plot} area, where the user can view the time series data in the form of two-dimensional line charts. While previously, the user was forced to deal with hundreds of tables of data to simply compile a single time series, the user can now locate and plot the data quickly, ideally leading to more efficient data analysis.
+
+Data was acquired via the API provided by the BLS in comma separated value (CSV) format. The CSV formatted data was converted to JSON format in order to more easily implement the hierarchical parent-child tree structure.
+
+\begin{figure*}[t]
+\centering
+    \includegraphics[width = 6.2in]{figures/BLSVisualizer.png}
+    \caption{Example layout of BLSVisualizer }
+    \label{BLSVLayout}
+\end{figure*}
+
+The front-end interface utilizes primarily HyperText Markup Language (HTML), Cascading Style Sheets (CSS), and JavaScript. Javascript was largely employed via the Data Driven Documents (D3) library, from which most of the interactive displays were made.
+
+\section{Tree Structure}
+
+The first step in any design process is to identify the design space. In this case, the space consists of multi-leveled categorical data. The nature of the design space lends itself to be organized in a hierarchical format. Hierarchies are typically displayed using a geometrically-transformed display \cite{Keim2002}. Such is done in the present work in the form of an interactively transforming tree structure, primarily written using the D3 library titled ``Collapsible Tree Layout''. The transitions have are done in a smooth fashion that is aesthetically pleasing as well as visually effective.
+
+Wetherell and Shannon \cite{Wetherell1979} provide a detailed description on what makes for an effective tree visualization. An important aspect of the analysis was the definition of three key \textit{aesthetics}. Each of their suggested aesthetics have been implemented into the BLSVisualizer tree structure.
+\begin{itemize}
+\item \textit{Aesthetic 1}: Nodes of a tree at the same level should be along a straight line
+\item \textit{Aesthetic 2}: Left and right children should remain left and right of the parent
+\item \textit{Aesthetic 3}: Parent should be centered over its children
+\end{itemize}
+
+Another feature Wetherell suggested was to minimize the width of the tree as much as possible. However, the present authors and Reingold et al. \cite{Reingold1981} found this technique to cause a cluttered workspace and too narrow of a visualization.
+
+Most of the data, when exported from the BLS website, comes organized in a conveniently hierarchical manner. However, the authors further condensed some of the data to be organized in a more logical manner under more appropriate parent levels. To maintain a clutter-free environment, as the user expands the tree, only the bottom most levels are visible. To return to a previous level, the user can re-click on the last expanded parent and it will collapse the bottom level and return the previous level into view. The colors of each item correspond to either dimensional values (orange) or non-dimensional values (green), such as rates or percentages. Since this is a rather large dataset, this minor color coding will help the user more quickly identify the dataset he or she desires. The entire tree interface specifically complies with three of Shneiderman's Eight Golden Rules \cite{shneiderman1986}: Strive for consistency, easy reversal of actions, and reduce short-term memory load.
+
+\begin{figure}[t]
+\centering
+    \includegraphics[width = 3.5in]{figures/tree2.png}
+    \caption{Interactive hierarchical tree structure. (Left) One level into the hierarchy and (right) two levels into the hierarchy, during which the first level is pushed off-screen.}
+    \label{TreeStructure}
+\end{figure}
+
+\section{Drag-and-Drop Plot}
+
+To plot the time series data, the user may select a particular category and drag-and-drop that node into one of the middle boxes labeled ``Plot 1-3''. Each plot allows up to six items to be plotted at any one time. In order to preserve an easy reversal of actions, the user may simply click on the item in the plotting list to remove it from the chart. The ``clear'' button at the top of each plotting area provides a one-click option to clear the plot of all items. Again in compliance with the Eight Golden Rules, in order to ``prevent errors'' the application prevents the user from adding the same category more than once to the same chart.
+
+\section{Chart Area}
+
+The most important component of the visualization is the time series chart area. Dragging components into the center boxes causes the charts on the right to interactively update with the currently listed items. The nature of the time series data suggests that the shape of the graphic be a rectangular plot with the horizontal axis containing the date of each released BLS report. Line color was selected using the cartography tool ColorBrewer \cite{Harrower2003}. This tool provided a very aesthetically pleasing array of six colors arranged with the intention of plotting data with qualitative differences. This is opposed to a quantitative color scale, e.g. light red to dark red, that would indicate the quantitative relationship between the items plotted. However, the two datasets of ``Employment Level - Men'' and ``Employment Level - Women'' have no quantitative relationship. Thus, a color scale that provides significant contrast and legibility between the individual lines is ideal.
+
+A popular mantra for designing an effective visualization is ``Overview first, zoom and filter, then details-on-demand'' \cite{Shneiderman1996}. BLSVisualizer, as a whole, does exactly that. The tree itself acts as an overview-to-zoom interactive element, allowing the user to dive deeper into the data, getting more detailed with each subsequent level. Additionally, the line charts, plotted from years 2000 to 2015 provide an overview in the sense that it is a line showing the trend of data over 15 years. However, upon hovering over the plot, a tooltip box will appear to provide the discrete monthly data points at the current location of the mouse. To help the user identify where along the x-axis the mouse is located, a vertical line spanning the height of the plot follows the mouse as it travels horizontally across the figure. The vertical position-indicator line is colored grey and is significantly thinner than the plotted time series data. The contrast in line weight represents a contrast in meaning, with the greater meaning given to the line with greater weight \cite{Tufte}.
+
+Figure \ref{TablePlot} provides a comparison of how the data is presented in both the current BLS website and in the BLSVisualizer. It is clearly shown that BLSVisualizer provides a service in terms of observational insightfulness when viewing the data that the current BLS website does not provide.}
+
+\begin{figure*}[t]
+\centering
+    \includegraphics[width = 6.2in]{figures/PlotTable.png}
+    \caption{Comparison of the two proposed sets of BLS data. (Left) Tabular data presently employed on the BLS website and (right) its equivalent visual counterpart presented in BLSVisualizer.}
+    \label{TablePlot}
+\end{figure*}
+
+
 \section{Usability Study}
+Add in a few of of your usability questions that resulted in good/useful user feedback.
 
-To evaluate the effectiveness of the ELMR application for analyzing the current employment situation in the United States, we recruited 8 participants for a usability study. All participants were PhD students from the ECE and CS departments at the University of Maryland who had no professional knowledge of economics or labor force statistics. Our usability study contained five parts: background introduction, training, testing through research-driven tasks, testing user-driven exploration, and a final questionnaire. The test took approximately 10-15 minutes.
+\Peter{To examine the current prototype and evaluate its potential as a visualization tool, the authors conducted remote and in-person usability tests with five users: all five were students, but only three participants had previous experience with visualization tools. Each test took about 5-10 minutes. Before starting the tasks section we collected basic information about the participants: age, gender, occupation, and experience with visualization tools.
 
-\subsection{Background Introduction}
-
-All participants were introduced to the project with a training video, \url{http://ter.ps/983}. Since none of the participants was familiar with employment statistics, we also briefed them on the three data sets used in the project.
-
-\subsection{Training}
-All participants were given a short training session on the primary components of each dashboard interface. The study administrators provided the participants with an example of how to draw ``Employment Ratio'' and ``Employment-Population Ratio'' time series. During training, participants were encouraged to ask questions to validate that they understood the training.
-
-\subsection{Research-Driven Tasks}
-The first part of the usability study required participants to complete 5 research-driven tasks using the ELMR application. These tasks were provided to participants through eight questions:
+The test was designed to progressively increase in difficulty, and went as follows:
 
 \begin{enumerate}
-\item    Show the unemployment rate for Asian and White people. From 2008-2010, which group of people had higher relative changes of unemployment rate?
+  \item Create 3 graphs for the following categories:
 
-\item    Which state had the highest unemployment rate in Oct, 2011?
-\item    In Mar, 2011, which five states had the largest labor force? Do these states also have the highest employment level?
-\item     Show the unemployment rate for Maryland and Florida.
-\item     Download a data set you are interested in.
-\end{enumerate}
+\begin{itemize}
+  \item Population level
+  \item Employment level
+  \item Marginal inflows to employment
+\end{itemize}
 
-During the test session, we recorded the time that participants spent on each question. We encouraged them to work carefully and to use a  ``think aloud'' methodology as they completed the tasks.
-
-\subsection{User-Driven Exploration}
-The second part of the usability study was focused on hypothesis-driven analyses and user-driven exploration. Participants were asked to propose several questions they found interesting and to explore those questions using the tool. As in other testing, participants were encouraged to use a ``think aloud'' methodology during their exploration.
-
-\subsection{Questionnaire}
-After completing both testing sections, particiapnts were asked to complete a questionnaire. Questions were designed to evaluate the tool on a usability scale, and to report how difficult it was to complete the testing tasks.
-
-\subsection{Results}
-
-Qualitative responses during the research-driven ``think aloud'' session had the most impact on our design. Helpful feedback for each task is reported in this section.
-
-\begin{enumerate}
-\item    Show the time series of unemployment rate for Asian and White people. From 2008-2010, which group of people has higher relative changes of unemployment rate?
-
-Users were easily able to answer the first part of this question by using the Time Series Explorer dashboard and selecting time series data from the CPS. Users quickly brought up visual displays of the data, but were surprised that they had to place the data into two separate charts, rather than using multiple lines on the same chart. The primary suggestion was that questions of this kind, where data sets share the same scale, could be answered more efficiently with multiple line charts. Users agreed that for time series that did not have the same scale, e.g. unemployment rate and labor force, two separate charts allowed for more easy comparison.
-
-\item    Which state has the highest unemployment rate in Oct, 2011?
-
-When we designed the question, we expected participants to use the Geography Choropleth dashboard to find an answer, and several participants did. However, since the Wealth of Nations dashboard also visualized the unemployment rate of states over time, a participant used this view to find the right answer. There were some complaints that when the data of two states are very similar, they could not tell which one is bigger. They suggested that when the mouse is hovering on a state, the corresponding data should be shown for easier comparison. Most of the participants were not happy with the the slider to choose a specific time period, and would have prefered a dater picker. But they did use the slider to see animated change over time. In general, all participants liked the choropleth for its visual information and appeal.
-
-
-\item    In Mar, 2011, which five states has the highest size of labor force, do they also have the highest employment level?
-
-This question was the most difficult according to user feedback. All participants attempted to answer this question using the Wealth of Nations dashboard, but they still could not answer it quickly; for two reasons: the difficulty in choosing the time in this dashboard (the slider is sensitive to the mouse), and difficulty understanding the legends.
-
-\item     Show the unemployment rate for Maryland and Florida.
-
-This was the easiest questions for the participants, though two had difficulty finding the correct datasets in the dropdown. Users mentioned that they were overwhelmed by the large number of datasets. Participants suggested organization strategies for the data sets like autocomplete or search.
-
-\item     Download a data set you are interested in.
-
-Users were delighted to find this feature in our tool. They believed that they could complete initial analyses using ELMR, perform data exploration, then download the data to do more sophisticated statistical analyses.
+  \item Change ``Unemployment level'' to ``Employment level''
+  \item What was the white population level at 11/2011?
+  \item Between 1/2008 to 1/2010 – who has the bigger increase in labor force flows from unemployment to employment: Men or Women?
+  \item Compare, on the same graph, the effect of education level on unemployment rate.
+  \item Compare the employment level of four different industries (both sexes).
+\begin{itemize}
+  \item Identify the largest industry (in terms of employment level) and compare the distribution of men and women for that industry.
+\end{itemize}
 
 \end{enumerate}
 
-The results of the usability study were used to generate a list of prioritized changes and feature additions to the application. This priortized list is tracked on a development board on our Github repository. Several of those features have already been implemented. For example, we have added more hints and detail to the dashboards, added slider bars to the Wealth of Nations view, and aligned the X-axes of the Time Series Explorer. Other details like user-ability to select the color scale in the choropleth were inferred from user feedback, though not directly suggested. 
+The first question simply asks the user to plot three separate datasets, which are all located on the first level of the tree, on the three chart areas. After reading the ``About'' section at the top of the page that describes how to use the tool, none of the users had an issue plotting the data. Two users brought up the fact that they were not aware that the ``About'' button was even an option. A clearer label would have remedied that issue.
 
-\section{Related Work}
+The second question asked the user to remove one of the datasets they plotted and replace it with another. This question tests the ease of undoing an action, which is a very important feature in a visualization tool. Again, after locating the ``About'' pop-up window, all users were able to easily perform this task.
 
-Our work captures many different facets of visual analyses as described in \cite{keim_mastering_2010} including the use of interactive dashboards, the use of a ``sense-making'' process, and the combination of user and computer analytical workflows. In particular, we attempt to create a hypothesis driven design that models human cognitive effort by combining the best characteristics of human pattern recognition and computer number crunching \cite{green_visual_2008}. We focus specifically on the cognitive pattern ``overview first, zoom and filter, details on demand'' as described in \cite{heer_interactive_2012}. This idea was taken further in \cite{heer_design_2008} to discuss collaborative interactive design, something we did not implement in our system, but hope to in the future. Collaborative interactive design allows interaction by multiple users who share visualizations and explorations to further analytical workflows.
+Question \#3 really tests the plausibility of replacing the current table look-up style of presenting the data with this interactive visualization. This task asked them to plot a time series and identify its value at a particular date (month/year). This task can be done in BLSVisualizer in two clicks, whereas on the BLS website it would likely take up to six clicks while visually sifting through dataset titles.
 
-\subsection{Employment Situation Visualization}
+Question \#4 attempts to do what the current BLS data presentation cannot provide: Insights based on visualization of the data. The user is asked to identify a way to compare the effect education level has on unemployment rate. This question gave several users some trouble. They were not sure what exactly they were asked to do, but after exploring some of the categories and understanding what options they had to work with, all five users eventually produced the correct plot and drew the same conclusion. The conclusion was that the more educated you are the less likely you are to be unemployed.
 
-Visualizing employment statistics such as employment and unemployment levels and rates as well as the size of the labor force is extremely important. Although the Jobs Report does provide some simple visualizations, in \cite{leonhardt_how_2014} they are specifically analyzed to show how users can be easily misled by the report. Some work has been done in domain-specific areas. For example, \cite{ashkenas_how_2014} uses 255 spark lines on a single chart to help people specifically explore how the recession reshaped the economy. In this single visualization, each spark line represents a particular industry, and the growth or decline of the chart is encoded into the graph both by the spark line as well as by color. The size of each industry is represented along a sliding X scale. This methods, while interesting and interactive, provide only a single domain to explore, and are not updated in real time when new data is ingested.
-
-In \cite{battista_motion_2011}, BLS researchers specifically look at how to visualize complex statistical data using motion charts - where data is encoded not just in the chart, but through movement over time. Our work uses many of these features without explicitly considering themselves motion charts since we use many dimensions besides time in our analyses. However this paper clearly shows how different analyses and time series can be combined into much simpler graphs for story telling purposes, and are good candidates for inclusion in future dashboards.
-
-\subsection{Time Series Data Visualization}
-
-Since the employment statistics are mostly time series data, some papers \cite{few_visualizing_2007,peng_method_2008,ashkenas_how_2014} about visualizing time series are also related to our project. \cite{few_visualizing_2007}  gives us a brief idea of which patterns of change we should pay attention to for time series data; \cite{peng_method_2008} shows how to visualize multi-dimensional time series data with different location information; and \cite{ashkenas_how_2014} focuses on visualizing the job change during the recession, which is very similar to part of what we want to visualize.
+The final task of the usability test asked the user to plot the employment level of four industries of their choice and identify the one with the highest level of employment. Once this dataset was located, they were asked to break that data down into a demographic study of male and female. This question was created to show the user that it this visualization promotes breaking the data down into its parts to identify sources of a particular trend in the data. The users had minor difficulties with this task, but once they completed it their comments conveyed that they were impressed with the overall utility of the tool.
 
 
-\subsection{Geography-Based Data Visualization}
+The most frequent complaints about the BLSVisualizer interface were:
+\begin{itemize}
+  \item Lack of a Search bar
+  \item Option to add plots
+  \item Option to export data
+  \item Font size was small
+  \item Overlapping text for categories with long titles
+\end{itemize} }
 
-For many users, they may want to visualize and compare the data for different regions or states. For example, a user may want to see how the unemployment ratio changes in the state where he or she lives. As a result, an informative visualization should give the option that users can visualize the data for different states. To achieve this function, many visualizations use a map and visualize the data by painting the map with colors, in which users can compare the regions they are interested in. For example, \cite{rodrigues_estimating_2013} investigates the relationship between employment size and points-of-interest by proposing several visualization techniques to visualize this relationship in Boston metropolitan area. \cite{feldt_tailor-made_2005} creates a coordinates view that contains a Swedish map to show statistics of Sweden, and help users to explore various kinds of data that they are interested in.
 
-Choropleths are also widely explored - and are available in a number of analytical tools. These types of charts are often criticized because they hide important data in regions that are geographically small. They also suffer from similar problems as heatmaps because color scale is vital in their creation. In \cite{brewer_mapping_1997}, the use of color in choropleths is explored to show how mortality can be better analyzed with different color schemes. Because we used both D3 \cite{bostock_d3_2011} and ColorBrewer in our work, we tried to alleviate some of these color concerns by allowing users to select the color scale.
+\section{Conclusions and Future Work}
+Combine:
 
-\section{Conclusion}
+\Peter{The present work focused on significantly improving the user interface of the current BLS website by compiling and arranging the tabular BLS data into an easily navigable, user-friendly interface that allows the user to see trends in the data, from which to potentially draw immediate insights. This was done primarily through the use of the Javascript library D3, producing an interactive visualization of the BLS data obtained via their API. Usability tests of five users concluded that this application is significantly more useful, in terms of both finding the desired data and gathering conclusions based on trends in the time series.
 
-In this project we have created an interactive visual analysis tool that implements visual dashboards for human-driven insights into the BLS Employment Situation Report. Our tool aggregates over a thousand time series, ingested using the BLS API on a monthly basis and makes it available for at-a-glance insights, and visual exploration. In particular, we have created three primary dashboards: a Time Series explorer where users can compare and contrast multiple time series through a stacked overlay, a Geographic Choropleth map to investigate changes in employment according to demographics or industry at the state level, and a Wealth of Nations style dashboard that encodes multiple dimensions into a single one.
+The usability testing highlighted several areas of improvement to be implemented in the next version of BLSVisualizer. The font and inter-category spacing will be made larger for improved legibility. Also, the ``Help/About'' sections will be more clear as to what capabilities the application has to offer.
 
-For future work, we hope to continue to augment the system and fix bugs. In particular, we want to create better interactivity with the time series explorer tool, allowing for hiding and showing time series without removing them, and doing computation on particular analyses like rate of change or finding ``spikes'' by computing the cosine angle between series. The choropleth maps could also be augmented with better details, a critique that could apply to all of our dashboards which do a decent job of ``overview'' and ``zoom and filter'' but less so on ``details on demand''. If possible we will continue to extend our work and add more visualizations in the future.
+The addition of a search bar will certainly be investigated. However, due to time constraints, it is unclear whether that task is feasible in the allotted time. }
+
+\Ben{In this project we have created an interactive visual analysis tool that implements visual dashboards for human-driven insights into the BLS Employment Situation Report. Our tool aggregates over a thousand time series, ingested using the BLS API on a monthly basis and makes it available for at-a-glance insights, and visual exploration. In particular, we have created three primary dashboards: a Time Series explorer where users can compare and contrast multiple time series through a stacked overlay, a Geographic Choropleth map to investigate changes in employment according to demographics or industry at the state level, and a Wealth of Nations style dashboard that encodes multiple dimensions into a single one.
+
+For future work, we hope to continue to augment the system and fix bugs. In particular, we want to create better interactivity with the time series explorer tool, allowing for hiding and showing time series without removing them, and doing computation on particular analyses like rate of change or finding ``spikes'' by computing the cosine angle between series. The choropleth maps could also be augmented with better details, a critique that could apply to all of our dashboards which do a decent job of ``overview'' and ``zoom and filter'' but less so on ``details on demand''. If possible we will continue to extend our work and add more visualizations in the future.}
+
 
 \section{Acknowledgments}
 
@@ -368,6 +425,24 @@ The following links contain more information relevant to the project as well as 
 \section{Credits}
 
 The section lists the contributions of each member of the team.
+
+\subsection{Jonggi}
+
+\begin{enumerate}
+	\item Data retrieval from the BLS website via their API
+\end{enumerate}
+
+\subsection{Bor-Chun and Jonggi}
+
+\begin{enumerate}
+	\item Majority of the D3 programming
+\end{enumerate}
+
+\subsection{Peter and Rotem}
+
+\begin{enumerate}
+	\item Some D3 programming, usability testing, writing the report
+\end{enumerate}
 
 \subsection{Benjamin Bengfort}
 
