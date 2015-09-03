@@ -1,0 +1,92 @@
+%% Benjamin Bengfort's Resume
+%% Copyright (C) 2015 Benjamin Bengfort
+
+\documentclass[10pt,letterpaper,roman]{moderncv}
+
+\moderncvstyle{classic}
+\moderncvcolor{black}
+
+\usepackage[utf8]{inputenc}
+\usepackage[scale=0.75]{geometry}
+
+% personal data
+\firstname{Benjamin}
+\familyname{Bengfort}
+\title{Curriculum Vitae}
+
+\address{73 Bryant St NW}{Washington D.C. 20001}
+\mobile{(701)~680~3095}
+\email{benjamin@bengfort.com}
+\homepage{cs.umd.edu/\textasciitilde bengfort}
+
+% Need to include LinkedIn, GitHub, etc.
+\begin{document}
+
+\makecvtitle
+
+\section{Education}
+\cventry{2014--present}{PhD Candidate}{University of Maryland, College Park}{}{}{Graduate Research Assistant, Metacognitive Lab}
+
+\cventry{2008-2010}{M.S. Computer Science}{North Dakota State University}{}{}{Phi Kappa Phi, Upsilon Pi Epsilon}
+
+\cventry{2004-2006}{B.A. Economics}{University of Maryland, College Park}{}{}{Primanum Honor Society}
+
+\cventry{2002-2003}{English Major}{United States Naval Academy}{}{}{}
+
+% \subsection{Master Thesis}
+% \cvitem{title}{\emph{Title}}
+% \cvitem{supervisors}{Supervisors}
+% \cvitem{description}{Short thesis abstract}
+
+\nocite{*}
+\bibliographystyle{plain}
+\bibliography{publications}
+
+\section{Experience}
+
+% Adjunct Faculty at Georgetown
+\cventry{2014--present}{Adjunct Faculty}{Georgetown University}{Washington, DC}{}{Lecturer, Data Analytics Certificate Program (CCPE). Teaching \textit{Foundations of Data Science}, \textit{Software Engineering for Data}, \textit{Data Sources}, \textit{Data Analysis II: Machine Learning}, and \textit{Applied Data Analytics}.}
+
+% Data Scientist at Cobrain
+\cventry{2013--2014}{Data Scientist}{Cobrain Company}{Bethesda, MD}{}{
+Developed a Global Recommendation Engine, using Collaborative Filtering algorithms as well as Active Learning and adaptive systems from a machine-learning standpoint. Graph traversal and clustering across massive data stores required distributed Graph databases: Titan, as well as strong computation in Hadoop and Python with Pandas and NumPy. Entity resolution and ontological reasoning using probabilistic graphical models and RDF ontologies also factored into the work to disambiguate crawl data from a massive distributed crawler also developed at Cobrain.}
+
+% CTO at Unbound Concepts
+\cventry{2011--2013}{Chief Technology Officer}{Unbound Concepts}{Baltimore, MD}{}{Natural Language Processing across a large dataset of children’s literature using NLTK\newline{}%
+Machine Learning and predictive analysis with clustering and multivariate linear regression\newline{}%
+Big data analysis applied to the NLP and ML using Hadoop and MapReduce techniques.Mobile Application development: Android, iOS: Developed the BookLeveler app\newline{}%
+Rich web application development with Django along with JSON server for mobile apps.}
+
+% Programmer at Tactical Network Solutions
+\cventry{2010--2012}{Lead Programmer}{Tactical Network Solutions}{Columbia, MD}{}{Python software development for embedded, mobile and server applications\newline{}%
+Large-scale and real-time data analysis of Petabytes of wireless collects.\newline{}%
+Wireless offensive computer network attack, computer network operations\newline{}%
+Real time asset tracking software development with geolocation and KML toolkits\newline{}%
+Django web application development and Android mobile client applications development}
+
+% CMS Analyst at OUP
+\cventry{2007--2009}{CMS Analyst}{Oxford University Press}{Oxford, United Kingdom}{}{Management of custom content management solutions for electronic publishing division\newline{}%
+Customer representative for agile based development of OED 4.0 CD-ROM software\newline{}%
+Data and database management for XML DTDs and Schemas }
+
+% Network Engineer, CenGen
+\cventry{2003--2004}{Junior Network Engineer}{CenGen, Inc.}{Columbia, MD}{}{Network support for DARPA’s Grand Challenge \& USMC Condor\newline{}%
+Mobile and wireless integration, network vehicle integration\newline{}%
+Field support and logistics, small team leadership }
+
+\section{Skills}
+\cvdoubleitem{Software Development}{Python 2.7 \& 3.4, GoLang, JavaScript, Java, C/C++, Git, Agile}{Big Data}{Spark, Hadoop, MapReduce, HDFS, Distributed Systems, Celery}
+\cvdoubleitem{Machine Learning}{Scikit-Learn, SparkML, GraphX}{NLP}{NLTK, TextBlob, Pattern}
+\cvdoubleitem{Application Development}{Django, Nginx, AJAX, jQuery, Underscore, Bootstrap, Flask, Django-Rest-Framework, RESTful APIs}{Databases}{PostgreSQL, MongoDB, LevelDB, Redis, Hive, Titan, Neo4j, MySQL, SQLite}
+\cvdoubleitem{Networking}{Kismet, Wireshark, Mgen, 802.11, Protocol Buffers, NS2}{OS}{Mac OS X, Ubuntu Linux, Gentoo, Embedded Ubuntu, Android, iOS.}
+
+\section{Volunteer Experience}
+\cvlistitem{Advances in Cognitive Systems 2015: Referee and reviewer of paper submissions.}
+\cvlistitem{Data Community DC: Treasurer, Board Member, and Organizer for DIDC.}
+\cvlistitem{Vino Scholastico: Charity committee for a tuition fundraising event at HCC in Maryland.}
+\cvlistitem{Team Fight, The Ulman Cancer Foundation: athletes raising money for the long term cancer treatment and care of young adults.}
+\cvlistitem{The Bridging Project: taught level 2 maths to asylum seeking refugees.}
+\cvlistitem{Primannum Honor Society: organized blood drives for The Red Cross.}
+\cvlistitem{Leadership U: tutored ESL elementary aged students. }
+\cvlistitem{National Honor Society}
+\end{document}

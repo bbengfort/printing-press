@@ -1,0 +1,37 @@
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[margin=1.5in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[parfill]{parskip}
+\usepackage{titling}
+
+% Title Fixes
+\posttitle{\par\end{center}}
+\setlength{\droptitle}{-60pt}
+
+% Remove page numbers
+\pagenumbering{gobble}
+
+\title{Python for Rapid Development and Performance}
+\author{Benjamin Bengfort \textit{<bengfort@cs.umd.edu>}}
+\date{September 3, 2015}
+
+\begin{document}
+
+\maketitle
+
+High-level, interpreted languages like Python or Ruby are well known for their ease of use but not necessarily their performance. However, since the release of Cython in 2007 and the rise in prominence of PyPy, Python's ``Just In Time'' (JIT) compiler, Python has begun to enjoy a reputation for performance especially in the scientific computing community. Python seems to have struck a balance between strongly typed systems programming languages and dynamic, library-driven scripting that has made it the first choice for general purpose computing in a variety of fields including machine learning, web development, and systems operation.
+
+John Ousterhout defines scripting languages as complementary to systems programming languages, where the higher level language glues together a set of existing components with a lower degree of typing in order to achieve more instructions per statement, thus lowering the development burden on the programmer \cite{ousterhout1998scripting}. This certainly fits well with Python's claim to be ``batteries included'', that is that the standard library included with Python contains almost every module required for any type of development. It is perhaps also for this reason that the third party package index (PyPI) was slow to catch on and is only now starting to come under serious development. Python can definitely be seen a glueing language able to be used in many contexts.
+
+Python has a dynamic type system where every variable name is bound to an object rather than to both an object and a type. As such Python prefers ``duck typing'' rather than type checking, which certainly leads to more instructions per statement and therefore a faster development time. However, Python also protects the developer by being strongly typed such that there is no implicit conversion between types, which in a dynamic type system may lead to programmer confusion. Through a system of exception handling, Python developers have a clear abstraction from the system details that allow them to write less code to greater effect.
+
+Python was particularly developed for rapid development such that it syntactically appeared to be executable pseudo-code with a performance that could be sufficient for an end product, otherwise as a prototype for C++ or Java \cite{rossum1998glue}. Python's original object-oriented nature was intended to make the prototype translation a straight forward process. Guido van Rossum's admonition to ``write only the performance-critical parts of the application in C++ or Java and use Python for higher-level control and customization'' has been taken to heart by the community. Tools like Cython/Pyrex or JPype integrate Python with high performance code, such that community development efforts have evolved Python into a performant enough language for numerical and scientific computing, particularly machine learning.
+
+Python is a glueing language that allows for very rapid development, but also high performance and is well suited to modern, general application programming.
+
+\bibliographystyle{plain}
+\bibliography{papers}
+
+\end{document}
