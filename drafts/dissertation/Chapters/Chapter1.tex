@@ -1,0 +1,98 @@
+%Chapter 1
+
+\renewcommand{\thechapter}{1}
+
+\chapter{Introduction}
+
+\section{Food Truck Case Narrative}
+
+This document explores an interaction between a concierge in Washington, D.C. and a tourist who is looking for somewhere ``interesting'' to eat. The tourist does not know that gourmet food trucks are part of the D.C. restaurant scene and is surprised at the recommendation of eating at a street vendor. The purpose of this narrative is to explore potential cases in a case based reasoning system relating to the narrative, and whether or not they’re are any goal trajectories.
+\subsection{Narratives}
+
+Below are several narrative scenarios for the food truck recommendation incident.
+
+\subsubsection{Scenario One: Confusion}
+
+In this scenario, the tourist asks the concierge, “I have about an hour before my show tonight, where is somewhere interesting I could eat that is quick and not too expensive?”
+
+The concierge replies, “It is such a nice summer evening, why not spend the hour relaxing in Pershing Park, off of Pennsylvania Ave, a few blocks away from the theater. There are a number of food trucks parked there where you can get an interesting meal to eat in the park.”
+
+The tourist, concerned, wrinkles his nose and replies, “How safe is it to eat at a food truck? Will I get food poisoning? I’ve heard those trucks aren’t very good.”
+
+The concierge understands immediately the confusion and answers, “I think you may be thinking of the contract hot dog and snack vendors that are along the Mall. Actually in DC we have a gourmet food truck scene, where specialists serve a wide variety of excellent food from their trucks. I think you’ll really enjoy the color and flavor of these more expensive establishments; they’re certainly a step up from eating fast food!”
+
+\subsubsection{Scenario Two: Going to a Movie}
+
+This scenario starts with slightly different constraints, the tourist asks the concierge, “Do you have any recommendations for something interesting to do and eat tonight?”
+
+The concierge, possibly as a result of his last interaction, suggests, “There is a gourmet food truck scene here in D.C. - you can use an app to track and find where trucks are setting up and explore the City sampling the variety of cuisine!”
+
+The tourist only looks slightly interested, “Ok, well I wouldn’t mind checking that out if I happen to see one, but I don’t know how special it would be.”
+The concierge is undeterred, “Well, I know that you enjoy movies; at the Angelika Popup near Eastern Market, which is an independent movie theater that serves booze, they’re playing Chef starring Dustin Hoffman and Jon Favreau. Chef is about a professional chef who finds purpose and family when he quits his job as executive chef and travels across the country in a food truck. That might be interesting to do, then go explore food trucks in the area.”
+
+The tourist, now interested, agrees and asks “Great idea! How do I get to the Angelika? What are the showtimes for Chef?”
+
+\subsection{Case Representation}
+
+The above narratives are rich in detail and interaction. The question becomes, how can we design a system that can reason about cases like these from previous cases in order to provide the rich interactivity that the concierge can. In this section, we will discuss the narratives in terms of their concept, task, and context. Outline any potential goal trajectories, and discuss the following questions:
+
+When do we retrieve old cases and how?
+Does something new occur? How can we adapt previous cases?
+How do we store the case in the casebase?
+
+Note that the goals of the tourist are expressed as natural language knowledge goals. Knowledge goals also determine the representation of the case and retrieval.
+
+\subsubsection{Scenario One Representation}
+
+In this scenario I was trying to add a lot of context to the knowledge goal representation such that the routine case “Where should I eat tonight” could be heavily parameterized by:
+
+speed of food (only an hour available)
+expense (wants something not too expensive)
+interesting (unique to DC, not standard fare)
+The concierge then adds in extra context such as:
+proximity to the theater (increases available time)
+weather (if it’s nice, outdoor eating is preferable)
+
+It was my hope that the context could largely determine the recommendation for Food Trucks, since food-truck specific cases might include details about weather, interestingness, and expense; and that other cases would be eliminated as good choices.
+
+In the confusion resolution part of the narrative, I was hoping to use concept-driven knowledge. E.g. is there an anomaly in the explanation that Gourmet Food Trucks will give you food poisoning? Yes, that is a different type of food truck that will give you food poisoning.
+
+\subsubsection{Scenario Two Representation}
+
+In this scenario, I was attempting to perform case adaptation at least to a certain extent. Here a list of previous cases for evening activities include dinner and a movie. However, because there was a recent successful resolution with Food Trucks - provide this as a starting place for recommendation. Then adapt the dinner and a movie case from before with something specific to Food Trucks - e.g. a food truck movie!
+
+\subsection{Defining Goal Trajectories}
+
+In this section, I attempt to define the goals of the tourist throughout the course of the narrative in order to expose goal trajectories or changes. I’ll attempt to show the goals as a timeline across the course of the narrative.
+
+\subsubsection{Scenario One: Goal Trajectories}
+
+This scenario has a starting goal and two subgoals. The concierge adds another goal.
+
+Goal0  - locate a place to eat with parameters
+Goal0.1 - determine safety of food truck
+Goal0.2 - clarify what food trucks are
+Goal1 - explain the difference between DC food trucks and hot dog stands
+
+The expressed goals of the tourist are all in the Goal0 tree, however the concierge identifies the confusion of the user and adds a goal to the tourist’s goal trajectory, namely the explanation goal of what a DC food truck is.
+
+\subsubsection{Scenario Two: Goal Trajectories}
+
+This scenario attempted to explicitly change the goal in the course of the conversation.
+
+Goal0 - determine evening plans
+Goal0.1 - find something to do
+Goal0.2 - find something to eat
+Goal1 - determine how to find food trucks
+Goal2 - determine how special food trucks are?
+Goal3 - learn about movie plans
+Goal3.1 - learn about theater
+Goal3.2 - learn about movie
+Goal3.2.1 - learn about actors
+Goal3.2.2 - learn about genre
+Goal4 - explain connection been movie and food activities
+Goal5 - clarify movie plans
+Goal5.1 - locate movie theater
+Goal5.2 - determine movie showtimes
+
+In this scenario the tourist provides explicit goals, which are refinements of earlier goals. I was hoping to show the trajectory, “Where do I eat?” to “What showtimes are playing?” though these could be seen as part of the larger goal “What do I do tonight?” Both the concierge and the tourists add goals through the interaction.
