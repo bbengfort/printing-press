@@ -1,0 +1,87 @@
+% Thesis Summary
+\documentclass[letterpaper]{article}
+\usepackage{aaai}
+\usepackage{times}
+\usepackage{helvet}
+\usepackage{courier}
+\usepackage{url}
+\frenchspacing
+\setlength{\pdfpagewidth}{8.5in}
+\setlength{\pdfpageheight}{11in}
+
+\pdfinfo{
+/Title Guiding Goal Trajectories During Interactive Knowledge-Goal Reasoning
+/Subject AAAI-16 Doctoral Consortium Thesis Abstract
+/Author Benjamin Bengfort, Michael T. Cox}}
+
+\title{Guiding Goal Trajectories During Interactive Knowledge-Goal Reasoning}
+\author{Benjamin Bengfort\\
+Department of Computer Science\\
+University of Maryland\\
+3264 A.V. Williams Bldg.\\
+College Park, MD 20742\\
+\textit{bengfort@cs.umd.edu}
+\And
+Michael T. Cox\\
+UMD Institute for Advanced Computer Studies\\
+Wright State Research Institute\\
+4035 Col. Glenn Highway Suite 200\\
+Beavercreek, OH 45431\\
+\textit{michael.cox@wright.edu}
+}
+
+\setcounter{secnumdepth}{0}
+
+\begin{document}
+    \maketitle
+
+\section{Motivation}
+
+We claim that humans solve complex questions through \textit{investigation}, breaking down harder questions into simpler sub-questions with more easily obtained solutions. When answering questions, humans also take into account context and approach new problems by leveraging techniques that have worked in the past. Underneath every question is a knowledge goal that represents the desire for answers. A system that models how humans investigate questions will therefore \textit{deconstruct} complex knowledge goals, \textit{integrate} relevant knowledge, and \textit{reuse} methods of investigation.
+
+Investigation can therefore be represented as a plan to solve the larger knowledge goal, and if the tasks or sub-goals of knowledge acquisition plans are simple knowledge goals that can be solved via structured data retrieval, then a system can be said to solve complex knowledge goals through a planning process that involves the purposeful combination of simpler knowledge goals. However, due to the exploratory nature of investigation, the original knowledge goal will change, usually through a series of intermediate goals creating a \textit{goal trajectory}. We propose that a cognitive system can augment or replicate the investigative process through a study of goal trajectories and complex knowledge goal solutions.
+
+
+\section{Knowledge Goals}
+
+A \textit{knowledge goal} represents the purposeful need to acquire information in order to fill in gaps of world knowledge for a reasoning entity or to extend the database of a computational understanding system \cite{ram_goal-based_1991}. For humans, knowledge goals are most easily represented as questions, and current research on dialog-driven question and answer systems focuses on the semantic parsing of a natural language question to a structured database query \cite{yahya_natural_2012} or lambda calculus representation \cite{berant_semantic_2013}. These parsing approaches are making headway in the solution of simple knowledge goals, where the primary task is a retrieval from some structured knowledge base; especially goals that ask who, what, when, or where.
+
+This approach, however, cannot solve complex knowledge goals including aggregations, opinions (recommendations), or explanations (why or how questions). As a result, even though information retrieval systems and search have made information easily accessible, there has been the growth of community-driven question sites such as Quora to connect users to the more nuanced answers they are looking for. Instead, by taking a goal-driven approach to question and answer systems, we believe a cognitive system can take advantage of a hierarchy of goals and solutions to augment the human investigative processes in an interactive fashion.
+
+\subsection{Representation}
+
+The representation of a knowledge goal can be described by its objective: the type of the expected response (concept specification) and how the information will be used (task specification) \cite{ram_theory_1991}. To create a plan to solve a knowledge goal, a computational system must be able to represent knowledge goals in a structured manner, and identify and parse the structure from a natural language query. We extend this representation to leverage the additional information available in an interactive knowledge-goal reasoning system. Knowledge goals are composed of three primary features: a set of \textit{concepts}, a \textit{task}, and a specific \textit{context}.
+
+\begin{enumerate}
+
+\item \textbf{Concept}: The knowledge goal is relevant to a specific set of structured semantic concepts, both entities and predicates, which are either directly specified or implied. The concept of the question identifies the domain of the query plan as well as the expected response.
+
+\item \textbf{Task}: The task indicates the purpose of the knowledge goal and is usually implied in a natural language query and related to the motivation of the questioner. For example, in the case of simple knowledge goals the task may be search or database queries; for more complex knowledge goals the task may be explanation or knowledge generation.
+
+\item \textbf{Context}: Knowledge goals are not specified in isolation, but are directly related to the questioner and as such must be considered in relation to their context. Contextual information includes temporal, geographic, hysteretic, and preference information and is essential for plan refinement and to resolve ambiguity.
+\end{enumerate}
+
+\subsection{Interactive Knowledge Goal Reasoning}
+
+Our proposed approach for complex knowledge goal reasoning is a \textit{case-based reasoning} (CBR) \cite{kolodner_case-based_1993,lopez_de_mantaras_retrieval_2005} system which reuses past experience in an interactive fashion. Interactive CBR operates similarly to conversational case-based reasoning systems, which incrementally elicits a target problem through an interactive dialog with the user, attempting to minimize the number of questions before a solution is reached \cite{aha_advances_2005}. In order to provide an adaptable, investigative system, the methodology we are exploring guides the user in a finite length interactive dialogue, removing the requirement to minimize session length in order to facilitate an ongoing discovery process. Additionally, the system itself is a learning agent with the goal of predicting future knowledge goals, and acquiring the information in advance in order to provide specific guidance to the user.
+
+\section{Goal Trajectories}
+
+In interactive knowledge-goal reasoning, a complex knowledge goal is broken down into a hierarchical plan involving simpler sub-goals and tasks in order to augment the investigative process of a user. During an investigative dialogue, the user selects the next step of plans proposed by the reasoner, and continues to chain sub-goals together to work towards a larger solution. During this process, the plan is adaptable and subject to change as the user proceeds in selecting and executing the simpler goals. Goals, like plans, are also subject to change and can be transformed \cite{cox_goal_1998}, therefore we propose that the original knowledge goal itself is also subject to change; and that as knowledge goals change during interactive reasoning, the path that led to the solution of new knowledge goals from the original can be represented by a \textit{goal trajectory}.
+
+Goal trajectories can be influenced either through the direct interactive manipulation of goals \cite{cox_mixed-initiative_2007}; via other users in the system issuing similar queries that provide the basis for recommending new goals; or by the monitoring of new information or relevant data that has been added to the knowledge base. An investigative dialogue can be therefore seen as a planning problem where knowledge goals are not static and must be responsive to goal changes. We believe that a system can leverage goal change to provide guidance by proposing medium steps towards a series of predicted goals. This guidance will accelerate the user who is likely to take short steps toward a goal, yet not provide uncanny or mystifying advice by proposing longer, unintuitive steps.
+
+\section{Distance Based Guidance}
+
+The authors have created an online, user-driven question and answer system called \textit{Kyudo} with the purpose of generating a casebase of goal trajectories. It currently contains a small demonstration case base of questions and responses in a concierge domain (tourists asking for travel advice in Washington, D.C.) The acquisition of goals in Kyudo utilizes natural language queries that are manually annotated by a user then chained together in \textit{dialogues} which represent full trajectories \cite{bengfort_interactive_2015}.
+
+In order to provide guidance to the user and facilitate retrieval, we propose that a distance based metric can be used to measure the similarity of goals. The knowledge goal representation is decomposed into a vector, which is the union of the representation of concept, task, and context. For example, concepts can be represented using a vector of TF-IDF scores of the bag of words in the question. By defining the knowledge-goal representation as a vector, a well defined goal space is created, and the distance between knowledge goals can be measured.
+
+In the context of an interactive dialogue, a goal trajectory can therefore be specified by a distance, e.g., the total distance of the path through knowledge goals as the user interacts through a dialogue. A system can therefore be said to provide guidance by minimizing or accelerating the path to a goal or set of knowledge goals.
+
+At the time of this writing, we are currently conducting an empirical study to confirm this hypothesis, as well as related topics using distance based approaches. For more information please see \url{http://cs.umd.edu/~bengfort}.
+
+\bibliographystyle{aaai}
+\bibliography{references}
+
+\end{document}
