@@ -32,14 +32,23 @@
 
 \maketitle
 \section{Introduction}
-Some introduction talking about how cool and important streaming is, its applications etc.
+
+The widespread adoption of distributed computing frameworks has led to a ``data flow'' model of analytics, where data is transmitted through a variety of simpler computations represented as nodes that make up a directed acyclical graph of the complete analysis. A simple extension of this model maps the computational DAG to a distributed topology, and in so doing allows for a scalable, balanced approach to analytics, particularly when the dataset in question is unbounded and unordered. So called ``streaming'' analytics perform real-time analyses on such datasets by making use of a topological description of the analysis.
+
+The most popular Streaming frameworks include either a DSL or programming model that allows specification of data flow topologies, then parallelizes the computation across a cluster of homogenous compute nodes. Discretized Streams are an extension of the RDD model of computation that allow for the application of transformations and actions on a time based portion of a partitioned collection of data objects \cite{zaharia2012discretized}. Twitter Storm more explicitly defines the computational topology in the form of Bolts and Spouts such that a wide array of analytics can be performed on a variety of tuples at various points in the processing \cite{toshniwal2014storm}. Both Storm and DStreams are micro-batched, in that deal with small amounts of data at a time. Google DataFlow \cite{akidau2015dataflow} and Naiad \cite{murray2013naiad} attempt to prove that no matter the execution engine (micro-batch, batch, or true streaming), the data flow model leads to a correct, scaling form of real time computation.
+
+Although these approaches are currently being used in a wide array of domains including intrusion detection, browsing activity, sensors, and news aggregation, the data flow approach ignores lessons learned in the HPC community. In particular, due to the serial nature of data flow models, compute nodes are not automatically load balanced and can easily become under utilized. Moreover, no communication between nodes exists, meaning that computation that requires two data manipulations requires the full completion of two previous compute nodes, thus limiting parallelism. In this project, we hope to explore the application of HPC techniques typically used in the scientific domain and apply them to new streaming methodologies.
+
 
 \section{Proposals}
+
 Below, we enumerate a few kernels of ideas that may be interesting to pursue as research projects for the purposes of the course at first, and then to push forward towards a potential publication.
 
 \begin{enumerate}
   \item \textbf{Accelerated Streaming via Communication Between Streams}
    Streaming algorithms traditionally incorporate discrete streams of data that flow through layers of computation. If we were to assemble an appropriate set of streaming algorithms and try to reason about ways that communication between the streams would be beneficial. This would involve coming up with novel ideas and techniques for accelerating computation and doing experiments to see what the trade-offs and differences would be. Our hope is that while studying these algorithms, we will be able to come up with ways portions of the algorithms could be accelerated and be able to implement and evaluate those ideas.
+
+   \item \textbf{Discrete Event Simulation} We have noticed that many streaming applications perform approximations designed to detect anomalies or trends in discrete events (e.g. web clicks, newsworthy items, or sensor events). We propose that traditional Discrete Event Simulation techniques that use behavioral models, Bayesian networks and timed-transition automata might be directly applied to data flow topologies to increase parallelism and approximate real time computations. In particular, we note the parallelizable approaches identified in \cite{klerx2014model} and \cite{zeigler2004discrete} (though somewhat complex) as points for further investigation.
 \end{enumerate}
 
 \bibliographystyle{plain}
