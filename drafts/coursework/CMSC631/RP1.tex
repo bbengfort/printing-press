@@ -1,0 +1,43 @@
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage{graphicx}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{authblk}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage[parfill]{parskip}
+\usepackage{subcaption}
+
+\pagestyle{fancyplain}
+\fancyhf{}
+\fancyfoot[R]{\footnotesize Page \thepage\ of \pageref{LastPage}}
+
+\renewcommand{\headrulewidth}{0.0pt} % No header rule
+\renewcommand{\footrulewidth}{0.4pt} % Thin footer rule
+
+\begin{document}
+
+\title{Leveraging Program Analysis for Incremental Computation over Dynamically Changing Datasets in IPython Notebooks}
+\author{Konstantinos Xirogiannopoulos}
+\author{Benjamin Bengfort}
+\affil{Department of Computer Science}
+\affil{University of Maryland}
+\affil{\textit{\{kostasx,bengfort\}@cs.umd.edu}}
+
+\date{October 12, 2015}
+
+\maketitle
+\section{Proposal}
+
+In this day and age, individuals and companies are constantly searching for new ways to benefit from data by means of applying analysis and computation on it, attempting to expand their understanding of the data, and hopefully enhance their decision making process. One of the tools that is most widely used for interactive data analytics and visualizations is \texttt{IPython Notebooks} \cite{perez2007ipython}. IPython Notebooks offer a flexible  means of demonstrating interactive computation through Python code as well as quickly providing comprehensive analysis reports. Nevertheless, in the current age of constant data influx and thus continuously changing datasets in order for IPython views to remain consistent and complete, changes in the underlying data require users to re-evaluate their queries on the entirety of the updated dataset. We propose a system for utilizing program analysis techniques towards applying arbitrary incremental computation and efficiently applying computation on the new portion of the data as well as updating the result without the need to re-run the program on the entirety of the updated dataset.
+
+Program analysis, the study of approximations to program properties, is a powerful tool and is a means for reasoning about the structure of programs in an automatic manner. This knowledge of the properties of a program before it is run opens up significant opportunities for many different kinds of optimizations. There has been work on the area revolving around incremental computation, more recently in \cite{hammer2015incremental}, where reasoning about incremental computation is done by leveraging first-class \textit{names}; since names are the primary identifiers of the place where incremental computation may take place. In the context of IPython Notebooks, there has also been interest on conducting program analysis over notebooks for extracting provenance information \cite{pimentel2015collecting} geared towards providing users with the opportunity to backtrack their commands and actions.
+
+Motivated by the above work, we propose leveraging program analysis techniques towards incremental re-evaluation of Python programs that read from dynamically changing datasets. More specifically, we propose that by understanding the program structure and building links between variables and data points in a constantly updating dataset, will allow us to track incoming changes and ultimately be able to update the Notebook's current views with the newly included data. In a Notebook, those views are the actual output the program emits to the standard output stream which could range from a single aggregate data value, to an entire report of values in the form of a data table, a graph or a chart.
+
+\bibliographystyle{plain}
+\bibliography{papers}
+
+\end{document}
