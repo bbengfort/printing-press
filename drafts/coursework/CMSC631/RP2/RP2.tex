@@ -1,0 +1,54 @@
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage{graphicx}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{authblk}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage[parfill]{parskip}
+\usepackage{subcaption}
+
+\pagestyle{fancyplain}
+\fancyhf{}
+\fancyfoot[R]{\footnotesize Page \thepage\ of \pageref{LastPage}}
+
+\renewcommand{\headrulewidth}{0.0pt} % No header rule
+\renewcommand{\footrulewidth}{0.4pt} % Thin footer rule
+
+\newcommand{\tab}[1]{\hspace{.08\textwidth}\rlap{#1}}
+
+\begin{document}
+
+\title{A Survey of Techniques for Information Flow Analysis and Modeling of Faceted Values for Controlling Malicious JavaScript}
+\author{Konstantinos Xirogiannopoulos}
+\author{Benjamin Bengfort}
+\affil{Department of Computer Science}
+\affil{University of Maryland}
+\affil{\textit{\{kostasx,bengfort\}@cs.umd.edu}}
+
+\date{October 12, 2015}
+
+\maketitle
+\section{Proposal}
+In this day and age of the Internet, usage of web-services as integrated JavaScript code is becoming increasingly popular with developers, mainly because of their easy to include plug-and-play nature. Such services usually require web-site maintainers to include chunks of JavaScript code within their own code. Disqus~\cite{disqus} for example incorporates a fully functional comment section onto any web-page or blog post. Once that code is copied over to the main codebase, it is from then onward treated as such; a native part of the codebase. Nevertheless, there are usually various levels of confidentiality in parts of any publicly code, and this injection of ``ousider code'', makes way for potential malicious behavior. More specifically, the desired  goal is to control the flow of information between variables within the code.
+
+Information Flow Analysis of programs is a systematic approach to dealing with how information in the form of the data stored in a program's variables, gets propagated within the code itself. Information Flow Analysis methods attempt to control the way data is passed on inside the program by means of specifying a security level of each variable towards preventing the propagation of sensitive information to unsafe variables.
+
+In this survey paper, we will attempt to enumerate, study and discuss the many techniques for Information Flow Analysis of programs, as proposed by the academic community. We will compare and contrast these techniques and offer a complete overview of the state of the art. Furthermore, inspired by the approach taken by Austin and Flanagan in \cite{austin2012multiple}, we will attempt to model their \textit{faceted evaluation} semantics in the \textit{OCaml} language.
+\\
+\section{Milestones and Schedule}
+Below is a rough schedule we will attempt to follow for this work. We list the milestones we intend to complete as well as their tentative deadlines.
+
+\begin{enumerate}
+  \item Study and write up an overview of the fundamentals of Information Flow Analysis \tab{by \textit{11/14}}
+  \item Study \cite{austin2012multiple} extensively and compile a reading list \tab{by \textit{11/21}}
+  \item Study and enumerate Information Flow Analysis techniques \tab{by \textit{11/28}}
+  \item Implement a model for Faceted Evaluation in OCaml \tab{by \textit{12/5}}
+\end{enumerate}
+
+\bibliographystyle{plain}
+\bibliography{papers}
+
+\end{document}
