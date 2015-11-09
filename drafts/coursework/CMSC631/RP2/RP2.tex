@@ -22,28 +22,34 @@
 \begin{document}
 
 \title{A Survey of Techniques for Information Flow Analysis and Modeling of Faceted Values for Controlling Malicious JavaScript}
-\author{Konstantinos Xirogiannopoulos}
-\author{Benjamin Bengfort}
-\affil{Department of Computer Science}
-\affil{University of Maryland}
-\affil{\textit{\{kostasx,bengfort\}@cs.umd.edu}}
+\author[ ]{Konstantinos Xirogiannopoulos}
+\author[ ]{Benjamin Bengfort}
+\affil[ ]{Department of Computer Science}
+\affil[ ]{University of Maryland}
+\affil[ ]{\textit{\{kostasx,bengfort\}@cs.umd.edu}}
 
-\date{October 12, 2015}
+\date{November 6, 2015}
 
 \maketitle
-\section{Proposal}
-In this day and age of the Internet, usage of web-services as integrated JavaScript code is becoming increasingly popular with developers, mainly because of their easy to include plug-and-play nature. Such services usually require web-site maintainers to include chunks of JavaScript code within their own code. Disqus~\cite{disqus} for example incorporates a fully functional comment section onto any web-page or blog post. Once that code is copied over to the main codebase, it is from then onward treated as such; a native part of the codebase. Nevertheless, there are usually various levels of confidentiality in parts of any publicly code, and this injection of ``ousider code'', makes way for potential malicious behavior. More specifically, the desired  goal is to control the flow of information between variables within the code.
 
-Information Flow Analysis of programs is a systematic approach to dealing with how information in the form of the data stored in a program's variables, gets propagated within the code itself. Information Flow Analysis methods attempt to control the way data is passed on inside the program by means of specifying a security level of each variable towards preventing the propagation of sensitive information to unsafe variables.
+\section*{Proposal}
 
-In this survey paper, we will attempt to enumerate, study and discuss the many techniques for Information Flow Analysis of programs, as proposed by the academic community. We will compare and contrast these techniques and offer a complete overview of the state of the art. Furthermore, inspired by the approach taken by Austin and Flanagan in \cite{austin2012multiple}, we will attempt to model their \textit{faceted evaluation} semantics in the \textit{OCaml} language.
-\\
-\section{Milestones and Schedule}
+Recently the integration of web services via embedded publisher-specific JavaScript has become increasingly popular to create rich web applications in a plug-and-play fashion. The typical workflow involves the inclusion of snippets of third party code into the client application, customized with APIKeys or other site-specific identifiers. When executed, the JavaScript will communicate with the web-service, often downloading additional JavaScript or CSS that is executed in the client browser.
+
+For example, the Disqus \cite{ha_disqus} service incorporates a fully functional comment section into any web page or blog post. It does this through the inclusion of a simple 14 line JavaScript code, customized with 4 site specific configuration variables. Although security measures such as sandboxing and cross-domain exclusion attempt to protect users from cross site scripting (XSS) and injection attacks, once third party code is embedded, it is from then onward treated as such; a native part of the codebase. Moreover, though there are usually various levels of confidentiality in any publicly available code, the injection of ``outsider code'' makes way for potential malicious behavior.
+
+Security flaws in the embedding of third-party libraries have been shown particularly for accessing and downloading streaming music \cite{payer_exploiting_2013}. Here sites such as Aimini and Groove Shark were exploited to retrieve music through an inspection and analysis of the injected JavaScript. This inspection revealed secure variables and endpoints that were accidentally exposed in the program itself. If there was a way to control the flow of information between variables within the code, these security flaws would not have exposed sensitive information.
+
+Information Flow Analysis \cite{denning_lattice_1976} of programs is a systematic approach to dealing with how information in the form of the data stored in a program's variables, gets propagated within the code itself. Information Flow Analysis methods attempt to control the way data is passed on inside the program by means of specifying a security level of each variable towards preventing the propagation of sensitive information to unsafe variables. This idea has been extended to a type system that can guarantee safety via type analysis \cite{smith_sound_1996}.
+
+In this survey paper, we will attempt to enumerate, study and discuss the many techniques for Information Flow Analysis of programs, as proposed by the academic community. We will compare and contrast these techniques and offer a complete overview of the state of the art. Furthermore, inspired by the approach taken by Austin and Flanagan in \cite{austin_multiple_2012}, we will attempt to model  \textit{faceted evaluation} semantics in the \textit{OCaml} language.
+
+\section*{Milestones and Schedule}
 Below is a rough schedule we will attempt to follow for this work. We list the milestones we intend to complete as well as their tentative deadlines.
 
 \begin{enumerate}
   \item Study and write up an overview of the fundamentals of Information Flow Analysis \tab{by \textit{11/14}}
-  \item Study \cite{austin2012multiple} extensively and compile a reading list \tab{by \textit{11/21}}
+  \item Study \cite{austin_multiple_2012} extensively and compile a reading list \tab{by \textit{11/21}}
   \item Study and enumerate Information Flow Analysis techniques \tab{by \textit{11/28}}
   \item Implement a model for Faceted Evaluation in OCaml \tab{by \textit{12/5}}
 \end{enumerate}
