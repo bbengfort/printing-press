@@ -1,0 +1,152 @@
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage{graphicx}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{authblk}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage[parfill]{parskip}
+\usepackage{subcaption}
+
+\pagestyle{fancyplain}
+\fancyhf{}
+\fancyfoot[R]{\footnotesize Page \thepage\ of \pageref{LastPage}}
+
+\renewcommand{\headrulewidth}{0.0pt} % No header rule
+\renewcommand{\footrulewidth}{0.4pt} % Thin footer rule
+
+\newcommand{\tab}[1]{\hspace{.08\textwidth}\rlap{#1}}
+
+\begin{document}
+
+\title{A Survey of Techniques for Information Flow Analysis and Modeling of Faceted Values for Controlling Malicious JavaScript}
+\author[ ]{Konstantinos Xirogiannopoulos}
+\author[ ]{Benjamin Bengfort}
+\affil[ ]{Department of Computer Science}
+\affil[ ]{University of Maryland}
+\affil[ ]{\textit{\{kostasx,bengfort\}@cs.umd.edu}}
+
+\date{November 6, 2015}
+
+\maketitle
+
+\section*{Abstract}
+
+(1) a revised summary of your research based on the proposal; (
+\begin{enumerate}
+
+  \item Notes from \cite{sabelfeld2003language}
+  \item is important to prevent the results of the computation from leaking even partial information about confidential inputs
+
+  \item The ability to track implicit flows accurately is one of the major advantages of static enforcement of information-flow control
+
+  \item It is a common assumption in language-based work on information flow that information-flow policies are known statically, at compile time. This is not a realistic assumption for a large computing system.
+
+  \item The difficulty in adding dynamic labels is that because they are computed at run time, they create an additional information channel that must be controlled through the type system
+
+  \item dynamic enforcement only has information about a single program execution, but compile- time type-checking can prove that no possible execution paths within the if statement contain insecure assignments.
+
+  \item It is important that security static analyses do not reject too many secure programs, even though they are necessarily conservative
+
+  \item Security-type systems: Type systems are attractive for implementing static security analyses. It is natural to augment type annotations with security labels. Type systems allow for compositional reasoning, which is a necessity for scalability when applied to larger programs. Many well developed features of type systems have been usefully applied to security analysis
+  \item Implicit flows signal information through the control structure of a program.
+• \textit{Termination channels} signal information through the termination or nontermination of a computation.
+• \textit{Timing channels signal} information through the time at which an action occurs rather than through the data associated with the action. The action may be program termination; that is, sensitive information might be obtained from the total execution time of a program.
+• \textit{Probabilistic channels} signal information by changing the probability distribution of observable data. These channels are dangerous when the attacker can repeatedly run a computation and observe its stochastic properties.
+• \textit{Resource exhaustion channels} signal information by the possible exhaustion of a finite, shared resource, such as memory or disk space.
+• \textit{Power channels} embed information in the power consumed by the computer, assuming that the attacker can measure this consumption.
+
+  \item  no-sensitive-upgrade semantics [39, 5] and the permissive-upgrade semantics guarantee \textit{termination insensitive non-interference}.
+
+  \item Covert channels examples information flows resulting from dependencies between sensitive data and observable behavior of the system such as timing or the system’s stochastic behavior.
+
+  \item There has been work on termination sensitive non interference:termination-sensitive noninterference. Such noninterference can be expressed as condition (∗) with the low-view relation ≈L that relates two behaviors iff both diverge or both terminate in low-equal final states (s ≈L s′ iffeithers,s′∈Sands=Ls′ors=s′=⊥).Inorderto prevent termination attacks, the type system of [67] disallows high loops and requires high conditionals have no loops in the branches.
+
+  \item Timing-sensitive noninterference is formalized by condition (∗) with the low-view relation ≈L that relates two behaviors iff both diverge or both terminate in the same number of execution steps in low-equal final states. A high conditional may generate a timing leak, e.g., if h = 1 then Clong else skip (cf. Section IV-B). Volpano and Smith [9] suggest restricting high conditionals to have no loops in the branches and wrapping each high conditional in a protect statement whose execution is atomic. This discipline is enforced by an accompanying type system.
+
+\item Notes from \cite{denning1976lattice}
+\item Seminal paper introducing the lattice model for information flow control
+\item Information is said to \textit{flow} from security class A to class B whenever  information associated with A \textit{affects} the value of information associated with B.
+
+\item This paper is only concerned with explicit flows (copying, assignment, I/O, parameter passing, and message sending) and implicit flows that result from that. This paper is not concerted with flows that can happen over ``covert" channels.
+
+\item A flow model is secure if and only if execution of sequence of operations cannot give rise to a flow that violates the flow relation.
+
+\item This security model under certain assumptions, the model components form a universally bounded lattice. This lattice is a structure consisting of a finite partially ordered set together with least upper and greatest lower bound operators on the set.
+
+\item THe primary difficulty iwith guaranteeing security lies in detecting and monitoring all flow causing operations. This is because all such operations in a profram are not explicitly specified or indeed even executed!
+
+\item No generality is lost by the assumptions made (SC, ``flows" relation and class-combining op); they are required for consistency. This means that all flows implied by a permissible flow should be secure. (perimitted by the flow relation). if b:=a, c :=b is secure, then c := a should also be secure.
+
+
+\item Notes from an older paper by austin and flanagan \cite{austin2009efficient}:
+\item The issue with dynamic analysis for information flow is that they cannot observe all execution paths and therefore cannot be both sound and precise.  In order to guarantee noninterference, other dynamic methods (other than facets) need to either stop executions that might release sensitive information, or ignore updates that might leak information.
+
+\item Focuses on information flow \textit{tracking}, which is a prerequisite to flow policy enforcement.
+
+\item  info that tracks information flow dynamically to enforce non-interference. In particular, if the result of program execution is public (i.e., labeled L) then that result cannot have been influenced by confidential data.
+
+\item semantics uses a universal labeling strategy, where every value v has the form rk and combines a raw value r with an explicit information flow label k.
+
+\item imperative updates, which introduces the classic problem of implicit flows \cite{denning1976lattice}
+
+\item their solution  to  this implicit paths problem is to prohibit such dynamic label upgrades that are caused by a confidential program counter or a confidential address
+
+\item Notes from \cite{askarov2008termination}
+
+\item Current tools for analysing information flow in programs build upon ideas going back to Denning’s work from the 70’s. These systems enforce an imperfect notion of information flow which has become known as termination- insensitive noninterference. Under this version of noninterference, information leaks are permitted if they are transmitted purely by the program’s termination be- haviour
+
+\item essentially the caveat is that these techniques are allowing while- loops whose termination may depend on the value of a secret.
+
+\item they show that the best an attacker can do is a brute-force attack, which means that the attacker cannot reliably (in a technical sense) learn the secret in polynomial time in the size of the secret
+
+\item If we assume that secrets are uniformly distributed, we show that the advantage the attacker gains when guessing the secret after observing a polynomial amount of output is negligible in the size of the secret.
+
+\item two entirely equivalent programs can both leak information, wehereas one passes other information flow analyses, while the other one doesn't.
+
+\item at each step of out- put the attacker learns nothing new about the initial high memory. This can be formu- lated in the following way
+
+\item notes form \cite{volpano1997eliminating}
+
+\item In orderto prevent termination attacks, the type system of volpano et al. disallows high loops and requires high conditionals have no loops in the branches.
+
+\end{enumerate}
+
+\section*{Implicit Flows in Information Flow}
+In today's information age, the software systems we use every day hold all kinds of information about us; some of which highly sensitive. From social media passwords to bank information and credit card numbers; these pieces of highly sensitive data are being passed around and propagated throughout the systems we use, their travel path getting increasingly longer as these systems increase in complexity.
+
+Much work has been done on communicating confidential data, such as cryptography, access control and firewalls. For example, sending a cryptographic message from one machine to another is usually considered secure; once however the message arrives to its destination and is decrypted, there arises the issue of what happens to this nugget of information as it \textit{flows} through the system to serve its purpose. No guarantees can thus be given about the data after its decryption, regardless of its level of sensitivity.
+
+Data is usually \textit{propagated} through different variables within  the system. Values often take complex routes within programs, changing multiple hands (variables) along their usage-cycle. The problem is that there are often variables of different levels of security; variables that interact with potentially public pieces of code, and variables that are limited to specific pieces of code, executed in a secure fashion. \textit{Information flow} studies the ways these values travel within the system, from variable \texttt{x} to \texttt{y}.
+
+There are two main categories of Information flow; \textit{explicit} and \textit{implicit}. Explicit flows are easy to detect, as they are flows where the value of variable x is somehow explicitly passed into variable y, either by direct or indirect assignment of the sensitive data to a non-secure variable. Implicit flows on the other hand are much more difficult to pinpoint as the sensitive data is not directly ever passed into a non-secure variable, but rather the information can be inferred by some sort of \textit{side channel}. Examples of this include being able to infer the value of a confidential variable by the amount of time it takes for the program to run or the value a low confidentiality variable takes in a branch involving the value of the highly confidential variable.
+
+The most desirable policy in this case is that of \textit{Non-Interference}; which states that there should absolutely be no difference between two executions of the same program if the only thing that changes between these executions are the program's secret values. This policy however is too strict and not practically possible to be enforced in real-world applications. Another way to phrase noninterference is \textit{no data visible to other users is affected by confidential data}. Confidential data may not interfere with publicly observable data. Noninterference can be naturally expressed by semantic models of program execution.
+
+There exists however a more relaxed notion of non-interference called \textit{termination insensitive non-interference}. This guarantee states that private inputs do not influence public outputs, \textit{however} private variables can influence program termination. This channel of obtaining information about high confidentiality variables nevertheless is only open to brute force attacks.
+
+\subsection*{Static Information Flow Control}
+Semantics based security for guaranteeing noninterference. \cite{sabelfeld2003language}
+
+2) a description of the research problem you set out to tackle;
+
+\subsection*{Dynamic Information Flow Control}
+
+\section*{Faceted Values towards Javascript Security}
+(3) a description of your solution including any artifacts produced from your work;
+
+\section*{Evaluation of the Faceted Values Approach}
+(4) an evaluation of your research providing evidence for how it succeeds or fails in solving your research problem;
+
+This chapter will be based on this other work that talks about the downsides to what faceted values actually :
+- Sebastian Hunt, Andrei Sabelfeld, and David Sands. Termination-insensitive noninterference leaks more than just a bit
+
+\section*{Future Work}
+(5) a summary of future challenges. Include a bibliography of any relevant related work.
+
+\bibliographystyle{plain}
+\bibliography{papers}
+
+\end{document}
