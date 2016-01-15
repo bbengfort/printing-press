@@ -1,5 +1,5 @@
 %% Benjamin Bengfort's Resume
-%% Copyright (C) 2015 Benjamin Bengfort
+%% Copyright (C) 2016 Benjamin Bengfort
 
 \documentclass[10pt,letterpaper,roman]{moderncv}
 
@@ -26,7 +26,7 @@
 \makecvtitle
 
 \section{Education}
-\cventry{2014--present}{PhD Candidate}{University of Maryland, College Park}{}{}{Graduate Research Assistant, Metacognitive Lab}
+\cventry{2014--present}{PhD Candidate}{University of Maryland, College Park}{}{}{Graduate Research Assistant, Distributed Systems}
 
 \cventry{2008-2010}{M.S. Computer Science}{North Dakota State University}{}{}{Phi Kappa Phi, Upsilon Pi Epsilon}
 
@@ -38,6 +38,10 @@
 % \cvitem{title}{\emph{Title}}
 % \cvitem{supervisors}{Supervisors}
 % \cvitem{description}{Short thesis abstract}
+
+\nocite{*}
+\bibliographystyle{plain}
+\bibliography{publications}
 
 \section{Experience}
 
@@ -73,41 +77,39 @@ Field support and logistics, small team leadership }
 
 \section{Skills}
 \cvdoubleitem{Software Development}{Python 2.7 \& 3.4, GoLang, JavaScript, Java, C/C++, Git, Agile}{Big Data}{Spark, Hadoop, MapReduce, HDFS, Distributed Systems, Celery}
-\cvdoubleitem{Machine Learning}{Scikit-Learn, SparkML, GraphX}{NLP}{NLTK, TextBlob, Pattern}
-\cvdoubleitem{Application Development}{Django, Nginx, AJAX, jQuery, Underscore, Bootstrap, Flask, Django-Rest-Framework, RESTful APIs}{Databases}{PostgreSQL, MongoDB, LevelDB, Redis, Hive, Titan, Neo4j, MySQL, SQLite}
-\cvdoubleitem{Networking}{Kismet, Wireshark, Mgen, 802.11, Protocol Buffers, NS2}{OS}{Mac OS X, Ubuntu Linux, Genoo, Embedded Ubuntu, Android, iOS.}
+\cvdoubleitem{Machine Learning}{Scikit-Learn, SparkML, GraphX}{NLP}{NLTK, TextBlob, Pattern, spaCy, MITIE}
+\cvdoubleitem{Application Development}{Django, Nginx, AJAX, jQuery, Underscore, Bootstrap, Flask, Kivy, REST APIs}{Databases}{PostgreSQL, MongoDB, LevelDB, Redis, Hive, Titan, Neo4j, MySQL, SQLite}
+% \cvdoubleitem{Networking}{Kismet, Wireshark, Mgen, 802.11, Protocol Buffers, NS2}{OS}{Mac OS X, Ubuntu Linux, Genoo, Embedded Ubuntu, Android, iOS.}
 
 \section{Volunteer Experience}
 \cvlistitem{Advances in Cognitive Systems 2015: Referee and reviewer of paper submissions.}
+\cvlistitem{University of Maryland Graduate Student Senator: 2014-2016}
+\cvlistitem{UMD Senate: Nominations Committee, Committee on Committees, Student Affairs Committee, Special Working Group on Senate Communications.}
 \cvlistitem{Data Community DC: Treasurer, Board Member, and Organizer for DIDC.}
-\cvlistitem{Vino Scholastico: Charity committee for a tuition fundraising event at HCC in Maryland.}
-\cvlistitem{Team Fight: Ulman Cancer Foundation (raising money for cancer treatment of young adults).}
-\cvlistitem{The Bridging Project: taught level 2 maths to asylum seeking refugees.}
-\cvlistitem{Primannum Honor Society: organized blood drives for The Red Cross.}
-\cvlistitem{Leadership U: tutored ESL elementary aged students. }
-\cvlistitem{National Honor Society}
+\cvlistitem{Vino Scholastico: Board member for HCC tuition fundraising event.}
+\cvlistitem{Team Fight: Ulman Cancer Foundation.}
+\cvlistitem{The Bridging Project: Math teacher for asylum seeking refugees.}
+% \cvlistitem{Primannum Honor Society: organized blood drives for The Red Cross.}
+% \cvlistitem{Leadership U: tutored ESL elementary aged students. }
+% \cvlistitem{National Honor Society}
 
-\section{References}
-Available on request.
+% \section{References}
+% Available on request.
 
-\nocite{*}
-\bibliographystyle{plain}
-\bibliography{publications}
-
-\clearpage
-%-----       letter       ---------------------------------------------------------
-% recipient data
-\recipient{Addressee}{Company\\address line one\\address line two}
-\date{\today}
-\opening{Dear Sir or Madam,}
-\closing{Best Regards,}
-\enclosure[Attached]{curriculum vit\ae{}}          % use an optional argument to use a string other than "Enclosure", or redefine \enclname
-\makelettertitle
-
-Letter body.
-
-
-
-\makeletterclosing
+% \clearpage
+% %-----       letter       ---------------------------------------------------------
+% % recipient data
+% \recipient{Addressee}{Company\\address line one\\address line two}
+% \date{\today}
+% \opening{Dear Sir or Madam,}
+% \closing{Best Regards,}
+% \enclosure[Attached]{curriculum vit\ae{}}          % use an optional argument to use a string other than "Enclosure", or redefine \enclname
+% \makelettertitle
+%
+% Letter body.
+%
+%
+%
+% \makeletterclosing
 
 \end{document}
