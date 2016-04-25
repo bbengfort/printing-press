@@ -32,14 +32,93 @@ Add abstract here.
 
 \section{Introduction}
 
+
+\subsection{Distributed Environment}
+
+\begin{enumerate}
+    \item Heterogeneous devices
+    \item Partition prone networks
+\end{enumerate}
+
+\subsection{Requirements}
+
+\begin{enumerate}
+    \item multi-object
+    \item variable workloads
+    \item multiple users
+    \item durability
+    \item adaptability
+    \item large (many replica) systems
+\end{enumerate}
+
+\subsection{Examples}
+
+\subsubsection{Personal Cloud}
+\subsubsection{Disaster Recovery}
+\subsubsection{Highly Mobile Sensors}
+
+\section{Consistency Levels}
+
+\subsection{Eventual Consistency}
+
+\subsection{Causal Consistency}
+
+\subsection{Sequential Consistency}
+
+\section{Consensus}
+
+\begin{enumerate}
+    \item multi paxos
+    \item raft
+    \item stellar
+\end{enumerate}
+
+\section{Consistency Fragmentation}
+
+\subsection{Interaction at Consistency Boundaries}
+
+\subsubsection{Strong-Eventual}
+
+\subsubsection{Strong-Causal}
+
+\subsubsection{Eventual-Causal}
+
+\subsection{Multiple Consistency Systems}
+
+\section{Experimental Discussion}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/ae_stale_reads}
+    \caption{Stale reads using eventual consistency with variable anti entropy delay.}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/ae_viz_latency}
+    \caption{Visibility latency using eventual consistency with variable anti entropy delay.}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/ae_viz_ratio}
+    \caption{Ratio of fully visible writes to total writes using eventual consistency with variable anti entropy delay.}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/raft_commit_latency}
+    \caption{Commit latency in Raft with increasing numbers of users.}
+\end{figure}
+
 \section{Conclusion}
 
-\section{Acknowledgments}
+\section*{Acknowledgments}
 
 {\footnotesize \bibliographystyle{acm}
 \bibliography{references}}
 
-% uncommentto include end notes.
+% uncomment to include end notes.
 % \theendnotes
 
 \end{document}
