@@ -77,7 +77,7 @@ For the purposes of discussing consistency fragmentation, we will generalize the
 
 Both in single and multi user contexts, the workload is variable with bursty accesses, unlike cloud storages which experience near constant workloads. This burstiness comes not only from routine work schedules but also because users typically don't access multiple devices simultaneously. Whereas many consistency models are designed for high availability through load balancing, the availability concerns in a user-centric distributed system tend to be application-specific. For example, photography workloads tend to be single writes (at the time of the photograph) but require multiple sequential reads as rapidly as possible. On the other hand, collaborative document editing requires linearizable, rapid writes along with read your write semantics.
 
-The required guarantees for the system also are application specific. For the most part, durability is a constant and data loss is a bad thing. However, not all versions or temporary files need to be stored. Generally speaking more recent versions should remain durable, while historical versions can removed in a process called \textit{temporal aspect flattening}. Complete replication is also typically not a requirement, some devices require partial replication due to storage constraints, while others require only file formats specific to the application. Deciding what is stored on a partial replica is described as \textit{object aspect flattening}.  Finally, the rate at which objects are replicated is bound by the available bandwidth, some applications like video streaming should not share bandwidth through a replication process. Decisions about when and how replication occurs is referred to as \textit{synchronization aspect flattening}.
+The required guarantees for the system also are application specific. For the most part, durability is a constant and data loss is a bad thing. However, not all versions or temporary files need to be stored. Generally speaking more recent versions should remain durable, while historical versions can removed in a process called \textit{temporal aspect flattening}. Complete replication is also typically not a requirement, some devices require partial replication due to storage constraints, while others require only file formats specific to the application. Deciding what is stored on a partial replica is described as \textit{spatial aspect flattening}.  Finally, the rate at which objects are replicated is bound by the available bandwidth, some applications like video streaming should not share bandwidth through a replication process. Decisions about when and how replication occurs is referred to as \textit{synchronization aspect flattening}.
 
 These requirements can be summarized as follows:
 
@@ -106,23 +106,58 @@ Single user personal clouds can be adapted into multiple user clouds with bounda
 
 Due to the limited resources in such an environment and varying level of message priorities, multiple consistency levels are required. Routine updates with position information can be eventually consistent within some quality of service guarantee, however, alerts or triage information must arrive in a timely and correct fashion. Non-real-time data needs to be durable and ordered so that post operation analysis such as conducting structural audits or directing repair logistics is correct and verifiable.
 
-\textbf{Highly Mobile Sensors} take advantage of new platforms such as robotic or arial vehicles to deploy a variety of sensors including audio and video to locations on demand. These sensors networks can be very large, such as video surveillance or photography (for example filmography recording a cycling race) or smaller and highly connective as in triage sensors in a hospital emergency room. Similar to search and rescue applications, these systems may have variable network connectivity or use mesh networking; however it is their mobility that is the key factor requiring consistency fragmentation. Mobile sensors create irregular, dynamic topologies that require local consistency guarantees. Many strong consistency models require three phase commit for membership changes; but in a mobile sensor network, membership changes can be the norm not the exception. Consistency fragmentation allows this type of distributed system to adapt as the topology adapts.  
+\textbf{Highly Mobile Sensors} take advantage of new platforms such as robotic or arial vehicles to deploy a variety of sensors including audio and video to locations on demand. These sensors networks can be very large, such as video surveillance or photography (for example filmography recording a cycling race) or smaller and highly connective as in triage sensors in a hospital emergency room. Similar to search and rescue applications, these systems may have variable network connectivity or use mesh networking; however it is their mobility that is the key factor requiring consistency fragmentation. Mobile sensors create irregular, dynamic topologies that require local consistency guarantees. Many strong consistency models require three phase commit for membership changes; but in a mobile sensor network, membership changes can be the norm not the exception. Consistency fragmentation allows this type of distributed system to adapt as the topology adapts.
 
 \section{Consistency Levels}
 
+A consistency fragmentation approach utilizes policies regarding temporal, spatial, and synchronization aspects to determine the behavior of a replica with regards to a set of objects. Consistency levels in such a system can be characterized on the range from eventually consistent to causal consistency to sequential consistency. This consistency range is also specified as the range between weak consistency (no node in the system is guaranteed to have the most up to date version) to strong consistency (all accesses view a single, consistent state).
+
 \subsection{Eventual Consistency}
+
+Eventual consistency is typically described using Werner Vogels' now popular definition: ``if no new updates are made to an object, eventually all accesses will return the last updated value'' \cite{vogels_eventually_2009}. This model offers liveness and availability to clients by simply returning the latest observed value of the object, however it is subject to staleness, in that the replica may be operating on old (stale) objects, though it can be shown that the extent of the staleness is bounded by the mean latency of the distributed system \cite{bailis_quantifying_2014,bailis_probabilistically_2012}.
+
+Eventually consistent systems trade reduced response times for what is essentially a last-writer wins approach to data storage, which can have significant consequences for application behavior. Careful application design such as the use of commutative or associative operations on conflict-free replicated data types (CRDTs) \cite{shapiro_conflict-free_2011} or the careful application of immutable objects \cite{helland_immutability_2015} can mitigate some of the effects of this trade off. Other models such as Scatter employ multiple levels of consistency within the eventually consistent context, such as fully linearizable storage for a single key, but no linearization of multi-key transactions \cite{glendenning_scalable_2011}.
+
+The implementation of eventually consistent systems utilizes anti-entropy \cite{demers_epidemic_1987} mechanisms to perform pairwise replication between two replica servers and to recover from partitions. For example, Bayou allows clients to perform file accesses locally then uses \cite{terry_managing_1995,terry_session_1994} anti-entropy sessions to propagate writes while also resolving conflicts through a policy based session guarantees. Bayou allows liveness, minimizes network usage, and delegates conflict handling to the application layer. Anti-entropy is introduced via gossip protocols (also called rumor mongering) where nodes spread rumors by randomly contacting a local neighbor and updating them. Gossip protocols solve the local broadcast problem which causes network flooding and are easily implemented in unstable networks with dynamic topologies \cite{haeupler_simple_2015}.
+
+Recently, the Amazon Dynamo \cite{decandia_dynamo_2007} model has become the most popular reference application for eventually consistent systems, inspiring open source distributed data stores such as Apache Cassandra \cite{lakshman_cassandra_2010} and Project Voldemort \cite{feinberg2011project}. Dynamo combines well known techniques such as consistent hashing \cite{stoica_chord_2001}, object versioning using vector clocks \cite{lamport_time_1978}, partial quorums \cite{aiyer_availability_2005}, and gossip protocols to achieve a highly scalable, low latency key-value store. Unlike Bayou which relies on conflict resolution to maintain global consistency, Dynamo requires a configurable number of nodes to participate in read and write operations in a quorum-like fashion. Successful accesses therefore are guaranteed to be sequentially consistent among at least a majority of those N nodes, which can be used to repair conflicts using the vector timestamp of the access.
 
 \subsection{Causal Consistency}
 
+While the systems described wholly as eventually consistent in the previous section provide liveness, they do so by exposing data inconsistencies in response to client requests. As a result, weaker consistency models require mechanisms for conflict resolution and convergence that can be unnecessarily complex or simply farm the responsibility to the application layer. Causal consistency inherently strengthens the consistency model by requiring that objects that are causally related be ordered with respect to a read but still relaxes full linearizability by allowing partial ordering of unrelated objects    \cite{ahamad_causal_1990}.
+
+
+COPS \cite{lloyd_dont_2011}
+
+Bolt-On \cite{bailis_bolt-causal_2013}
+
+Dangers of Causal, explicit solution \cite{bailis_potential_2012}
+
 \subsection{Sequential Consistency}
+
+Linearizability \cite{herlihy_linearizability_1990}
+
+Happens Before \cite{lamport_time_1978}
+
+Sequential Consistency \cite{attiya_sequential_1994}
+
+Spanner \cite{corbett_spanner_2013}
 
 \section{Consensus}
 
-\begin{enumerate}
-    \item multi paxos
-    \item raft
-    \item stellar
-\end{enumerate}
+Paxos \cite{lamport_paxos_2001}
+
+multi-paxos \cite{chandra_paxos_2007},
+
+fast paxos \cite{lamport_fast_2006} 
+
+egalatarian paxos \cite{moraru_there_2013,moraru_egalitarian_2012}
+
+raft \cite{ongaro_search_2013,howard_raft_2015}
+
+stellar \cite{mazieres_stellar_2015}
+
+warranties \cite{liu_warranties_2014}
 
 \section{Consistency Fragmentation}
 
@@ -135,6 +170,14 @@ Due to the limited resources in such an environment and varying level of message
 \subsubsection{Eventual-Causal}
 
 \subsection{Multiple Consistency Systems}
+
+The integration of multiple consistency requires a strong consensus core in order to provide guarantees and manage conflicts, a scheme also used in Oceanstore \cite{kubiatowicz_oceanstore_2000} and \cite{gray_dangers_1996}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/architecture}
+    \caption{The architecture of a consistency fragmentation model.}
+\end{figure}
 
 \section{Experimental Discussion}
 
