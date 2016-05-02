@@ -7,8 +7,7 @@
 \date{}
 
 %make title bold and 14 pt font (Latex default is non-bold, 16 pt)
-% can we not call this consistency fragmentation?
-\title{\Large \bf Consistency Fragmentation for User-Centric Distributed Data Storage}
+\title{\Large \bf Federated Consistency for User-Centric Distributed Data Storage}
 
 %for single author (just remove % characters)
 \author{
@@ -30,7 +29,7 @@ keleher@cs.umd.edu
 
 \subsection*{Abstract}
 
-Consistency fragmentation refers to a property of distributed systems wherein individual replicas maintain variable consistency levels. By allowing replicas to manage local storage independently of the system as a whole, a distributed storage system can take advantage of the high availability of eventually consistent systems while simultaneously providing strong guarantees about durability and ordering through a backbone consensus group. Unlike a homogenous, low latency data center, we believe that consistency fragmentation enables heterogenous, variable latency, partition prone distributed storages such as those in personal clouds or in environments where backbone infrastructure has been lost and will perform better than centralized, high latency cloud storage.
+Federated consistency refers to a property of distributed systems wherein individual replicas maintain variable consistency levels. By allowing replicas to manage local storage independently of the system as a whole, a distributed storage system can take advantage of the high availability of eventually consistent systems while simultaneously providing strong guarantees about durability and ordering through a backbone consensus group. Unlike a homogenous, low latency data center, we believe that federated consistency enables heterogenous, variable latency, partition prone distributed storages such as those in personal clouds or in environments where backbone infrastructure has been lost and will perform better than centralized, high latency cloud storage.
 
 \section{Introduction}
 
@@ -46,7 +45,7 @@ By encapsulating these systems in a data center environment, performance measure
 
 This forces us to have a new view of how systems behave. User devices have a variety of requirements and limitations from capacity to performance, and not all devices can perform leadership or relay roles. The distributed network is more partition prone as user devices are not always on or connected and mobility means highly variable latencies. Users switch devices, collaborate, and have preferences about what applications see what data and when. As a result, no single consistency, availability, or convergence mechanism can be directly applied.
 
-In this paper we propose a vision for \textit{consistency fragmentation}, an envelope term for a scheme where flexible consistency policies are mixed, modified, and coordinated to provide application-specific availability in user local networks. We present a base architecture for a distributed storage system that can utilize consistency fragmentation but still provide strong guarantees, then discuss the consistency and consensus algorithms that might be implemented and how they interact. Finally, we propose a mechanism for evaluating the performance of such a system and highlight future work in this topic.
+In this paper we propose a vision for \textit{federated consistency}, an envelope term for a scheme where flexible consistency policies are mixed, modified, and coordinated to provide application-specific availability in user local networks. We present a base architecture for a distributed storage system that can utilize federated consistency but still provide strong guarantees, then discuss the consistency and consensus algorithms that might be implemented and how they interact. Finally, we propose a mechanism for evaluating the performance of such a system and highlight future work in this topic.
 
 \subsection{Distributed Environment}
 
@@ -73,7 +72,7 @@ We believe that the challenge this environment poses to a distributed storage sy
 
 As the environment of distributed systems plays a large role in determining their behavior, so to does the specification or application of the system. Generally speaking the literature usually refers to file systems when discussing user centric distributed storage, and database systems for cloud storage, though the difference between the two can easily be blurred by representing a file system as a key-value store such as is done in the Amazon Simple Storage Service (S3) \cite{bermbach_eventual_2011}.
 
-For the purposes of discussing consistency fragmentation, we will generalize the requirements of the distributed system as follows. The system must manage multiple, independent objects whose data structure is defined solely within the context of the object (e.g. the system can be a simple key-value store, a relational database, or a file system). A single view of the system is given by a single user, and that view must be consistent with respect to the user's application. However, a system can maintain multiple views with multiple users interacting with the same objects (collaborative transactions).
+For the purposes of discussing federated consistency, we will generalize the requirements of the distributed system as follows. The system must manage multiple, independent objects whose data structure is defined solely within the context of the object (e.g. the system can be a simple key-value store, a relational database, or a file system). A single view of the system is given by a single user, and that view must be consistent with respect to the user's application. However, a system can maintain multiple views with multiple users interacting with the same objects (collaborative transactions).
 
 Both in single and multi user contexts, the workload is variable with bursty accesses, unlike cloud storages which experience near constant workloads. This burstiness comes not only from routine work schedules but also because users typically don't access multiple devices simultaneously. Whereas many consistency models are designed for high availability through load balancing, the availability concerns in a user-centric distributed system tend to be application-specific. For example, photography workloads tend to be single writes (at the time of the photograph) but require multiple sequential reads as rapidly as possible. On the other hand, collaborative document editing requires linearizable, rapid writes along with read your write semantics.
 
@@ -92,11 +91,11 @@ These requirements can be summarized as follows:
     \item Multiple replicas and local replication
 \end{itemize}
 
-The last requirement dovetails with the irregular topologies discussed in the previous section. As the number of users in a distributed system increases, so do the number of replicas and partial replicas. Many consistency policies do not scale linearly therefore consistency fragmentation needs to consider localities and partial quorums that emerge to global distributed semantics and guarantees.
+The last requirement dovetails with the irregular topologies discussed in the previous section. As the number of users in a distributed system increases, so do the number of replicas and partial replicas. Many consistency policies do not scale linearly therefore federated consistency needs to consider localities and partial quorums that emerge to global distributed semantics and guarantees.
 
 \subsection{Examples}
 
-We conclude the motivating section with three examples of distributed systems that might benefit from consistency fragmentation: a personal cloud, disaster recovery/search and rescue, and highly mobile sensors.
+We conclude the motivating section with three examples of distributed systems that might benefit from federated consistency: a personal cloud, disaster recovery/search and rescue, and highly mobile sensors.
 
 \textbf{Personal Clouds} are a twist on distributed file systems that attempt to integrate storage across a wide area network and optionally with cloud storage. Personal clouds leverage mobile devices and high bandwidth connections to provide reliable replication. The primary advantage of a personal cloud is the low latency local network connections and the fact that synchronization to other devices does not require two round trips from a remote replica and back. Personal clouds put data ownership and management back into the user's hands who can better manage personal security and encryption as well as cost.
 
@@ -106,11 +105,11 @@ Single user personal clouds can be adapted into multiple user clouds with bounda
 
 Due to the limited resources in such an environment and varying level of message priorities, multiple consistency levels are required. Routine updates with position information can be eventually consistent within some quality of service guarantee, however, alerts or triage information must arrive in a timely and correct fashion. Non-real-time data needs to be durable and ordered so that post operation analysis such as conducting structural audits or directing repair logistics is correct and verifiable.
 
-\textbf{Highly Mobile Sensors} take advantage of new platforms such as robotic or arial vehicles to deploy a variety of sensors including audio and video to locations on demand. These sensors networks can be very large, such as video surveillance or photography (for example filmography recording a cycling race) or smaller and highly connective as in triage sensors in a hospital emergency room. Similar to search and rescue applications, these systems may have variable network connectivity or use mesh networking; however it is their mobility that is the key factor requiring consistency fragmentation. Mobile sensors create irregular, dynamic topologies that require local consistency guarantees. Many strong consistency models require three phase commit for membership changes; but in a mobile sensor network, membership changes can be the norm not the exception. Consistency fragmentation allows this type of distributed system to adapt as the topology adapts.
+\textbf{Highly Mobile Sensors} take advantage of new platforms such as robotic or arial vehicles to deploy a variety of sensors including audio and video to locations on demand. These sensors networks can be very large, such as video surveillance or photography (for example filmography recording a cycling race) or smaller and highly connective as in triage sensors in a hospital emergency room. Similar to search and rescue applications, these systems may have variable network connectivity or use mesh networking; however it is their mobility that is the key factor requiring federated consistency. Mobile sensors create irregular, dynamic topologies that require local consistency guarantees. Many strong consistency models require three phase commit for membership changes; but in a mobile sensor network, membership changes can be the norm not the exception. Federated consistency allows this type of distributed system to adapt as the topology adapts.
 
 \section{Consistency Levels}
 
-A consistency fragmentation approach utilizes policies regarding temporal, spatial, and synchronization aspects to determine the behavior of a replica with regards to a set of objects. Consistency levels in such a system can be characterized on the range from eventually consistent to causal consistency to sequential consistency. This consistency range is also specified as the range between weak consistency (no node in the system is guaranteed to have the most up to date version) to strong consistency (all accesses view a single, consistent state).
+A federated consistency approach utilizes policies regarding temporal, spatial, and synchronization aspects to determine the behavior of a replica with regards to a set of objects. Consistency levels in such a system can be characterized on the range from eventually consistent to causal consistency to sequential consistency. This consistency range is also specified as the range between weak consistency (no node in the system is guaranteed to have the most up to date version) to strong consistency (all accesses view a single, consistent state).
 
 \subsection{Eventual Consistency}
 
@@ -149,7 +148,7 @@ Paxos \cite{lamport_paxos_2001}
 
 multi-paxos \cite{chandra_paxos_2007},
 
-fast paxos \cite{lamport_fast_2006} 
+fast paxos \cite{lamport_fast_2006}
 
 egalatarian paxos \cite{moraru_there_2013,moraru_egalitarian_2012}
 
@@ -159,7 +158,7 @@ stellar \cite{mazieres_stellar_2015}
 
 warranties \cite{liu_warranties_2014}
 
-\section{Consistency Fragmentation}
+\section{Federated Consistency}
 
 \subsection{Interaction at Consistency Boundaries}
 
@@ -175,8 +174,14 @@ The integration of multiple consistency requires a strong consensus core in orde
 
 \begin{figure}[h]
     \centering
+    \includegraphics[width=0.5\textwidth]{figures/topology}
+    \caption{The topology of a federated consistency model.}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
     \includegraphics[width=0.5\textwidth]{figures/architecture}
-    \caption{The architecture of a consistency fragmentation model.}
+    \caption{The component architecture of a federated consistency model.}
 \end{figure}
 
 \section{Experimental Discussion}
