@@ -1,0 +1,28 @@
+\documentclass[12pt]{article}
+
+% standard incantations
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[english]{babel}
+
+% clickable links in the PDF
+\usepackage[colorlinks]{hyperref}
+
+% glossary
+\usepackage[xindy]{glossaries}
+\input{glossary}
+\makeglossaries
+
+\title{A Glossary of Distributed Systems and Database Terminology}
+\author{Benjamin Bengfort}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\glsaddall
+\printglossaries
+
+\end{document}

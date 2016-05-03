@@ -1,0 +1,34 @@
+% Glossary Definitions
+% Use the following to define a glossary entry:
+%
+% \newglossaryentry{label}
+% {
+%   name=name,
+%   description={description},
+%   sort=key,
+%   plural=pluralized,
+%   symbol=symbol
+% }
+%
+% Define acronyms as follows:
+%
+% \newacronym{<label>}{<abbrv>}{<full>}
+%
+% For more see: https://en.wikibooks.org/wiki/LaTeX/Glossary#Defining_terms
+
+\newglossaryentry{linearizability}
+{
+    name=linearizability
+}
+
+\newglossaryentry{eventual}
+{
+    name={eventual consistency},
+    description={if no new updates are made to an object, eventually all accesses will return the last updated value}
+}
+
+\newglossaryentry{causal}
+{
+    name={causal consistency},
+    description={objects that are causally related be ordered with respect to a read but still relaxes full linearizability by allowing partial ordering of unrelated objects}
+}
