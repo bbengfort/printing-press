@@ -100,6 +100,13 @@
     name={Non-monotonic Snapshot Isolation}
 }
 
+\newglossaryentry{gls-CRDT} {
+  name={Conflict-Free Replicated Data Type},
+  description={In distributed computing, a conflict-free replicated data type (abbreviated CRDT) is a type of specially-designed data structure used to achieve strong eventual consistency (SEC) and monotonicity (absence of rollbacks). As their name indicates, a CRDT instance is distributed into several replicas; each replica can be mutated promptly and concurrently; the potential divergence between replicas is however guaranteed to be eventually reconciled through downstream synchronization (off the critical path); consequently CRDTs are known to be highly available.},
+}
+
 \newacronym[see={[Glossary:]{gls-MDCC}}]{MDCC}{MDCC}{Multi-Data Center Consistency\glsadd{gls-MDCC}}
 
 \newacronym[see={[Glossary:]{gls-NMSI}}]{NMSI}{NMSI}{Non-monotonic Snapshot Isolation\glsadd{gls-NMSI}}
+
+\newacronym[see={[Glossary:]{gls-CRDT}}]{CRDT}{CRDT}{Conflict-Free Replicated Data Type\glsadd{gls-CRDT}}
