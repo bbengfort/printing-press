@@ -32,3 +32,74 @@
     name={causal consistency},
     description={objects that are causally related be ordered with respect to a read but still relaxes full linearizability by allowing partial ordering of unrelated objects}
 }
+
+\newglossaryentry{isolevel}
+{
+    name={isolation level}
+}
+
+\newglossaryentry{isorepeatread}
+{
+    name={repeatable reads}
+}
+
+\newglossaryentry{isoreadwrites}
+{
+    name={read your writes}
+}
+
+\newglossaryentry{isoreadcommit}
+{
+    name={read committed}
+}
+
+\newglossaryentry{staleread}
+{
+    name={stale read}
+}
+
+\newglossaryentry{paxos}
+{
+    name={Paxos}
+}
+
+\newglossaryentry{multipaxos}
+{
+    name={Multi-Paxos}
+}
+
+\newglossaryentry{fastpaxos}
+{
+    name={Fast Paxos}
+}
+
+\newglossaryentry{generalpaxos}
+{
+    name={Generalized Paxos}
+}
+
+\newglossaryentry{epaxos}
+{
+    name={Egalitarian Paxos}
+}
+
+\newglossaryentry{gls-MDCC} {
+  name={Multi-Data Center Consistency},
+  description={An optimistic commit protocol for geo-replicated transactions that does not require a master or static partitioning, and is strongly consistent at a cost similar to eventual consistency protocols. MDCC takes advantage of Generalized Paxos for transaction processing and exploits commutative updates with value constraints in quorum based system.},
+}
+
+\newglossaryentry{snapshotisolation} {
+    name={Snapshot Isolation}
+}
+
+\newglossaryentry{2pc} {
+    name={two phase commit}
+}
+
+\newglossaryentry{gls-NMSI} {
+    name={Non-monotonic Snapshot Isolation}
+}
+
+\newacronym[see={[Glossary:]{gls-MDCC}}]{MDCC}{MDCC}{Multi-Data Center Consistency\glsadd{gls-MDCC}}
+
+\newacronym[see={[Glossary:]{gls-NMSI}}]{NMSI}{NMSI}{Non-monotonic Snapshot Isolation\glsadd{gls-NMSI}}
