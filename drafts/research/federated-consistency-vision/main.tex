@@ -152,71 +152,121 @@ Linearizable consistency in a distributed system requires the use of two phase c
 
 \section{Consensus}
 
-Paxos \cite{lamport_paxos_2001}
+% Feels like this section needs to be expanded
 
-multi-paxos \cite{chandra_paxos_2007},
+Consensus algorithms provide control or correctness in distributed storage systems by requiring that a majority of replicas agree on an operation before it is applied. For example, sequential consistency can be achieved via consensus by requiring all nodes to agree on some ordering of all operations in the system. Note, however, that consensus algorithms can be used for a variety of operations including leader election, atomic broadcasts, and synchronization. By requiring a majority of replicas in consensus, the distributed system is flexible in the face of failure (here, a replica does not respond to a consensus decision) because the non-responding node can be brought up to date by its peers in the majority. Note also that this assumes that all replicas ``play fair'' and there is no Byzantine failure.
 
-fast paxos \cite{lamport_fast_2006}
+Most consensus algorithms are generalized as distributed state machines that provide an interface wherein clients propose commands to the system and receive output in response to the proposals \cite{lampson_how_1996-1, lamport_reconfiguring_2010}. The state machine itself is described by a set of states, an initial state, and a function that maps commands to output such that the application of one command leads to a new state. Safety in a distributed system means that each local state machine applies commands in the same order as all other machines, and therefore that the application of all commands will lead to every machine being in the same state, which is to say that the distributed state machine is in a single state. If the commands to be applied to the distributed state machine concern accesses (reads and writes) of objects, then the distributed state machine is said to implement distributed storage.
 
-egalatarian paxos \cite{moraru_there_2013,moraru_egalitarian_2012}
+The gold standard for distributed consensus is the Paxos algorithm which identifies three types of agents: proposers, acceptors, and learners \cite{lamport_paxos_2001}. Proposers attempt to acquire a slot, $n$, in the sequence of commands applied to the state machine (e.g. they propose the $n$th command) by sending a prepare request with $n$ to all other nodes who are acting as acceptors. The acceptors decide whether the $n$th slot is available, and if a majority respond prepared the proposer can send an accept message with the command. If a majority of acceptors respond that the value is accepted, then the command can safely be applied to the state machine.
 
-raft \cite{ongaro_search_2013,howard_raft_2015}
+Generally speaking every consensus decision requires two messages; the first to guarantee the ordering of operations, and the second to guarantee that the system does not diverge. However, sending two round trip messages on each consensus decision leaves room for a lot of optimization (particularly considering the number of Paxos variants that exist). Generally the optimizations take two forms: centralized and decentralized consensus. Centralized consensus reduces the number of messages by selecting a leader to oversee the ordering (therefore a pre-allocated prepare for all accept messages the leader sends) such as in multi-paxos \cite{chandra_paxos_2007}, and Raft \cite{ongaro_search_2014,howard_raft_2015}. These types of consensus optimizations are ``more understandable'' and are generally applied.
 
-stellar \cite{mazieres_stellar_2015}
+Decentralized consensus optimistically uses ``fast-path'' consensus messages, meaning combined prepare and accept statements in a single trip. However, because the possibility of conflict exists in the ``fast-path'', a resolution mechanism must be provided in the form of a ``slow-path'' -- a mechanism that is generally worse than two round trip messages because it also must include a repair phase. Of note, Egalatraian Paxos (ePaxos) \cite{moraru_there_2013,moraru_egalitarian_2012} and MDCC \cite{kraska_mdcc_2013} use this technique by specifying a conflict detection phase (the operation and execution phases respectively). Consensus decisions are accepted on the fast path, but if a conflict occurs at read or at the conclusion of a transaction, then the state machine is rolled back and the operations re-applied using the slow-path.
+
+In all the above cases, the consensus group (called a quorum) must be known in advance in order to make determinations about majority. Changes to the quorum require a consensus decision and mechanisms like joint consensus in Raft alleviate issues wherein a subset of nodes continues as though it is in a smaller consensus group thus diverging from the larger consensus group \cite{ongaro_search_2014}. Other mechanisms like Stellar \cite{mazieres_stellar_2015} provide partial quorums by allowing nodes to select their own acceptors so long as the structure of overall quorum forms non-intersecting sets. Partial quorums are also a way to provide single object consistency in eventual systems \cite{bailis_quantifying_2014, decandia_dynamo_2007} but require some other mechanism for global consistency.
+
+To conclude our discussion on consensus, we should note that the number of nodes required in a consensus group is usually defined in terms of the number of failures that must be tolerated. For a simple majority, this often means that consensus groups are small (e.g. 3 nodes to tolerate one failure, and 5 to tolerate 2). In the topologies we have described in this paper, however, consensus groups can be very large (dozens of replicas) and in fact there are two types of failures: not just single node failure, but also partitions that can cause a group of nodes to remain in communication. As a result, it is critical to study consensus algorithms in these environments rather than in small groups across a data center.
 
 \section{Federated Consistency}
 
-\subsection{Interaction at Consistency Boundaries}
+The consistency models and consensus algorithms described so far are intended to be applied in a single application and a single network environment, in particular a data center environment that enjoys very low latencies. Strong consistency is generally used to ensure correctness in a distributed system and then progressively relaxed in order to provide increasing availability to many clients accessing many objects concurrently. Consistency models are homogenous, in that accesses are either at that consistency or there is a failure.
 
-\subsubsection{Strong-Eventual}
-
-\subsubsection{Strong-Causal}
-
-\subsubsection{Eventual-Causal}
-
-\subsection{Multiple Consistency Systems}
-
-The integration of multiple consistency requires a strong consensus core in order to provide guarantees and manage conflicts, a scheme also used in Oceanstore \cite{kubiatowicz_oceanstore_2000} and \cite{gray_dangers_1996}.
+However, in a partition-prone, variable latency, heterogenous, user-oriented network a single model of consistency is no longer appropriate. Strong consistency and most consensus implementations would bottleneck such a system to the point where it would be unusable. Eventually consistent or more relaxed consistency guarantees would quickly lead to forks and divergence due to relatively higher latencies in communication. Moreover, since there are relatively fewer users in these types of systems, inconsistency is much more quickly observed. Instead, we propose a \textit{federated consistency} model, wherein multiple consistency levels are integrated as a result of policies specified on a per-object or per-replica basis by the user.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.5\textwidth]{figures/topology}
     \caption{The topology of a federated consistency model.}
+    \label{fig:topology}
 \end{figure}
+
+The integration of multiple consistency requires a strong consensus core in order to provide guarantees and manage conflicts, a scheme also used in Oceanstore \cite{kubiatowicz_oceanstore_2000} and further specified by Gray et al. \cite{gray_dangers_1996}. As shown in Figure \ref{fig:topology} a personal cloud can then attach devices of variable consistency levels to communicate with the strong consensus group. In this case, we have represented the consensus group coordinating across the wide area. In this scenario, mobile devices will always have access to a prime replica participating in consensus. Other topologies might include hierarchies of strong consensus groups for both local coordination and wide area synchronization.
+
+\subsection{Interaction at Consistency Boundaries}
+
+For replicas that participate at the same consistency level, their interactions are well specified by the parameters of the implementation of that consistency. However, it must be noted that all replicas have equal opportunity of communication with any other replica that might be participating in the federated system at a different consistency level. Communication between a replica of one consistency level to another is said to be communicating across a \textit{consistency boundary}. Both participants must decide whether or not the communication is valid and how to proceed.
+
+For the purpose of this section, we will describe three consistency levels: \textbf{strong} consistency refers to sequential consistency guaranteed by a consensus protocol, \textbf{causal} refers to a consistency level that tracks dependencies and provides convergence semantics (often called causal+), and \textbf{eventual} refers to a last-writer wins approach to consistency where replication is handled by anti-entropy.
+
+All accesses (reads or writes) by the user are local. Remote reads and writes are caused by the specifics of the consistency level and replication mechanism. E.g. we do not specify that a user can make a remote read or write, but rather that remote reads and writes are part of synchronization. We describe interactions at the consistency boundaries as follows.
+
+\subsubsection{Strong-Eventual}
+
+Strong consistency allows reads of the latest local committed version (read committed) and as a result the possibility of a stale read exists. Eventual consistency allows the read of the latest local version, and so too is also susceptible to stale reads. Neither of these consistency models requires a remote read in order to complete.
+
+A write from an eventual replica to a strong replica appears to the strong replica as though a client were performing a remote write. On the anti-entropy delay, if the eventual replica selects a strong node, then the cached writes are sent to the strong node that checks whether the writes can be applied via a version timestamp. If they can be applied, then they are committed through consensus and acknowledged. The eventual node does not have to wait for the conclusion of the consensus decision, and can simply continue. If the versions cannot be applied, the anti-entropy mechanism will allow the strong node to write the most recent committed versions back to the eventual node.
+
+\subsubsection{Strong-Causal}
+
+Because strong consistency provides sequential ordering, it is by definition providing causal ordering, e.g. if a write happens-before another, it will appear in that order in the log of the strong node. However, in order to allow a causal node to remote read from a strong node, it must first confirm that it has all writes that happened-before that read and merge with the strong node. To optimize this operation, strong nodes can contain per-object dependency information, either session based or explicit, depending on the application.
+
+Similarly, writes from a causal node to a strong node must contain dependency information. If the strong nodes do not have dependent writes, or if the writes on the strong node are ahead of the causal node (a fork has occurred), then the causal node must either converge with the consensus group (e.g. repair its snapshot with the one in the strong group) or issue a series of \textit{new} writes to the consensus group that return the system to a correct state. From the perspective of the causal nodes, this will simply be convergence, from the perspective of the consensus group this will look like a series of completely new operations.
+
+\subsubsection{Eventual-Causal}
+
+In order for an eventual node to interact with causal nodes, it must keep track of dependency information, the simplest form of which is that there are no dependencies on the writes. During anti-entropy the causal nodes are responsible for ensuring that the causal dependencies are maintained. For a remote read from a causal node to an eventual node, it can only read the latest version on the eventual node for which the causal node has all the writes (or that the eventual node can supply during the read). This means that a causal node can only read the latest version to which all writes exist.
+
+For remote writes, during anti-entropy the causal node must also ensure that it has all the dependent writes from the eventual node. If one eventual node does not supply all the dependent writes, then the causal node marks the write as ``pending''. When another anti-entropy session occurs that contribute the missing versions, then the causal node can mark the write as accepted and provide it during local reads.
+
+\subsection{Architecture}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.5\textwidth]{figures/architecture}
     \caption{The component architecture of a federated consistency model.}
+    \label{fig:architecture}
 \end{figure}
 
+An architecture for a federated consistency model is specified in Figure \ref{fig:architecture}. In order to optimize federated consistency, we decouple the distribution of object blobs (containing chunks of the the actual data for each version of the object) with decisions concerning the meta data of the system. Blob replication is handled using object aspects: that is what file types and how much data can be stored on a local replica. Blobs are propagated either via direct remote read on access or via anti-entropy mechanisms.
+
+Meta data about the objects in the system, including their key (name), version, consistency level, origin, etc. provide the visibility of the system, and it is this data that must be made consistent across the entire distributed system. As such federated consistency approaches will be applied at this level. Temporal and synchronization policies will govern how meta data is replicated across the system.
+
 \section{Experimental Discussion}
+
+In order to show the need for federated consistency, we have developed a discrete event simulation that implements accesses in a variety of network environments. In particular, we have studied how variable latency affects both eventual and Raft consensus. Figure \ref{fig:ae_stale_reads} and Figure \ref{fig:ae_viz_latency} show how eventually consistent systems are affected by higher latencies with different anti-entropy delays. Figure \ref{fig:ae_viz_ratio} shows how the ratio of fully visible writes to all writes decreases as the latency increases in an eventually consistent system. What this means is that eventual consistency on its own degrades rapidly as the latency increases.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.5\textwidth]{figures/ae_stale_reads}
     \caption{Stale reads using eventual consistency with variable anti entropy delay.}
+    \label{fig:ae_stale_reads}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.5\textwidth]{figures/ae_viz_latency}
     \caption{Visibility latency using eventual consistency with variable anti entropy delay.}
+    \label{fig:ae_viz_latency}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.5\textwidth]{figures/ae_viz_ratio}
     \caption{Ratio of fully visible writes to total writes using eventual consistency with variable anti entropy delay.}
+    \label{fig:ae_viz_ratio}
 \end{figure}
+
+In the second part of our experimental results, we study how Raft, an understandable consensus algorithm operates in the network environment we have proposed. In Figure \ref{fig:raft_commit_latency} we show that as the number of users increases, the latency for each commit becomes worse and worse as the mean latency of the system increases. In Figure \ref{fig:raft_latencies} we show how susceptible Raft is to the mean network latency through the various mechanisms of determining the intervals.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.5\textwidth]{figures/raft_commit_latency}
     \caption{Commit latency in Raft with increasing numbers of users.}
+    \label{fig:raft_commit_latency}
 \end{figure}
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/raft_latencies}
+    \caption{Commit latency in Raft for various network parameters implementations.}
+    \label{fig:raft_latencies}
+\end{figure}
+
+These results are meant to show that federated consistency can take advantage of a number of strong features of consistency models while minimizing their weaknesses particularly in the environments we are talking about.
+
 \section{Conclusion}
+
 
 \section*{Acknowledgments}
 
