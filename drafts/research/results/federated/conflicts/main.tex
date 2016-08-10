@@ -1,4 +1,4 @@
-\documentclass[10pt,letterpaper]{article}
+\documentclass[11pt,letterpaper]{article}
 
 \usepackage{graphicx}
 \usepackage[margin=1in]{geometry}
@@ -15,7 +15,7 @@
 
 % Headers
 \lhead{}
-\chead{Tentative Results}
+\chead{}
 \rhead{}
 
 % Footers
@@ -27,8 +27,8 @@
 \renewcommand{\footrulewidth}{0.4pt} % Thin footer rule
 
 \title{Federated Consistency Simulation: \\
- Increasing Conflicts (Users) with Tick Parameter Comparison}
-\date{July 13, 2016}
+ Increasing Likelihood of Conflicts Across Many Objects}
+\date{August 10, 2016}
 \author[ ]{Benjamin Bengfort}
 \author[ ]{Pete Keleher}
 \affil[ ]{Department of Computer Science}
@@ -39,134 +39,130 @@
 
 \maketitle
 
-This report presents results that demonstrate the impact of increasing conflicts on replication over a wide area and a comparison of the two tick ($T$) parameter models we have identified: Bailis and Howard. Conflict was simulated by using traces that had an increasing number of users (1, 3, and 5 users). We show in these results how Federated Consistency out performs both Eventual Consistency and Raft as conflicts increase. Moreover, we take a first look at the impact of the tick parameters as they relate to the mean latency.
+This report presents results that compare the Eventual, Raft, and Federated consistency models in our user-centric network against increasing probability of conflict ($P_c$). $P_c$ is a scale between 0 and 1 where $P_c = 0.0$ means that all replicas write to their own namespace with no overlap and $P_c = 1.0$ means that the namespace is complete shared by all replica servers. Any value in between indicates a varying level of overlap between the overlap of a replica's namespace.
 
-\textbf{Note:} These results are marked as tentative because I used a more random set of traces to get these results done. The updated results will show workloads with a more clear definition of conflicts. Moreover the wide area latencies are not in the ``realistic'' range of 64ms -- 978ms in order to actually generate results.
+Simulations were executed with 11 different access traces that implemented $P_c$ from 0.0 to 1.0 in 0.1 steps. All three simulations used the same access trace for each $P_c$ for a total of 33 simulations run. Details of the traces are shown in Table \ref{table:traces}. The trace also maintained a constant average of 30 names per device, 2,401 accesses per device, and 80 accesses per name.
 
-The results include 216 simulations with the following fixed dimensions:
+\begin{table}[!h]
+\centering
+\begin{tabular}{ | c | c | c | c |}
 
-\begin{itemize}
-    \item Number of Users: 1, 3, and 5 users
-    \item Tick Parameter Model: Bailis vs. Howard
-    \item Wide Area Latency, 12 mean latencies in the range $\lambda_{\mu} = [130, 2880]$,  $\lambda_{\sigma}=50$.
-    \item Replication Models: Eventual, Federated, and Raft
-\end{itemize}
+    \hline
+    $P_c$ & Accesses & Namespace & Avg. Devices per Name \\
+    \hline
+    0.0 & 48,021 & 600 &  1 \\
+    0.1 & 48,021 & 278 &  2 \\
+    0.2 & 48,022 & 165 &  3 \\
+    0.3 & 48,026 & 121 &  4 \\
+    0.4 & 48,027 & 91  &  6 \\
+    0.5 & 48,031 & 71  &  8 \\
+    0.6 & 48,033 & 62  &  9 \\
+    0.7 & 48,037 & 53  & 11 \\
+    0.8 & 48,035 & 42  & 14 \\
+    0.9 & 48,034 & 36  & 16 \\
+    1.0 & 48,038 & 30  & 20 \\
+    \hline
 
-The $T$ parameter defines the behavior of each simulation. Raft replica election timeouts are $(T, 2T)$ and heartbeat intervals are $\frac{T} {2}$. For eventual nodes the anti-entropy delay is $\frac {T} {4}$. The two models are as follows:
+\end{tabular}
 
-\begin{itemize}
-    \item Bailis: $T=10\lambda_{\mu}$
-    \item Howard: $T=2(\lambda_{\mu} + 2\lambda_{\sigma})$
-\end{itemize}
+\caption{\textsf{Change in the number of names and amount of overlap with increasing $P_c$}}
+\label{table:traces}
+\end{table}
 
-As shown from the results in this paper, the $T$ parameter plays a large role in defining the outcome of distributed replication. The lower the $T$ parameter, the more messages that are sent in the system. Real systems would experience clogging and bandwidth reduction. In the simulation this manifests itself as increased memory usage leading to slower simulation and analysis times as well as the possibility of the OS killing processes. Much of the work that went into producing these results was about memory safety and optimization. More details on this aspect is reported in Figure \ref{fig:memory_profiler}.
+The simulation kept all other parameters fairly pessimistic in order to complete the run as quickly as possible. The local area latencies were normally distributed such that $\lambda_{\mu}=30, \lambda_{\sigma}=5$ and the wide area latencies were distributed as $\lambda_{\mu}=1000, \lambda_{\sigma}=20$. Using the Bailis model, the tick parameter, $T = 10000$ so that the election timeout was uniformly selected in the range $[10000, 20000]$, the heartbeat interval was 5000 and the anti-entropy delay 2500. Accesses were triggered with a delay between accesses normally distributed such that $A_{\mu}=1800, A_{\sigma}=240$ with a read probability, $P_r=0.58$.
 
 \begin{figure}[!h]
     \centering
-        \includegraphics[height=0.9\textheight]{figures/inconsistent_writes.png}
-        \caption{\textsf{Inconsistent writes are any forked writes that are written to a log. As the number of conflicts increases, so do the number of forks and therefore possible inconsistent writes. In Raft there are no inconsistent writes. There appear to be no real difference between $T$ in eventual, but in Federated, there does appear to be an increasing gap between $T$ models where Howard outperforms Bailis, except where there is so much conflict that they converge.}}
+        \includegraphics[width=\textwidth]{figures/inconsistent_writes.png}
+        \caption{\textsf{Raft does not allow inconsistent writes by rejecting any (dropping them) that are remotely written. As the conflict increases, the number of inconsistent writes increases for both Federated and Eventual, but the Raft core in Federated minimizes the effect of increasing conflict. Note that there are no inconsistencies in any system given zero conflict.}}
         \label{fig:inconsistent_writes}
 \end{figure}
 
 \begin{figure}[!h]
     \centering
-        \includegraphics[height=0.9\textheight]{figures/forked_writes.png}
-        \caption{\textsf{As conflict increases, so does the number of forks. For raft the $T$ parameter appears to be significant as the number of conflicts increase, but both models eventually converge as the mean latency increases. Federated consistency however shows that there is a sharp difference between Bailis and Howard, probably due to the anti-entropy interval not allowing synchronization to the strong central quorum.}}
+        \includegraphics[width=\textwidth]{figures/forked_writes.png}
+        \caption{\textsf{This figure is a contrast to \ref{fig:inconsistent_writes} to show how many inconsistencies are being generated. Raft now does have forks, because this figure excludes those that Raft would normally reject. As expected, forks increase as the conflict increases. What was not expected is that at even zero conflict, both Federated and Eventual have forks occurring (though in the previous figure, all three have zero inconsistencies at zero conflict). This may be due to the difficulty in counting forks I mentioned in an earlier discussion, but I will look into it.}}
         \label{fig:forked_writes}
 \end{figure}
 
 
 \begin{figure}[!h]
     \centering
-        \includegraphics[height=0.9\textheight]{figures/dropped_writes.png}
-        \caption{\textsf{Dropped writes is essentially the inverse of inconsistent writes in Figure \ref{fig:inconsistent_writes} and shows the same properties as the forked writes in Figure \ref{fig:forked_writes}. If eventual consistency forks writes, then Raft drops them. Federated does better by dropping some and forking other writes.}}
+        \includegraphics[width=\textwidth]{figures/dropped_writes.png}
+        \caption{\textsf{This graph is the inverse of \ref{fig:forked_writes} showing that Eventual does not drop any writes or block progress, whereas both Raft and Federated must reject writes in order to maintain the client-consistency guarantee. Federated once again seems to do better than even at balancing Eventual and Raft. }}
         \label{fig:dropped_writes}
 \end{figure}
 
 \begin{figure}[!h]
     \centering
-        \includegraphics[height=0.9\textheight]{figures/write_latency.png}
-        \caption{\textsf{This figure is all but unreadable due to the scale of the Y-Axis as a result of the write cost in Federated for the 3 and 5 user Howard models. Eventual has no write cost, and the same effect does not present itself in Raft for any model, so I believe this is a bug in the analysis - but am not sure. Potentially this is related to the cost of an remote write from an eventual node to a Raft node.}}
+        \includegraphics[width=\textwidth]{figures/write_latency.png}
+        \caption{\textsf{The cost of a write is directly related to the cost of a remote write to the leader and a broadcast across the wide area in Raft, whereas writes are instantaneous in eventual since they write to a local cache. Federated averages the cost of progress according to how many nodes are participating in which scheme. I'm not sure what the blip is where the $P_c=0.6$, I assume it's an imbalance in the writes to the Raft nodes vs. writes to the eventual nodes.}}
         \label{fig:write_latency}
 \end{figure}
 
 
 \begin{figure}[!h]
     \centering
-        \includegraphics[height=0.9\textheight]{figures/committed_writes.png}
-        \caption{\textsf{This was one of the interesting results in the last report, Federated had less writes dropped and more writes committed therefore outperformed both Raft and Eventual. There is certainly a less steep decline in commits as the wide area increases, and both $T$ models converge faster. It may also be tougher to distinguish Federated's benefits at this latency scale (as opposed to sub-second latencies).}}
+        \includegraphics[width=\textwidth]{figures/committed_writes.png}
+        \caption{\textsf{Eventual has no notion of committing writes, Raft should commit every write unless it has to drop due to a conflict. Federated is able to get more commits because there are less dropped writes.}}
         \label{fig:committed_writes}
 \end{figure}
 
 \begin{figure}[!h]
     \centering
-        \includegraphics[height=0.9\textheight]{figures/commit_latency.png}
-        \caption{\textsf{Both Raft and Federated experience a linear commit latency cost (two round trip \texttt{AppendEntries} for commit) as the mean wide area latency increases. As a result there is nearly no difference in the $T$ parameters for each set of conflicts. It is also important to note that as the number of conflicts increases, the commit cost grows steeper.}}
+        \includegraphics[width=\textwidth]{figures/commit_latency.png}
+        \caption{\textsf{Even though Federated commits more writes, it does take Federated longer to commit a write because it has to include the anti-entropy delay before the write reaches a Raft node in the commit latency.}}
         \label{fig:commit_latency}
 \end{figure}
 
 \begin{figure}[!h]
     \centering
-        \includegraphics[height=0.9\textheight]{figures/visible_writes.png}
-        \caption{\textsf{The number of writes that become visible, e.g. fully replicated. More conflict should mean that less writes become fully visible; I'm going to have to check on this graph.}}
+        \includegraphics[width=\textwidth]{figures/visible_writes.png}
+        \caption{\textsf{There is currently a bug with Eventual that is causing writes to not become fully replicated on a few nodes, but those numbers aren't zero -- they're just in the 10s of fully visible writes. Raft uses a broadcast mechanism, so all writes become fully visible unless they are dropped. Federated on the other hand, suffers from Eventual writes getting stomped on, and so as conflict increases, the number of fully visible writes goes down; though this will also be fixed with the Eventual bug fix.}}
         \label{fig:visible_writes}
 \end{figure}
 
 \begin{figure}[!h]
     \centering
-        \includegraphics[height=0.9\textheight]{figures/visibility_latency.png}
-        \caption{\textsf{The visibility latency is the time in ms it takes for a write to become fully visible. There is no relationship between the number of conflicts and visibility latency; however there is a clear difference between the $T$ parameter and the visibility latency, one that is widened in Federated.}}
+        \includegraphics[width=\textwidth]{figures/visibility_latency.png}
+        \caption{\textsf{Once the Eventual visibility bug is fixed we should see that it takes much longer to make eventual writes become visible because of the anti-entropy mechanism; convergence delay will define how long it takes a write to become fully visible. Federated does not do as well as Raft because it also has anti-entropy delays, but does improve on Eventual since it has a core that broadcasts writes across the wide area.}}
         \label{fig:visibility_latency}
 \end{figure}
 
 \begin{figure}[!h]
     \centering
-        \includegraphics[height=0.9\textheight]{figures/stale_reads.png}
-        \caption{\textsf{Raft has way more stale reads, and the more conflict that exists, the more stale reads there are. Howard once again outperforms Bailis.}}
+        \includegraphics[width=\textwidth]{figures/stale_reads.png}
+        \caption{\textsf{Even with READ LATEST, Raft (and consensus implemented sequential consistency) suffers from stale reads. Eventual suffers less, and Federated takes advantage of instantaneous reads on eventual nodes.}}
         \label{fig:stale_reads}
 \end{figure}
 
 \begin{figure}[!h]
     \centering
-        \includegraphics[height=0.9\textheight]{figures/read_latency.png}
-        \caption{\textsf{There are no remote reads in this system, therefore read latency is instantaneous.}}
+        \includegraphics[width=\textwidth]{figures/read_latency.png}
+        \caption{\textsf{Question answered: there are no remote reads in this simulation, hence zero read latency.}}
         \label{fig:read_latency}
 \end{figure}
 
 \begin{figure}[!h]
     \centering
-        \includegraphics[height=0.9\textheight]{figures/message_counts.png}
-        \caption{\textsf{The number of messages sent by a consistency model (either Raft or Eventual) is highly dependent on its timing parameters (election timeout, heartbeat interval, and anti-entropy delay). Although this graph is near unreadable, comparing the shapes of the bar charts shows that as $T$ decreases the number of messages increases, but remains generally the same for increasing number of users (only remote writes is increased). The bar chart goes 1 raft user: bailis then howard (descending $T$), then three then 5 users, then repeats for federated and eventual. }}
+        \includegraphics[height=.9\textheight]{figures/message_counts.png}
+        \caption{\textsf{See \ref{fig:messages_sent} for more details.}}
         \label{fig:message_counts}
 \end{figure}
 
 \begin{figure}[!h]
     \centering
-        \includegraphics[width=\textwidth]{figures/federated-T460.png}
-        \caption{\textsf{Network topology of the federated consistency model for 5 users and $T=460$. Edges define communication by message type (both color and label indicate the message type), message frequency between nodes is indicated by edge thickness. Vertices are colored by their consistency model (Raft and Eventual in Federated). Vertex size indicates the number of \textit{writes} that occurred at that node. The workload is fairly evenly distributed amongst the nodes.}}
-        \label{fig:topology}
-\end{figure}
-
-\begin{figure}[!h]
-    \centering
-        \includegraphics[height=0.9\textheight]{figures/messages_sent.png}
-        \caption{\textsf{Total number of messages sent per consistency model. The lower the mean wide area latency, the lower the T, causing more messages to be sent. The number of messages is exponentially related to the mean network latency. Here the two models are basically stacked on top of each other, but the number of users doesn't make a lot of difference.}}
+        \includegraphics[width=\textwidth]{figures/messages_sent.png}
+        \caption{\textsf{So this is the reason that Federated took so much longer to simulate, it has two types of Nodes sending all Eventual messages plus the addition of the consensus messages. Note however that Federated isn't sending twice as many messages; instead it is sending the same number of eventual messages + only a small subset of nodes sending the consensus messages. This is one of the reasons that Hierarchical is needed for the central quorum group; to reduce the number of consensus messages as well as local anti-entropy messages.}}
         \label{fig:messages_sent}
 \end{figure}
 
-
 \begin{figure}[!h]
     \centering
-        \includegraphics[width=\textwidth]{figures/federated-TNone.png}
-        \caption{\textsf{Network topology of the federated consistency model for 5 users and $T=28800$. Edges define communication by message type (both color and label indicate the message type), message frequency between nodes is indicated by edge thickness. Vertices are colored by their consistency model (Raft and Eventual in Federated). Vertex size indicates the number of \textit{writes} that occurred at that node. Compared to the other network graph, this simply shows there are far less messages.}}
+        \includegraphics[width=\textwidth]{figures/federated-topology.png}
+        \caption{\textsf{Edges define communication by message type (both color and label indicate the message type), message frequency between nodes is indicated by edge thickness. Vertices are colored by their consistency model (Raft and Eventual in Federated). Vertex size indicates the number of \textit{writes} that occurred at that node. Green nodes do send messages across the wide area, but so rarely as to not show up in this figure, this is another parameter that can be tuned and will need to be discussed in the paper.}}
         \label{fig:topology}
 \end{figure}
 
-\begin{figure}[!h]
-    \centering
-        \includegraphics[width=\textwidth]{figures/memory_profiler.png}
-        \caption{\textsf{The simulator ran 216 simulations with 10 errors (all Raft with low Howard parameters) in 1 hour 3 minutes via 8 parallel tasks. This figure shows the memory usage of the simulator, summing the memory of all 9 processes (master + 9 workers). I did extensive work today to reduce the amount of memory usage both in the simulator and the analysis to allow this many simulations to be inspected at once.}}
-        \label{fig:memory_profiler}
-\end{figure}
 
 \end{document}

@@ -1,0 +1,161 @@
+% see https://www.usenix.org/sites/default/files/template.la_.txt for original.
+\documentclass[letterpaper,twocolumn,10pt]{article}
+\usepackage{usenix,epsfig,endnotes}
+\begin{document}
+
+%don't want date printed
+\date{}
+
+%make title bold and 14 pt font (Latex default is non-bold, 16 pt)
+%working title, this is the worst - come up with something better!
+\title{\Large \bf Federated Consistency: Tuning Availability and Conflict Avoidance}
+
+%for single author (just remove % characters)
+\author{
+{\rm Benjamin Bengfort}\\
+University of Maryland\\
+bengfort@cs.umd.edu
+\and
+{\rm Pete Keleher}\\
+University of Maryland\\
+keleher@cs.umd.edu
+} % end author
+
+\maketitle
+
+% Use the following at camera-ready time to suppress page numbers.
+% Comment it out when you first submit the paper for review.
+% \thispagestyle{empty}
+
+
+\subsection*{Abstract}
+
+Consistency in a distributed system
+
+\section{Introduction}
+
+Motivate Federated consistency, types of networks/environment, and identify problems with using either eventual (conflict) or consensus (low availability) in such an environment. Propose that consistency is flexible, and present federated consistency.
+
+Most consistency studies focus on the data center. Evaluations like PBS show that very low latencies are what make eventual work. There are advantages to non-cloud research.
+
+\section{Federated Consistency}
+
+Present a model that integrates primarily eventual and strong consistency via consensus but also provides support for eventual consistency as a secondary layer.
+
+We might say that individual replicas expose their own view of consistency to their users but that in aggregate, consistency models are federated into a single, adaptable model of consistency. Consistency here defined as the relationship between your view of the data and your understanding of the global state of the data.
+
+\subsection{Anti-Entropy}
+
+Anti-Entropy for Fault-Tolerant Replication
+
+Present the eventual subsystem as anti-entropy. List well known advantages and disadvantages particularly for the type of topology presented in the introduction. Describe our implementation of eventual consistency via pairwise anti-entropy sessions. Discuss heuristics for eventual consistency and mechanics.
+
+Probability of wide area anti-entropy vs. probability of local-area anti-entropy. Trade off of eventual-only.
+
+\subsection{Centralized Consensus}
+
+Centralized consensus for Conflict Avoidance
+
+Present strong consistency as a central store a la OceanStore, Dangers of replication, etc. Present consensus as a mechanism for centralized, strong consistency.
+
+consensus != strong consistency right off the bat. Not without rejections of writes that are inconsistent. Other issues include READ LATEST/READ COMMITTED.
+
+Why can't the entire system be consensus based? Allude to hierarchical consensus ...
+
+\subsection{Federation of Consistency Protocols}
+
+Integration protocol of eventual and strong consensus groups. The integration mechanism is the central piece of the federated consistency protocol and needs to enforce consistency mechanisms on both sides.
+
+\subsubsection{Eventual-Strong}
+
+Replicating from eventual cloud to strong core group.
+
+\subsubsection{Strong-Eventual}
+
+Replication from strong core group to eventual cloud.
+
+\subsection{Causal Consistency with Dependency Information}
+
+There are other variations of consistency, including causal consistency; the strongest eventual consistency mechanism. We will show in this section how causal is integrated into the federated system in the same manner.
+
+\section{Environment Aware Adaptivity}
+
+Federated consistency provides flexibility and can adapt itself based on its awareness of the topology. We'll explore that in two ways: the Tick parameter and deciding whether or not a node should be a strong or eventual node.
+
+\subsection{The Tick Parameter}
+
+Discuss the Bailis vs. Howard models of the Tick parameter for Raft. Discuss how the tick parameter has to be used to define the behavior of replication (e.g. anti-entropy as well as election timeout, etc.).
+
+Keep a windowed mean/stddev of the message times or a ping. Consensus decision is required to change tick parameter for strong; but doesn't influence eventual except via probabilities.
+
+\subsection{Consistency Allocation}
+
+How does a node decide if it should be eventual or strong? Heuristic: lowest number of strong nodes possible, everyone else is eventual. Writers that need strong remote to strong node. Every area/location needs at least one strong.
+
+\section{File System Semantics}
+
+Discuss the application in a file system context.
+
+The client guarantee is Write Follows Read Consistency because we track versions rather than applying operations to a state machine.
+
+Data centric consistency does not consider staleness; but we do.
+
+Another thing we've done is explored how consensus and particularly Raft can be used to implement sequential guarantees in a data-centric system. 
+
+\section{Simulation}
+
+Describe our evaluation of this method.
+
+\subsection{Methodology}
+
+Describe discrete event simulation
+
+\subsubsection{Topology}
+
+Describe the topology we used.
+
+\subsubsection{Accesses and Conflict}
+
+Describe accesses generated and conflicts.
+
+\subsubsection{Outages}
+
+Describe outages generated and how: network partitioning failure and node failure.
+
+\subsection{Results}
+
+Present results.
+
+\section{Discussion}
+
+\textbf{Consistency is flexible.}
+
+So far we have only thought about consistency in terms of a single write - does it get dropped in eventual or do we sequentially order all writes in the case of raft (and actually we have done a lot of thought about what consistency means for Raft as well, which Raft is only consensus).
+
+However, Federated shows that you can tune a consistency model by using both eventual and sequential models. The more eventual nodes in the system, the more like an eventual system federated behaves. The addition of even a small number of Raft nodes gives you some stronger guarantees  for some of the writes.
+
+\textbf{Strong core = greater consistency}
+
+With the addition of just a few strong consistency nodes, the percent of conflicts is minimized across the entire system. This happens in two ways. First, the strong center distributes writes in a more centralized fashion than anti-entropy providing less opportunity for conflict to occur. Second, the strong center will not allow certain types of forks to occur, thus forcing a conflict resolution at the writer.
+
+\textbf{Eventual cloud = replication under failure}
+
+If a critical number of nodes fail in the strong core, causing consensus to fail (e.g. thrashing leader elections) then the eventual cloud and anti-entropy replication routing around the center will allow progress to continue.
+
+\textbf{Consistency is hugely dependent on topology and network environment}
+
+By adapting the parameters for replication servers according to the network environment, different protocols perform better or worse. in a high latency environment? prefer eventual; in a low latency environment with few partitions, prefer raft. Moreover, you can adapt as the network environment changes under you.
+
+\section{Related Work}
+
+\section{Conclusion}
+
+\section*{Acknowledgments}
+
+{\footnotesize \bibliographystyle{acm}
+\bibliography{references}}
+
+% uncomment to include end notes.
+% \theendnotes
+
+\end{document}
