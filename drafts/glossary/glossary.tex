@@ -85,7 +85,7 @@
 
 \newglossaryentry{gls-MDCC} {
   name={Multi-Data Center Consistency},
-  description={An optimistic commit protocol for geo-replicated transactions that does not require a master or static partitioning, and is strongly consistent at a cost similar to eventual consistency protocols. MDCC takes advantage of Generalized Paxos for transaction processing and exploits commutative updates with value constraints in quorum based system.},
+  description={An optimistic commit protocol for geo-replicated transactions that does not require a master or static partitioning, and is strongly consistent at a cost similar to eventual consistency protocols. MDCC takes advantage of Generalized Paxos for transaction processing and exploits commutative updates with value constraints in quorum based system},
 }
 
 \newglossaryentry{snapshotisolation} {
@@ -102,7 +102,38 @@
 
 \newglossaryentry{gls-CRDT} {
   name={Conflict-Free Replicated Data Type},
-  description={In distributed computing, a conflict-free replicated data type (abbreviated CRDT) is a type of specially-designed data structure used to achieve strong eventual consistency (SEC) and monotonicity (absence of rollbacks). As their name indicates, a CRDT instance is distributed into several replicas; each replica can be mutated promptly and concurrently; the potential divergence between replicas is however guaranteed to be eventually reconciled through downstream synchronization (off the critical path); consequently CRDTs are known to be highly available.},
+  description={In distributed computing, a conflict-free replicated data type (abbreviated CRDT) is a type of specially-designed data structure used to achieve strong eventual consistency (SEC) and monotonicity (absence of rollbacks). As their name indicates, a CRDT instance is distributed into several replicas; each replica can be mutated promptly and concurrently; the potential divergence between replicas is however guaranteed to be eventually reconciled through downstream synchronization (off the critical path); consequently CRDTs are known to be highly available},
+}
+
+\newglossaryentry{nrwconfig} {
+    name={(N, R, W) configurations},
+    description={Quorum based approach to defining consistency: out of N replicas, R must agree for a read and W must agree for a write. To avoid stale reads, $R+W > N$ and to avoid write conflicts $W > \frac {N} {2}$. Systems such as Dynamo relax these constraints to provide eventual consistency},
+}
+
+\newglossaryentry{fragmentationtransparency} {
+    name={fragmentation transparency},
+    description={The highest level of distribution transparency which specifies that the distributed system does not expose to the user that data is fragmented (sharded) across multiple replicas. As a result, the user can query a global schema without specifying data locations},
+}
+
+\newglossaryentry{sharding} {
+    name={sharding}
+}
+
+\newglossaryentry{fragmentation} {
+    name={fragmentation}
+}
+
+\newglossaryentry{consistenthashing} {
+    name={consistent hashing}
+}
+
+\newglossaryentry{dht} {
+    name={distributed hash table}
+}
+
+\newglossaryentry{hintedhandoff} {
+    name={Hinted Handoff},
+    description={A mechanism used by both Dynamo and Cassandra to reduce the time required for a temporarily failed node to be come consistent again with live nodes and to provide higher availability when consistency is not required. The mechanism is as follows, if a node which should receive a write cannot be contacted, a live replica will write a hint indicating that the write must be replayed at the unavailable node and will try again when it comes back online},
 }
 
 \newacronym[see={[Glossary:]{gls-MDCC}}]{MDCC}{MDCC}{Multi-Data Center Consistency\glsadd{gls-MDCC}}
