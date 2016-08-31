@@ -1,202 +1,73 @@
-% see https://www.usenix.org/sites/default/files/template.la_.txt for original.
-\documentclass[letterpaper,twocolumn,10pt]{article}
-\usepackage{usenix,epsfig,endnotes}
-\usepackage{ifthen}
+\documentclass[10pt,conference,compsocconf,letterpaper]{IEEEtran}
+\usepackage{graphicx}
+
 \begin{document}
+\title{Federated Consistency in Geographically Distributed Systems}
+\author{\IEEEauthorblockN{Benjamin Bengfort and Pete Keleher}
+\IEEEauthorblockA{Department of Computer Science\\
+University of Maryland, College Park, MD, USA\\
+\{bengfort,keleher\}@cs.umd.edu}}
 
-% macro for defining terminology and quickly replacing it
-\newcommand{\environment}[1]{%
-    \ifthenelse{\equal{#1}{}}{variable and high latency environments}{}%
-    \ifthenelse{\equal{#1}{c}}{Variable and high latency environments}{}%
-    \ifthenelse{\equal{#1}{s}}{variable and high latency environment}{}%
-    \ifthenelse{\equal{#1}{cs}}{Variable and high latency environment}{}%
-}
 
-%don't want date printed
-\date{}
+\date{September 1, 2016}
 
-% make title bold and 14 pt font (Latex default is non-bold, 16 pt)
-% working title, this is the worst - come up with something better!
-% Federated Consistency: Balancing Availability and Conflict Avoidance in Variable Network Environments
-% Federated Consistency: Tuning Availability and Conflict Avoidance
-% Federated Consistency in Semi-Centralized Distributed Systems
-\title{\Large \bf Federated Consistency in Geographically Distributed Systems}
-
-%for single author (just remove % characters)
-\author{
-{\rm Benjamin Bengfort}\\
-University of Maryland\\
-bengfort@cs.umd.edu
-\and
-{\rm Pete Keleher}\\
-University of Maryland\\
-keleher@cs.umd.edu
-} % end author
+\IEEEtitleabstractindextext{%
+\begin{abstract}
+Consistency in a distributed storage system is usually thought of as one of a few discrete categories: eventual, causal, sequential, or linearizable and distributed systems are designed with homogenous replica types to fit one of those categories. In this paper we present Federated Consistency, a heterogenous system model that allows individual replica servers to select their own consistency level, specifying a quality of service at a particular location while still providing global guarantees. This model, applied to variable latency geographic systems that are partition prone allow for flexibility in consistency that can adapt in response to the local network environment.
+\end{abstract}}
 
 \maketitle
 
-% Use the following at camera-ready time to suppress page numbers.
-% Comment it out when you first submit the paper for review.
-% \thispagestyle{empty}
-
-
-\subsection*{Abstract}
-
-Consistency in a distributed storage system refers to the strictness of ordering writes and the potential staleness of reads -- the stricter the required ordering, the higher the staleness and the increased probability of conflict. Most consistency mechanisms simply specify a tolerance for how unordered a local replica may become with respect to some global ordering, usually in response to performance concerns in highly available systems that may be prone to partitions. In this paper we present federated consistency, a heterogenous approach to modeling consistency for large, geographically replicated systems in \environment{}. Federated consistency allows individual replicas to specify local consistency policies, while still maintaining global guarantees - allowing for flexible consistency that can adapt in response to the local network environment. We show that a federated model with a sequentially ordered core consensus group combined with highly available, eventually or causally consistent nodes minimizes the conflict of a homogenous weakly consistent model while still remaining highly available and dramatically improving the performance of a strong consistency model.
+\IEEEdisplaynotcompsoctitleabstractindextext
 
 \section{Introduction}
 
-% Let's try to do better than we did in this section; what do you say?
+The rise of on-demand computing resources and the Cloud have made distributed systems the default approach to scaling applications for many users in a variety of geographic locations. In particular, data replication is used to increase availability, throughput, durability, and fault tolerance by ensuring that objects can be accessed on multiple servers as locally as possible. Although some coordination is necessary to ensure that replication happens correctly, many systems favor a relaxation in consistency in order to meet the performance requirements of modern, mobile applications. This is partially because the application layer can define its own mechanisms for handling differently consistent behavior, but it is primarily because such systems are implemented in data center contexts that enjoy stable, low latency connections which provide the opportunity for optimistic techniques via extremely low per-object inconsistency periods \cite{bailis_quantifying_2014,bermbach_metastorage:_2011}.
 
-%Motivate Federated consistency, types of networks/environment, and identify problems with using either eventual (conflict) or consensus (low availability) in such an environment. Propose that consistency is flexible, and present federated consistency.
+We might, therefore, generally categorize most modern distributed storage systems and NoSQL databases as not having strong consistency and using some consensus algorithm for control and synchronization when necessary. As a result consistency is usually described in a discrete, data-centric fashion: weak or strong; eventual, causal, or sequential and no longer described in client-centric terms \cite{bermbach_consistency_2013}. As replication becomes more prevalent, however, it is not enough to simply lay the burden of conflict at the feet of clients and there has been recent interest in instead redefining consistency along a spectrum whose dimensions are the strictness of ordering writes and the potential staleness of reads \cite{yu_design_2002,li_making_2012,afek_quasi-linearizability:_2010,al-ekram_multi-consistency_2010,krishnamurthy_adaptive_2002}.
 
-%Most consistency studies focus on the data center. Evaluations like PBS show that very low latencies are what make eventual work. There are advantages to non-cloud research.
+By defining consistency in terms of ordering and staleness it is easy to see that the root cause of the tradeoff between performance and correctness is message latency, where a common case is when messages do not or cannot arrive due to node failure or network partitions. It has been noted that message latency is the key factor in determining ``how consistent'' a system is either due to staleness in eventually consistent systems \cite{bailis_probabilistically_2012} or by preventing progress in sequential consistency systems implemented with consensus \cite{howard_raft_2015}. The advent of distributed storage as a service has allowed systems to adapt consistency at runtime by taking advantage of a stable network environment \cite{chihoub_harmony:_2012,chihoub_consistency_2013,kraska_consistency_2009} and has shifted the focus away from replication in weakly-connected, dynamic, or mobile networks even though it is the environment that has the primary role in determining the behavior of replication and potential guarantees \cite{pitoura_data_1999,deno-toc}. We believe that local, user-oriented distributed systems should augment cloud services rather than be replaced by them; and in some cases, such as disaster recovery or search and rescue, may be the only available system.
 
-Consistency in a distributed system is usually described in a discrete, data-centric fashion: weak or strong; eventual, causal, or sequential; and is usually not described in a client-centric fashion \cite{bermbach_consistency_2013}. This is partially because clients of such systems are applications that must define their own mechanisms for handling differently consistent behavior; it is also because such systems are typically implemented in data center contexts that enjoy stable, low latency connections which provide the opportunity for optimistic techniques \cite{bailis_quantifying_2014}. However as replication has become a more routine technique to increase the availability, fault tolerance, and durability of distributed storage, there has been recent interest in defining consistency along a spectrum whose dimensions are the strictness of ordering writes and the potential staleness of reads \cite{li_making_2012,yu_design_2002,afek_quasi-linearizability:_2010,al-ekram_multi-consistency_2010,krishnamurthy_adaptive_2002,bermbach_metastorage:_2011}.
+In this paper we present a novel approach to flexible consistency via the federation of a heterogenous system of replica servers that implement a variety of consistency protocols in response to local policies and requirements. As a result, individual replicas in the system can respond and adapt to a changing network environment while providing as strong a local guarantee or minimum quality of service as required. The global state of a federated system is defined by the topology of replicas and their interactions, such that if a subset of nodes implement stronger consistency models, then the global probability of conflict is reduced and conversely if a subset of nodes implements weaker consistency then global throughput is increased. Indeed, we find that it is more often the tension between local vs global views of consistency that cause greatest concern in terms of application performance. Because each node can select and change local consistency policies, client applications local to the replica server have greater control of tuning consistency in response to mobile or dynamic network behavior, maximizing timeliness or correctness as needed.
 
-% We didn't do a good job of identifying eventual and the problems with eventual and strong and the problems with strong.
+We show that a federated consistency protocol finds a middle ground in the trade-off between performance and consistency, particularly between an eventually consistent system implemented via gossip-based anti-entropy \cite{kempe_gossip-based_2003} and a sequential consistency model implemented by the Raft consensus protocol \cite{ongaro_search_2014}. By exploring these two extremes in the consistency spectrum we show that the overall number of inconsistencies in the system is reduced from the homogenous eventual system and that the access latency is decreased from the homogenous sequential system. Moreover, because the global consistency of the system is topology-dependent, it can be said to have flexible or dynamic consistency. We have found that large systems with variable latency in different geographic regions can perform well by allowing most nodes to operate in an optimistic fashion, but maintain a strong central quorum to reduce the amount of global conflict.
 
-In addition to the tradeoff between performance and correctness for distributed storage, it has also been noted that message latency is a key factor in determining the level of consistency, either in eventually consistent systems \cite{bailis_probabilistically_2012} or determining timing parameters for consensus \cite{howard_raft_2015}. The advent of cloud computing and distributed storage as a service \cite{chihoub_consistency_2013,chihoub_harmony:_2012,kraska_consistency_2009} has shifted the focus away from replication in weakly-connected, dynamic, or mobile networks, even though the network environment plays a primary role in determining the behavior of replication and potential guarantees \cite{deno-toc,pitoura_data_1999,glynn_multi-consistency_2005}. Local, user-oriented distributed systems should augment cloud services rather than be replaced by them, and in some cases like disaster recovery or search and rescue may be the only type of system available.
+The rest of the paper is organized as follows: we present a system model that is slightly different from the usual client-server system model and which has many more replica servers participating in a variety of locations. Because we take a client-centric approach we will describe a distributed file system, though our model can be easily generalized to other types of data systems. We will then present a consistency model to describe the impact of conflict, misordering, and staleness and use these metrics to next describe the federated consistency protocol. Finally we will present the performance of our system via experimental simulation and conclude with a discussion of how to adapt this model to include other consistency protocols like causal consistency.
 
-In this paper we present a novel approach to flexible consistency via the federation of a heterogenous system of replica servers that implement varying consistency policies relative to local requirements. The global state of the system is defined by the topology of replicas and their interactions such that if a subset of nodes implement a stronger consistency model, then global conflict probability is correspondingly reduced and conversely if a subset of nodes implement weaker consistency then global throughput is increased. Because each node can select its own local consistency policy, nodes can adapt to dynamic network environments or become mobile by varying their policies to maximizes timeliness or correctness.
+\section{System Model}
 
-% should we rename cloudscope?
-We have created a robust discrete event simulation called CloudScope that models a wide range of network environments, system load, and outages and have used it to show how sequential consistency implemented by the Raft consensus protocol \cite{ongaro_search_2014} and eventual consistency implemented by anti-entropy convergence through gossiping \cite{demers_epidemic_1987} are affected by network environment. We then federated these consistency models in the context of a distributed file system and show how the federated model improves performance by reducing stale reads and maintaining a sequential ordering among a central quorum.
+In order to demonstrate the benefits of federation, we present a system model that shifts away from the traditional cloud-service oriented approach to distributed systems where clients connect to replica servers that may be geographically distributed but usually reside in data centers. We have found that this presentation usually involves many clients connecting to just a few replicas and we intend to discuss replication in medium to large systems with dozens or hundreds of replicas. Instead we present an approach where every client itself is a replica that accesses data locally, which it expects to be both as recent and as correct as possible. To that end we posit a file system as the natural use case of local, client-oriented systems, though we could easily generalize the model to any distributed storage system.
 
+\subsection{Topology}
 
-\section{Federated Consistency}\label{sec:federated_consistency}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/topology}
+    \caption{A topology with many heterogenous replicas operating in a variable latency, partition and failure-prone environment.}
+    \label{fig:topology}
+\end{figure}
 
-We might say that individual replicas expose their own local consistency view to their users but that in aggregate, the various consistency implementations are federated into a single, adaptable model of global consistency. Consistency here defined as the relationship between your view of the data and your understanding of the global state of the data.
+In order to investigate the effect of variable latency and the network environment on consistency, we have constructed a fully connected topology of replica nodes that are each assigned a geographic region as shown in Figure \ref{fig:topology}. Within each region, replica nodes enjoy stable, low-latency connections with their neighbors. However, across regions the latency is higher and the connections variable, meaning that out of order messages are more common across the wide area than in the local area.
 
-Federated consistency allows replicas to semi-independently select their own local consistency and provides meaningful integration when replicating across consistency boundaries.
+In this type of topology there are two types of failure: node failure and network partitions. \textit{Node failure} occurs when a single node is shut off or stops responding to messages. \textit{Network partitions} occur when it is not possible for messages to be sent or received from a single geographic region. In both cases, two conditions must be dealt with by the replication protocol in order to satisfy correctness criteria: first the fact that accesses may continue at a partitioned node which are not being replicated by the system and second that the partitioned nodes are behind the global state and must be brought up to date.
 
-\subsection{Consistency Model}\label{sec:consistency_model}
+\subsection{Logs and Accesses}
 
-Consistency has two opposing correctness criteria: ordering and staleness. Every replica maintains their own local log of accesses with respect to some abstract global ordering given concurrent operations. Strict ordering requires that the local log maintains the same ordering as the global (or all replicas have the same ordering of events). Weaker ordering allows divergence in the order with which accesses are applied to the log.
+Because consistency is defined in terms of an ordering of operations that change the state of a replica, each node maintains a log of operations whose ordering and staleness can be reasoned upon. The question then becomes what those operations are in the context of a file system. A first attempt might be to map all reads and writes as individual operations that must be ordered, however that would be inefficient if the accesses are at the level of buffered system reads and writes. Instead, distributed systems usually aggregate individual accesses into \textit{Close-To-Open} (CTO) consistency where read and write accesses are ``whole file''. Furthermore, with respect to local accesses we must guarantee that a read returns the last write (given no remote updates, \textit{Read Your Writes Consistency}) and that writes are atomic with respect to each other (\textit{Monotonic Write Consistency}).
 
-Staleness refers to the potential that the latest access in a local log is as up to date as the latest entries in the abstract global log. Given a Write Follows Reads model of client behavior, a conflict occurs when a write is applied to a stale read, thus causing a fork in the potential global ordering.
+Each replica's log therefore is composed of a series of write accesses to multiple objects. Each object has a unique name that identifies it to the system and a monotonically increasing version number which can be implemented either as a vector clock \cite{parker_detection_1983} (or a simple Lamport scaler) in the case of a fixed topology or as a vector stamp \cite{almeida_version_2002} in the case of dynamic topologies. Therefore a write access encapsulate the following information: the name of the object being written to, the parent version of the object to which the write is being applied, the versions and object names of any other dependencies, the replica id where the write occurred, , and an array of blob ids that compose the file at the conclusion of the write.
 
-% How generic should we make this section?
+A read access to a particular object simply looks up the latest local version of that object. Because dependency information can be embedded into a write, it is not necessary to include read accesses in the log. For example, in order to create a transaction that reads from objects $X$ and $Y$, performs a computation then updates objects $Y$ and then $Z$: the write to $Y$ would include as a dependency the earlier version of $Y$ and the read version of $X$ and the write to $Z$ would include the updated version of $Y$ and the read version of $X$. Other notions of dependencies include implicit session dependencies, e.g. all writes are dependent on any access that occur within a minimum time threshold of each other, or explicit dependencies that are added by the application.
 
-We identify several consistency models that nodes can independently select based on their needs in order of increasing ordering strictness and potential staleness.
+Because our system model accounts for heterogenous devices and each write in the log is simply metadata about the version of a file we consider version replication as a separate issue from object or blob replication. Furthermore, system consistency depends only on the replication of version information since a version defines what is visible on each replica to be read (and writes follow an implicit read). While a version must become visible (replicated to) all devices in order for the system to be consistent, the blobs that make up data may not be stored on all devices with different storage resources. If a read access requires blobs that it doesn't have, it can simply request them from a local neighbor that does, or from the origin replica itself.
 
-\begin{itemize}
-    \item Weak consistency
-    \item Eventual consistency
-    \item Causal consistency
-    \item Sequential consistency
-    \item Linearizability
-\end{itemize}
+\section{Consistency Model}
 
-\subsection{System Model}
+\section{Federated Consistency}
 
-We present a system model that federates eventual consistency and sequential consistency. Eventual consistency is implemented via gossiping and anti-entropy; sequential consistency is implemented by Raft consensus.
-
-The distributed system is made up of N nodes in L geographic regions. Within a local region, nodes are connected by some small latency and across geographic regions the latency is higher and more variable. The system is susceptible to outages either as individual nodes or partitions across the network.
-
-Each node accesses objects locally via reads and writes. All writes are replicated across the entire system.
-
-\subsubsection{Anti-Entropy}
-
-Anti-Entropy for Fault-Tolerant Replication
-
-Present the eventual subsystem as anti-entropy. List well known advantages and disadvantages particularly for the type of topology presented in the introduction. Describe our implementation of eventual consistency via pairwise anti-entropy sessions. Discuss heuristics for eventual consistency and mechanics.
-
-Probability of wide area anti-entropy vs. probability of local-area anti-entropy. Trade off of eventual-only.
-
-\subsubsection{Centralized Consensus}
-
-Centralized consensus for Conflict Avoidance
-
-Present strong consistency as a central store a la OceanStore, Dangers of replication, etc. Present consensus as a mechanism for centralized, strong consistency.
-
-consensus != strong consistency right off the bat. Not without rejections of writes that are inconsistent. Other issues include READ LATEST/READ COMMITTED.
-
-Why can't the entire system be consensus based? Allude to hierarchical consensus ...
-
-\subsection{Federation of Consistency Protocols}
-
-Integration protocol of eventual and strong consensus groups. The integration mechanism is the central piece of the federated consistency protocol and needs to enforce consistency mechanisms on both sides.
-
-\subsubsection{Eventual-Strong}
-
-Replicating from eventual cloud to strong core group.
-
-\subsubsection{Strong-Eventual}
-
-Replication from strong core group to eventual cloud.
-
-\subsection{Causal Consistency with Dependency Information}
-
-There are other variations of consistency, including causal consistency; the strongest eventual consistency mechanism. We will show in this section how causal is integrated into the federated system in the same manner.
-
-\section{Environment Aware Adaptivity}
-
-Federated consistency provides flexibility and can adapt itself based on its awareness of the topology. We'll explore that in two ways: the Tick parameter and deciding whether or not a node should be a strong or eventual node.
-
-\subsection{The Tick Parameter}
-
-Discuss the Bailis vs. Howard models of the Tick parameter for Raft. Discuss how the tick parameter has to be used to define the behavior of replication (e.g. anti-entropy as well as election timeout, etc.).
-
-Keep a windowed mean/stddev of the message times or a ping. Consensus decision is required to change tick parameter for strong; but doesn't influence eventual except via probabilities.
-
-\subsection{Consistency Allocation}
-
-How does a node decide if it should be eventual or strong? Heuristic: lowest number of strong nodes possible, everyone else is eventual. Writers that need strong remote to strong node. Every area/location needs at least one strong.
-
-\section{File System Semantics}
-
-Discuss the application in a file system context.
-
-The client guarantee is Write Follows Read Consistency because we track versions rather than applying operations to a state machine.
-
-Data centric consistency does not consider staleness; but we do.
-
-Another thing we've done is explored how consensus and particularly Raft can be used to implement sequential guarantees in a data-centric system.
-
-\section{Simulation}
-
-Describe our evaluation of this method.
-
-\subsection{Methodology}
-
-Describe discrete event simulation
-
-\subsubsection{Topology}
-
-Describe the topology we used.
-
-\subsubsection{Accesses and Conflict}
-
-Describe accesses generated and conflicts.
-
-\subsubsection{Outages}
-
-Describe outages generated and how: network partitioning failure and node failure.
-
-\subsection{Results}
-
-Present results.
+\section{Simulation Results}
 
 \section{Discussion}
-
-\textbf{Consistency is flexible.}
-
-So far we have only thought about consistency in terms of a single write - does it get dropped in eventual or do we sequentially order all writes in the case of raft (and actually we have done a lot of thought about what consistency means for Raft as well, which Raft is only consensus).
-
-However, Federated shows that you can tune a consistency model by using both eventual and sequential models. The more eventual nodes in the system, the more like an eventual system federated behaves. The addition of even a small number of Raft nodes gives you some stronger guarantees  for some of the writes.
-
-\textbf{Strong core = greater consistency}
-
-With the addition of just a few strong consistency nodes, the percent of conflicts is minimized across the entire system. This happens in two ways. First, the strong center distributes writes in a more centralized fashion than anti-entropy providing less opportunity for conflict to occur. Second, the strong center will not allow certain types of forks to occur, thus forcing a conflict resolution at the writer.
-
-\textbf{Eventual cloud = replication under failure}
-
-If a critical number of nodes fail in the strong core, causing consensus to fail (e.g. thrashing leader elections) then the eventual cloud and anti-entropy replication routing around the center will allow progress to continue.
-
-\textbf{Consistency is hugely dependent on topology and network environment}
-
-By adapting the parameters for replication servers according to the network environment, different protocols perform better or worse. in a high latency environment? prefer eventual; in a low latency environment with few partitions, prefer raft. Moreover, you can adapt as the network environment changes under you.
 
 \section{Related Work}
 
@@ -212,21 +83,10 @@ Continue with a discussion about conit, quasi-linearizability and continuous sca
 
 \section{Conclusion}
 
-Our contributions are as follows:
-
-\begin{enumerate}
-\item Show that consistency is dependent on both the protocol being used and the network environment
-\item Present a federated consistency model that allows replica servers to adapt based on their environment
-\item Show that local vs. global views of consistency are able to minimize conflict and create a flexible consistency system
-\item Show a file system that provides both client-centric and data-centric guarantees.
-\end{enumerate}
-
 \section*{Acknowledgments}
 
-{\footnotesize \bibliographystyle{acm}
-\bibliography{references}}
+\bibliographystyle{plain}
+\bibliography{references}
 
-% uncomment to include end notes.
-% \theendnotes
 
 \end{document}
