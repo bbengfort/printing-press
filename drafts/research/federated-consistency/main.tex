@@ -179,37 +179,111 @@ Moreover, $T$ can be adapted at runtime. For eventual nodes, $T$ can be continua
 
 \section{Simulation Results}
 
-\begin{figure}[h]
+\begin{figure*}
     \centering
-    \includegraphics[width=0.5\textwidth]{figures/forked_writes}
-    \caption{The number of writes that are forked for eventual and sequential homogenous systems compared to the federated system.}
-    \label{fig:forked_writes}
-\end{figure}
+    \minipage{0.5\textwidth}
+      \includegraphics[width=\linewidth]{figures/conflict/federated_sync}
+      \caption{Accesses in a Federated topology with primary Raft synchronization.}\label{fig:federated_sync}
+    \endminipage\hfill
+    \minipage{0.5\textwidth}
+      \includegraphics[width=\linewidth]{figures/conflict/federated_eventual}
+      \caption{Accesses in a Federated topology with a preference for wide area anti-entropy over synchronization.}\label{fig:federated_eventual}
+    \endminipage\hfill
+\end{figure*}
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.5\textwidth]{figures/stale_reads}
-    \caption{The number of stale reads for eventual and sequential homogenous systems compared to the federated system.}
-    \label{fig:stale_reads}
-\end{figure}
+In order to evaluate a federated model of replication and consistency, we have created a discrete event network simulation that allows us to flexibly configure a variety of parameters and more closely investigate the behavior of replication. The input to the simulation has two parts: a topology that specifies the replicas and network environment; and a workload of access events to named objects. The simulation instantiates each replica as a process that executes read and write accesses to objects and generates replication messages as well as listens for and handles messages from other replica servers.
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.5\textwidth]{figures/write_latency}
-    \caption{The write latency for eventual and sequential homogenous systems compared to the federated system.}
-    \label{fig:write_latency}
-\end{figure}
+Each topology specifies each device as an independent replica server, by uniquely identifying it with device-specific configurations. By far the most important configuration is the \textit{replica consistency} (or replica protocol) which determines the replica's behavior in the environment. For the purposes of our simulation we have proposed three types of eventual and sequential consistency implementations:
 
-\begin{figure}[h]
+\begin{itemize}
+    \item \textbf{Eventual}: Eventual nodes perform replication via anti-entropy by random selection of a neighbor to do pairwise gossip with. Eventual nodes can prioritize local vs. wide area nodes by specifying $P_{local}$ -- the likelihood of local neighbor selection.
+    \item \textbf{Stentor}: A ``Stentor'' node is an eventual node that performs \textit{two} anti-entropy sessions per interval, always choosing one local and one remote node. We have implemented Stentor nodes to show that Raft isn't simply acting as a minimum spanning tree in the network, but is also preserving consistency guarantees.
+    \item \textbf{Raft}: Raft nodes implement the Raft consensus protocol, electing a leader and forwarding writes to the leader to maintain a sequential ordering. If a write is forked, the leader will drop it in order to maintain our consistency guarantee.
+\end{itemize}
+
+The topology further specifies the \textit{location} of each device, the \textit{connections} between devices, and the \textit{distribution} of message latency on a per-connection basis. There were two primary latencies specified as normal distributions ($\lambda_{\mu}$, $\lambda_{\sigma}$), the \textit{local area} latency, usually with a lower $\lambda_{\mu}$ and $\lambda_{\sigma}$ than the \textit{wide area} latency -- e.g. the latency between devices in different locations. In order to compute the tick parameter, $T$, and specify the average latency in the simulation, latencies are given as the worst case, wide-area latencies. Each topology could also set simulation-specific configurations, as well as device-specific configurations.
+
+The workload was specified as access trace files -- time ordered access events (reads and writes) between a specific device and a specific object name. Each trace was constructed via a random workload generator, where a collection of available devices was specified along with a normal distribution of the delay between accesses ($A_{\mu}$, $A_{\sigma}$), the number of objects, $o$, in the system, and a probability of conflict, $P_c$. To generate the workload, object names were assigned to each replica as follows: in a round-robin fashion, an object name was selected and assigned to a replica with probability $P_c$ until each replica was accessing $o$ objects. If $P_c = 1.0$ then every single replica would be accessing the same batch of objects, where as if $P_c = 0.0$ then each replica would access their own unique set of objects. From there, the $A_{\mu}$, $A_{\sigma}$ was used to generate accesses to objects in sequence, by selecting an object and reading and writing to it over time until some probability of switching objects occurred. In affect, the final workload simulates multiple replicas reading and writing at a moderate pace for approximately one hour.
+
+Examples of topologies and accesses are shown in Figures \ref{fig:federated_sync} and \ref{fig:federated_eventual}; these graphs show our primary simulation topology of 20 nodes, 4 nodes each in 5 wide areas, the size of vertices represents the number of accesses that occur at that location and the color represents the replica type, the edges are colored by RPC type and sized by the number of messages. These figures show that minor changes in the topological configuration can lead to dramatic changes in the message traffic in the system; both of these figures show a federated topology of a small Raft core group surrounded by eventual clients however Figure \ref{fig:federated_eventual} has a preference for anti-entropy across the wide area whereas Figure \ref{fig:federated_sync} has a preference to synchronizing with the local Raft node.
+
+\subsection{Experiments and Metrics}
+
+We conducted two primary experiments to test the behavior of a federated consistency system against homogenous Raft and homogenous Eventual systems. The first was to test the behavior of increasing conflict, $P_c$ and the second was to explore the effect of the network environment in terms of the mean latency, $\lambda{\mu}$ of the wide area. The input to the system was a fixed topology of 20 nodes in 5 wide areas, along with an access trace that contained approximately 29,000 accesses (depending on the experiment), with an average ratio of 54\% of the accesses being reads.
+
+Each simulation measured the performance of accesses by measuring \textit{forked writes} and \textit{stale reads}. Forked writes were the number of writes in the simulation that had more than one child whereas stale reads where the number of read accesses that read a version that was behind the globally latest version. A further metric of \textit{inconsistent writes} measured the number of writes whose parent was forked allowed into the log of a replica, as balanced by the number of \textit{dropped writes} -- writes that the sequential ordering Raft nodes would reject as being invalid.
+
+Furthermore the cost of each replication protocol was measured in terms of the number of \textit{sent messages} as well as latencies of various RPC calls. Some latencies were dependent if the protocol specified \textit{cached} or \textit{remote} accesses: the \textit{read latency} and \textit{write latency} measured the amount of time an access took until a response was returned to the client. In the case of Eventual nodes, this latency was zero, since an eventual node always responds with cached information; however Raft required remote accesses to the leader in order to respond. Other latencies were global latencies, e.g. the \textit{visibility latency} specified the average amount of time it took a write to become fully visible, that is replicated to all nodes in the network. Any writes that did not become fully visible (stomped on through the eventually consistent policy of latest writer wins) were ignored, but this metric is closely in line with the \textit{percent visible} metric -- the average number of replicas a write is propagated to. Finally the \textit{commit latency} specified how much time was required for a write to be committed, e.g. confirmed as accepted by a quorum of nodes.
+
+\subsection{Conflict Probability}
+
+\begin{figure*}
     \centering
-    \includegraphics[width=0.5\textwidth]{figures/federated}
-    \caption{Access in the federated topology.}
-    \label{fig:federated}
-\end{figure}
+    \minipage{0.32\textwidth}
+      \includegraphics[width=\linewidth]{figures/conflict/inconsistent_writes}
+      \caption{Inconsistent writes by increasing conflict.}\label{fig:inconsistent_writes}
+    \endminipage\hfill
+    \minipage{0.32\textwidth}
+      \includegraphics[width=\linewidth]{figures/conflict/forked_writes}
+      \caption{Forked writes caused by increasing conflict.}\label{fig:forked_writes}
+    \endminipage\hfill
+    \minipage{0.32\textwidth}%
+      \includegraphics[width=\linewidth]{figures/conflict/stale_reads}
+      \caption{Stale reads as conflict increases.}\label{fig:stale_reads}
+    \endminipage
+\end{figure*}
+
+In this experiment we ran 44 simulations, each of which specified a combination of consistency type: one of \textit{homogenous eventual}, \textit{homogenous raft}, \textit{federated eventual with 5 raft nodes}, and \textit{federated eventual with 5 stentor nodes} as well as a $P_c \in [0.0,1.0]$ with a step of $0.1$. In particular, we wanted to show how a Federated system would behave in the best case scenario for all replication protocols (no conflict, each replica accesses only their own objects) to the point where conflict is guaranteed because all replicas are trying to read and write to the same small set of objects.
+
+As shown in Figure \ref{fig:inconsistent_writes}, as the conflict in the system increases, eventual methodologies suffer from more and more inconsistent writes. Eventual nodes do manage forks or ordering of accesses, but simply write to the latest version. This has benefits in that eventual nodes can respond quickly, and in fact as shown in \ref{fig:stale_reads}, eventual systems perform well with minimizing the number of stale reads even as conflict increases. However, as shown in \ref{fig:forked_writes}, the inconsistencies that are in the eventual nodes match the number of forked writes in the system. However, both Raft and Federated systems eliminate inconsistencies (Federated allows a few in higher conflict scenarios) by simply dropping writes. This provides more orderly consistent behavior overall.
+
+\subsection{Latency Variation}
+
+\begin{figure*}
+    \centering
+    \minipage{0.5\textwidth}
+      \includegraphics[width=\linewidth]{figures/latency/write_latency}
+      \caption{The write latency for eventual and sequential homogenous systems compared to the federated system.}\label{fig:write_latency}
+    \endminipage\hfill
+    \minipage{0.5\textwidth}
+      \includegraphics[width=\linewidth]{figures/latency/visibility_latency}
+      \caption{The visibility latency of the mdoel..}\label{fig:visibility_latency}
+    \endminipage\hfill
+\end{figure*}
+
+\begin{figure*}
+    \centering
+    \minipage{0.32\textwidth}
+      \includegraphics[width=\linewidth]{figures/latency/inconsistent_writes}
+      \caption{The number of forked writes that are allowed into the log.}\label{fig:latency_inconsistent_writes}
+    \endminipage\hfill
+    \minipage{0.32\textwidth}
+      \includegraphics[width=\linewidth]{figures/latency/forked_writes}
+      \caption{The number of writes that are forked for eventual and sequential homogenous systems compared to the federated system.}\label{fig:latency_forked_writes}
+    \endminipage\hfill
+    \minipage{0.32\textwidth}%
+      \includegraphics[width=\linewidth]{figures/latency/stale_reads}
+      \caption{The number of stale reads for eventual and sequential homogenous systems compared to the federated system.}\label{fig:latency_stale_reads}
+    \endminipage
+\end{figure*}
+
+In the second experiment we ran 216 experiments to test the affect of variable network latency on consistency protocols as well as on how the selection of the tick parameter model affects consistency for each system. We specified 12 wide area mean latencies in three categories: low ($\lambda{\mu} \in [30,1000]ms$ with a low $\lambda_{\sigma}$), medium ($\lambda{\mu} \in [1000,2000]ms$ with a low $\lambda_{\sigma}$), and high ($\lambda{\mu} \in [2000,3000]ms$ with a high $\lambda_{\sigma}$). In each of these environments we ran three replication models: \textit{homogenous eventual}, \textit{homogenous Raft}, and \textit{federated eventual and Raft}.
+
+Each of these 108 simulations was then parameterized with two different $T$ parameters, computed by the wide area $\lambda_{\mu}$ and $\lambda_{\sigma}$: $T_{conservative}$ and $T_{optimistic}$. However the access mean, $A_{\mu}$ was fixed at approximately one access per replica every 3000ms. In affect, this meant that for approximately half the simulations (with the higher latencies), it was impossible for a write to become visible on another replica before a fork. Even though we fixed the conflict probability as $P_c=0.5$ there was still enough conflict in the simulation that forced each replica protocol to handle forks.
+
+As shown in \ref{fig:write_latency}, both Raft and Federated consistency models are hugely dependent on the mean wide area latency for remote accesses. This is because the single Raft leader in both models is necessarily in a remote area for the majority of the nodes, requiring communication over the more unstable links. Federated, however, can get away with fewer writes to the leader in this environment, and therefore has a lower aggregate write latency, even at the extreme wide area latencies. The visibility latency, the average time it takes a write to become fully visible is also worse for Raft and Eventual than it is for Federated as shown in \ref{fig:visibility_latency}. Eventual must perform anti-entropy around the wide area and requires at least 4 anti-entropy sessions in order to become fully visible (as defined by the $T$ parameter). Raft can get away with full replication via broadcast over append entries RPCs, but due to out of order \texttt{AppendEntries} messages, can start to fall apart at the lower latencies.
+
+In terms of consistency metrics, the number of inconsistent writes is more than halved from eventual in Federated due to the presence of the Raft core \ref{fig:latency_inconsistent_writes}. This is because Federated can take advantage of the topology where Raft and Eventual cannot - broadcasting across the wide area to minimize the number of pairwise communications in anti-entropy but still allowing available responses with the Eventual core. Both forks in Figure \ref{fig:latency_forked_writes} and stale reads in Figure \ref{fig:latency_stale_reads} are minimized.
 
 \section{Discussion}
 
-A strong central core provides support to the entire system as in Oceanstore \cite{kubiatowicz_oceanstore:_2000} and primary copy schemes \cite{gray_dangers_1996}.
+A strong central core to provide support to the entire system has been suggested both in Oceanstore \cite{kubiatowicz_oceanstore:_2000} and primary copy schemes \cite{gray_dangers_1996}. We take this idea further in our experiments by Federating a strong central core composed of Replicas that perform consensus via the Raft consensus protocol and combine it with highly available eventually consistent systems. In this way Federated consistency gains the flexibility and availability of the eventual nodes (leader re-election and no requirement for remote writes mean that the node can continue even if it is completely partitioned from the rest of the network) while still getting guarantees from Raft, which minimizes ``fork flipping'' -- the behavior of writing to one branch then another, truly pernicious inconsistent behavior that cannot be prevented in an eventually consistent system.
+
+System designers can take advantage of heterogenous nodes by implementing stronger consistency on more reliable machines that are able to handle more messages. Mobile nodes that are prone to network loss, out of order or missed messages, or other variable behavior can adapt their policy depending on the environment they're in. Our model also allows for \textit{adaptive} behavior, in that the replicas can monitor the environment for change and as the mean latency decreases, adapt their $T$ parameter accordingly. This is a no cost operation for eventual nodes (who can also optimize pairwise gossip by implementing non-discrete random selection using Bandits or other optimization techniques), and only requires joint consensus on the part of the consensus group.
+
+Our simulation implementation gave us the benefit of being able to manipulate many parameters to see how replication behavior changes. As a result, we only focused on the number of consistency messages sent. Potentially this overstates the differences between the protocols; Raft leaders have more processing requirements for example. Additionally bandwidth pressure and differences in messaging might be more important to the overall performance of a system. However, by focusing on the number of messages and isolating version replication from blob replication (e.g. minimizing the amount of data required for consistent behavior), we have allowed each protocol to fix some ``message budget''.
+
+In truly resource constrained environments, allowing both Raft and Eventual (either in a homogenous or Federated context) to maintain an equal or semi-equal message budget by modifying the $T$ parameter and allocating timing similarly means that congestion is reduced or optimized. Moreover, this system also allows for adaptive behavior by providing a single place of modification and optimization; $T$ could be optimized according to a cost function (e.g. the message budget or other real time estimates of performance) or could be boosted for a node that has to do a lot of work. This type of flexibility is important to being able to understand how minor changes in both the environment and protocols affect overall consistency in the system as a whole.
 
 \section{Related Work}
 
