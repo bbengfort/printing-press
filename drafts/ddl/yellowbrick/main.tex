@@ -54,6 +54,19 @@ Parallel Coordinates \cite{fua_hierarchical_1999}
 
 Prediction error plots and residuals plots \cite{larsen_use_1972}
 
+\subsubsection{Most Informative Features}
+
+Generalized linear models compute a predicted independent variable via the linear combination of an array of coefficients with an array of dependent variables. GLMs are fit by modifying the coefficients so as to minimize error and regularization techniques specify how the model modifies coefficients in relation to each other. As a result, an opportunity presents itself: larger coefficients are necessarily ``more informative'' because they contribute a greater weight to the final prediction in most cases. Additionally we may say that instance features may also be more or less ``informative'' depending on the product of the instance feature value with the feature coefficient. This creates two possibilities:
+
+\begin{enumerate}
+    \item We can compare models based on ranking of coefficients, such that a higher coefficient is ``more informative''.
+    \item We can compare instances based on ranking of feature/coefficient products such that a higher product is ``more informative''.
+\end{enumerate}
+
+In both cases, because the coefficient may be negative (indicating a strong negative correlation) we must rank features by the absolute values of their coefficients. Visualizing a model or multiple models by most informative feature is usually done via bar chart where the y-axis is the feature names and the x-axis is numeric value of the coefficient such that the x-axis has both a positive and negative quadrant. The bigger the size of the bar, the more informative that feature is.
+
+This method may also be used for instances; but generally there are very many instances relative to the number models being compared. Instead a heatmap grid is a better choice to inspect the influence of features on individual instances. Here the grid is constructed such that the x-axis represents individual features, and the y-axis represents individual instances. The color of each cell (an instance, feature pair) represents the magnitude of the product of the instance value with the feature's coefficient for a single model. Visual inspection of this diagnostic may reveal a set of instances for which one feature is more predictive than another; or other types of regions of information in the model itself.
+
 \subsubsection{Classifiers}
 
 Confusion Matrix (ranking models) \cite{parker_rank_2001}
