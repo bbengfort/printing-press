@@ -7,6 +7,8 @@
 %\usepackage{url}
 \usepackage{graphicx}
 \usepackage{setspace}
+\usepackage{bibentry}
+ \nobibliography{prelim}
 
 \textwidth = 6.5 in
 \textheight = 9 in
@@ -34,8 +36,8 @@
 \emph{A prospectus submitted in partial fulfillment of the degree of Doctor of
 Philosophy}\\[5.5cm]
 
-%\textsc{\large DRAFT}\\
-%\emph{October 18, 2011}\\[2.0cm]
+\textsc{\large DRAFT}\\
+\emph{October 11, 2016}\\[2.0cm]
 
 \emph{Preliminary Oral Examination for}\\
 \textsc{\large Benjamin Bengfort}\\[2.0cm] % [4.0cm]
@@ -43,6 +45,7 @@ Philosophy}\\[5.5cm]
 \textsc{Dr. Peter J. Keleher}\\[.5cm]
 \emph{Committee Members:}\\
 \textsc{Dr. Bobby Bhattacharjee}\\
+\textsc{Dr. Dave Levin}\\
 \textsc{Dr. Neil Spring}\\[4.0cm]
 
 {\bfseries Department of Computer Science}\\
@@ -63,7 +66,18 @@ Philosophy}\\[5.5cm]
 \doublespacing
 \begin{abstract}
 
-Insert abstract here.
+Data-oriented consistency is not a discrete set of various levels, weak, eventual, causal, strong etc. but rather a continuum that can be adapted in response to environmental conditions. Recent studies of consistency have focused on data center environments which are low latency, high bandwidth, and generally stable; and as a result data distribution involves a relatively small network of devices. I propose to study consistency in a user-oriented context composed of heterogenous devices (mobile phones, desktops, laptops, cloud storage) that can be mobile, creating a network topology of highly variable latency with routine failure and whose networks are larger than typically studied - dozens to hundreds of replica servers.
+
+Our primary context will be a file system that exposes close-to-open consistency and tracks writes to individual objects as a sequence of versions structured as a tree. We consider strong consistency to be a linear sequence of ordered version numbers and inconsistencies to be the presence of forks, misordering, duplicates, or omissions in the version sequence (in order of severity). Additionally we consider the availability of such a system and recognize that enforcement of a linear ordering leads to high latency making the system unusable.
+
+I propose that consistency is primarily related to the network environment as much as it is related to the implemented protocol and as a result, that it can respond the the environment. By creating a system that has a strong central core that maintains a globally consistent view and allowing other replica servers to be flexible I hypothesize that the system will be more consistent than its homogeneous counterparts reducing the number of forks, misordering, duplicates, and omissions as well increasing the throughput and availability of accesses in the system. I propose two primary mechanisms to make this happen:
+
+\begin{enumerate}
+    \item \textbf{Hierarchical Consensus}: distribute consensus decisions of sequential ordering in order to make stronger consistency more available.
+    \item \textbf{Federated Consistency}: allow multiple consistency models for different replica servers, integrating over different aspects: temporal, spatial, and synchronization to create a flexible topology of devices with different characteristics and nodes. 
+\end{enumerate}
+
+The experimentation on and development of multi-modal replication protocols via a holistic view will have a large impact in both the data center context as well as in personal distributed file systems.
 
 \end{abstract}
 \setstretch{.5}
@@ -141,53 +155,53 @@ Insert conclusion here.
 \newpage
 
 \appendix
-\section{Reading List}
+\section{Appendix A: Reading List}
 \label{app:readinglist}
 
-\subsection{Area 1}
+\subsection{Consensus}
 
-1) Citation 1.
+1) \bibentry{thomas_majority_1979}
 
-2) Citation 2.
+2) \bibentry{lamport_paxos_2001}
 
-3) Citation 3.
+3) \bibentry{chandra_paxos_2007}
 
-4) Citation 4.
+4) \bibentry{lamport_fast_2006}
 
-5) Citation 5.
-
-
-\subsection{Area 2}
-
-1) Citation 1.
-
-2) Citation 2.
-
-3) Citation 3.
-
-4) Citation 4.
-
-5) Citation 5.
+5) \bibentry{ongaro_search_2014}
 
 
-\subsection{Area 3}
+\subsection{Consistency}
 
-1) Citation 1.
+1) \bibentry{lamport_time_1978}
 
-2) Citation 2.
+2) \bibentry{terry_managing_1995}
 
-3) Citation 3.
+3) \bibentry{bailis_quantifying_2014}
 
-4) Citation 4.
+4) \bibentry{bailis_potential_2012}
 
-5) Citation 5.
+5) \bibentry{bermbach_consistency_2013}
+
+
+\subsection{Replication}
+
+1) \bibentry{stoica_chord:_2001}
+
+2) \bibentry{kubiatowicz_oceanstore:_2000}
+
+3) \bibentry{gray_dangers_1996}
+
+4) \bibentry{venkataramani_operating_2002}
+
+5) \bibentry{almeida_version_2002}
 
 
 
-\newpage
+% \newpage
 
-\section{Appendix A}
-\label{app:cvtdp2r}
+% \section{Appendix B}
+% \label{app:cvtdp2r}
 
 
 \newpage

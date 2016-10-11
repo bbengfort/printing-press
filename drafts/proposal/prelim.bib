@@ -1,6 +1,223 @@
-@book{SourceYear,
-author = {Last, First},
-title = {Source Title},
-year = {Year}
+
+@article{lamport_time_1978,
+  title = {Time, Clocks, and the Ordering of Events in a Distributed System},
+  volume = {21},
+  timestamp = {2016-04-27T14:51:27Z},
+  number = {7},
+  urldate = {2014-09-23},
+  journal = {Communications of the ACM},
+  author = {Lamport, Leslie},
+  year = {1978},
+  pages = {558--565},
+  file = {time-clocks.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/78B6GF2X/time-clocks.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/UKM49XF2/citation.html:text/html}
 }
+
+@article{stoica_chord:_2001,
+  title = {Chord: {{A}} Scalable Peer-to-Peer Lookup Service for Internet Applications},
+  volume = {31},
+  shorttitle = {Chord},
+  timestamp = {2016-04-29T02:35:08Z},
+  number = {4},
+  urldate = {2014-09-23},
+  journal = {ACM SIGCOMM Computer Communication Review},
+  author = {Stoica, Ion and Morris, Robert and Karger, David and Kaashoek, M. Frans and Balakrishnan, Hari},
+  year = {2001},
+  pages = {149--160},
+  annote = {Peer-to-peer systems are dynamic and robust because no node is more important than any other node; this leads to fault tolerance and network adaptation, but also a significant challenge: how do you efficiently locate data in a peer-to-peer network? There is no one oracle that knows the location of everything to ask, so you have to engage in a game of telephone with other computers to find what you're looking for. How to efficiently go about this game is the problem that Chord solves. The innovation of the Chord system is the implementation of a \_key-node\_ data storage system. Unlike a key-value store where, given some key you are able to quickly find a value, the key-node store utilizes the key to report the location of the closest node that is assigned the key. It does this by utilizing a ring topology with a consistent hashing algorithm to assign key/identifiers pairs to each node in the network. The ring topology ensures that~ nodes that enter and exit the network minimize disruption (and they have implemented algorithms to handle failures and resizing of the network) - but more importantly it ensures the following two theorems, proved in the paper:1. Each node only has to store information about local nodes, about O(log \_N\_) and therefore lookups only require that same amount of information. 2. When the nth node leaves the network, with high probability only O(1/n) fraction of keys must be moved, ensuring load balancing.These are fantastic claims for the effeciency of a distributed system, and the authors do a very good job of demonstrating proofs for their claims; including probability density functions along with their simulation results to show the likelihood of the orders discussed above. I especially liked the idea that with a flat keyspace; names could be anything and DNS-style lookups might not be required in a network configured with Chord.My primary critique of this paper centers around the idea that every node can connect to every other node; as in the simulation. In section 6.1 they state that Chord can operate in two modes: \_iterative\_ where the requesting node makes routing requests until it finds the node it was looking for and \_recursive\_ where requests are forwarded along the network and then back again. The simulation that they reported was for the \_iterative\_ method. The problem is, that an \_iterative\_ method does require some routing capability alongside the nodes to send network traffic correctly to the right node. Clearly the authors had an Internet system in mind when they designed this; but what about a dynamic network topology? It would seem that in this case, the \_recursive\_ method would bog down the nodes in keyspace requests and that the O(log\textsuperscript{2} \_N\_) messages for routing updates would actually end up being O(\_N\_ log\textsuperscript{2} \_N\_).},
+  file = {chord_sigcomm.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/EITB4QE2/chord_sigcomm.pdf:application/pdf;[PDF] from psu.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/VWGA2P8F/Stoica et al. - 2001 - Chord A scalable peer-to-peer lookup service for .pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/8U6AJD7G/citation.html:text/html;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/EVQ2M2Q3/citation.html:text/html}
+}
+
+@article{kubiatowicz_oceanstore:_2000,
+  title = {Oceanstore: {{An}} Architecture for Global-Scale Persistent Storage},
+  volume = {35},
+  shorttitle = {Oceanstore},
+  timestamp = {2014-09-23T21:17:00Z},
+  number = {11},
+  urldate = {2014-09-23},
+  journal = {ACM Sigplan Notices},
+  author = {Kubiatowicz, John and Bindel, David and Chen, Yan and Czerwinski, Steven and Eaton, Patrick and Geels, Dennis and Gummadi, Ramakrishan and Rhea, Sean and Weatherspoon, Hakim and Weimer, Westley and {others}},
+  year = {2000},
+  pages = {190--201},
+  annote = {OceanStore is an interesting paper - it explores the topic of persistent information storage in a world of many high performing, interconnected computing devices. The problem of storage is no longer local to a single machine (storage is cheap for that machine), because the machines outnumber humans. Therefore the multiple machines that a human uses in multiple locations will have to have access to the same information in a transparent, secure and durable manner. The question then becomes, where should that information be stored?
+~
+OceanStore proposes a uniform, distributed infrastructure for data storage (an ocean, not a cloud) based on the availability of connectivity and cheap storage; OceanStore is a data management layer on top of storage. The user will know nothing about where the data is located, just that it's always available. Importantly, OceanStore proposes a global infrastructure, meaning that only a world-wide disaster would cause data loss.
+~
+There seems to be no single innovation that you can point to in this paper; the innovation is rather the integration of several ideas into a concerted whole, with a particular emphasis on security. The first is the idea of using self-certifying path names that are hashed with identifiers to act as GUIDs for the objects in the data store, a second is the use of encryption for both read and write access control. The third is a way of using ECB encryption to ensure that block-level updates and block-based management of files can be implemented in a system that contains all encrypted files. A fourth is the distributed routing that combines attenuated bloom filters for pobabilistic routing with the Plaxton location based routing algorithm as a fall back.
+~
+The fifth idea is the use of Byzantine agreement protocols to handle serial updating in the network. A sixth is the use of deep archival storage for versioning, but also importantly using tornado or other erasure marking algorithms for deletion. Finally, the last idea (that I'll mention) is the use of introspection to maintain the cluster as it persists for a long time.
+~
+There are probably more ideas that I didn't mention that are embedded in this paper, but all of these ideas drive to one theme: a secure, global data infrastructure that provides low-latency access to a user's data anywhere. It's hard to critique these ideas; except to say that the emphasis on security, particularly in a global context is absolutely required and I approve of the authors focusing on it. One comment that I should make, though, is that OceanStore requires a global distributed network in order to function in the manner described; the implementation of such an infrastructure would require not just technological changes, but also policy and social ones as well.},
+  file = {oceanstore-asplos.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/SA3WZVT9/oceanstore-asplos.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/FNRG8IBV/citation.html:text/html}
+}
+
+@article{lamport_paxos_2001,
+  title = {Paxos Made Simple},
+  volume = {32},
+  timestamp = {2016-05-02T18:52:43Z},
+  number = {4},
+  urldate = {2014-11-03},
+  journal = {ACM Sigact News},
+  author = {Lamport, Leslie},
+  year = {2001},
+  pages = {18--25},
+  file = {paxosMadeSimple.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/W6A4KIAI/paxosMadeSimple.pdf:application/pdf}
+}
+
+@article{terry_managing_1995,
+  title = {Managing Update Conflicts in {{Bayou}}, a Weakly Connected Replicated Storage System},
+  volume = {29},
+  timestamp = {2014-10-01T19:18:57Z},
+  urldate = {2014-10-01},
+  journal = {ACM},
+  author = {Terry, Douglas B. and Theimer, Marvin M. and Petersen, Karin and Demers, Alan J. and Spreitzer, Mike J. and Hauser, Carl H.},
+  year = {1995},
+  annote = {Mobile computing environments particularly those that involve laptops or cell phones have less than ideal connectivity. Laptops, even with the profusion of wireless networks will have generally less bandwidth traveling than their desktop counterparts attached to broadband lines. Cell phones are charged by the minute and most applications should not consider cellular connectivity as a constantly on pipe. Moreover, computing happens in scary places like in University libraries where folks undertaking bibliographic data entry may find themselves "subject to student hackers" (page 2, last paragraph of section 2.2).~
+~
+Bayou provides a data infrastructure for collaborative applications in such environments through an eventually consistent peer-to-peer data transfer protocol. Eventually consistent systems mean that if no new writes are added all applications will have the same state eventually depending on connectivity, latency, and various policies. The key innovation of this paper stems from thought about dealing with conflicts.~
+~
+Bayou nodes synchronize data routinely through "anti-entropy" protocols that are designed to synchronize write logs. Every write has a dependency check associated with it as well as an application-specific conflict resolution. Two servers exchange data compare their logs in time order then replay writes along with the conflict resolutions so that when the sync is done, both servers have the same data. These anti-entropy synchronizations happen on demand as clients and servers are connected to the network ensuring that everyone is updated eventually.~
+~
+Every write is marked tentative until some primary server responsible for the application deems it time to commit. Tentative writes must have conflict resolution applied in order to sort out the state of the data; but committed data is accepted without~ quorum. Even if the primary is not attached to the network, when it does become attached the commits will spread through the network. Having a primary seems like a useful and simple way of achieving a committed write, but it does add extra burdens to the network. The primary machine can't be down for long; and if that machine resides on campus or on a specific local network, it might be a long time before mobile devices can get commits, which could impair the functionality of many applications especially time sensitive ones like meeting schedulers.~
+~
+I think it is necessary that Bayou considered the access controls of a system like this - tentative writes and primary systems pose potential problems for access. On the one hand Bayou could be implemented on a trusted network, but the peer-to-peer sharing aspects are what make the eventual consistency work. However, the idea of a certificate purse doesn't seem too innovative; especially when keys might be shared in the same eventually consistent manner. The access control aspects seemed tacked on and could use more thought.~},
+  file = {bayou.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/855BHFVP/bayou.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/F2HXDSBX/citation.html:text/html}
+}
+
+@inproceedings{chandra_paxos_2007,
+  title = {Paxos Made Live: An Engineering Perspective},
+  shorttitle = {Paxos Made Live},
+  timestamp = {2016-05-02T18:52:41Z},
+  urldate = {2014-11-03},
+  booktitle = {Proceedings of the Twenty-Sixth Annual {{ACM}} Symposium on {{Principles}} of Distributed Computing},
+  publisher = {{ACM}},
+  author = {Chandra, Tushar D. and Griesemer, Robert and Redstone, Joshua},
+  year = {2007},
+  pages = {398--407},
+  file = {paxosMadeLive.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/VXVIGPGK/paxosMadeLive.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/GHN8T7NI/citation.html:text/html}
+}
+
+@inproceedings{gray_dangers_1996,
+  title = {The Dangers of Replication and a Solution},
+  volume = {25},
+  timestamp = {2016-04-27T14:53:03Z},
+  urldate = {2015-04-07},
+  booktitle = {{{ACM SIGMOD Record}}},
+  publisher = {{ACM}},
+  author = {Gray, Jim and Helland, Pat and O'Neil, Patrick and Shasha, Dennis},
+  year = {1996},
+  pages = {173--182},
+  file = {[PDF] from googlecode.com:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/3FKXD6NN/3FKXD6NN.pdf:application/pdf;replicas.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/7K6KBZ6I/replicas.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/HV6DK48X/citation.html:text/html;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/I2CVG87K/citation.html:text/html}
+}
+
+@article{bailis_quantifying_2014,
+  title = {Quantifying Eventual Consistency with {{PBS}}},
+  volume = {23},
+  timestamp = {2016-04-27T14:53:04Z},
+  number = {2},
+  urldate = {2015-04-07},
+  journal = {The VLDB Journal},
+  author = {Bailis, Peter and Venkataraman, Shivaram and Franklin, Michael J. and Hellerstein, Joseph M. and Stoica, Ion},
+  year = {2014},
+  pages = {279--302},
+  file = {[PDF] from bailis.org:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/HK83EDHA/Bailis et al. - 2014 - Quantifying eventual consistency with PBS.pdf:application/pdf;ec-pbs.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/SJE9D5BW/SJE9D5BW.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/662V4BGN/s00778-013-0330-1.html:text/html;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/AKJCUEFB/s00778-013-0330-1.html:text/html}
+}
+
+@article{thomas_majority_1979,
+  title = {A Majority Consensus Approach to Concurrency Control for Multiple Copy Databases},
+  volume = {4},
+  timestamp = {2016-08-30T14:25:59Z},
+  number = {2},
+  urldate = {2016-08-30},
+  journal = {ACM Transactions on Database Systems (TODS)},
+  author = {Thomas, Robert H.},
+  year = {1979},
+  pages = {180--209},
+  file = {[PDF] dtic.mil:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/Q6C4GQPR/Thomas - 1979 - A majority consensus approach to concurrency contr.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/UXHF2T9K/citation.html:text/html}
+}
+
+@inproceedings{bailis_potential_2012,
+  title = {The Potential Dangers of Causal Consistency and an Explicit Solution},
+  timestamp = {2016-02-12T17:07:42Z},
+  urldate = {2016-02-12},
+  booktitle = {Proceedings of the {{Third ACM Symposium}} on {{Cloud Computing}}},
+  publisher = {{ACM}},
+  author = {Bailis, Peter and Fekete, Alan and Ghodsi, Ali and Hellerstein, Joseph M. and Stoica, Ion},
+  year = {2012},
+  pages = {22},
+  file = {[PDF] from kelehers.me:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/EPIUBHBP/EPIUBHBP.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/JU2V4PV4/citation.html:text/html}
+}
+
+@inproceedings{ongaro_search_2014,
+  title = {In Search of an Understandable Consensus Algorithm},
+  timestamp = {2016-05-02T18:51:57Z},
+  urldate = {2016-05-01},
+  booktitle = {2014 {{USENIX Annual Technical Conference}} ({{USENIX ATC}} 14)},
+  author = {Ongaro, Diego and Ousterhout, John},
+  year = {2014},
+  pages = {305--319},
+  annote = {Core consensus group in federated system; inspiration for consensus protocols in hierarchical.},
+  file = {raft.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/WFQ5VNT6/raft.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/KSZZBIN9/ongaro.html:text/html}
+}
+
+@inproceedings{venkataramani_operating_2002,
+  title = {Operating System Support for Massive Replication},
+  timestamp = {2016-03-31T10:58:02Z},
+  urldate = {2016-03-31},
+  booktitle = {Proceedings of the 10th Workshop on {{ACM SIGOPS European}} Workshop},
+  publisher = {{ACM}},
+  author = {Venkataramani, Arun and Kokku, Ravi and Dahlin, Mike},
+  year = {2002},
+  pages = {227--230},
+  file = {massive-replication.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/GMJ7MNA9/massive-replication.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/HM9KPTUX/citation.html:text/html}
+}
+
+@article{lamport_fast_2006,
+  title = {Fast Paxos},
+  volume = {19},
+  timestamp = {2016-05-02T18:51:50Z},
+  number = {2},
+  urldate = {2016-04-27},
+  journal = {Distributed Computing},
+  author = {Lamport, Leslie},
+  year = {2006},
+  pages = {79--103},
+  file = {[PDF] from microsoft.com:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/RFER345B/Lamport - 2006 - Fast paxos.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/3X7TM9XF/s00446-006-0005-x.html:text/html}
+}
+
+@inproceedings{almeida_version_2002,
+  title = {Version Stamps-Decentralized Version Vectors},
+  timestamp = {2016-08-31T17:29:17Z},
+  urldate = {2016-08-31},
+  booktitle = {Distributed {{Computing Systems}}, 2002. {{Proceedings}}. 22nd {{International Conference}} on},
+  publisher = {{IEEE}},
+  author = {Almeida, Paulo S{\'e}rgio and Baquero, Carlos and Fonte, Victor},
+  year = {2002},
+  pages = {544--551},
+  annote = {Version stamps paper.},
+  file = {[PDF] uminho.pt:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/I6S5JP8I/Almeida et al. - 2002 - Version stamps-decentralized version vectors.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/43R3AJE6/1022304.html:text/html}
+}
+
+@incollection{bermbach_consistency_2013,
+  title = {Consistency in Distributed Storage Systems},
+  timestamp = {2016-08-09T11:29:52Z},
+  urldate = {2016-08-09},
+  booktitle = {Networked {{Systems}}},
+  publisher = {{Springer}},
+  author = {Bermbach, David and Kuhlenkamp, J{\"o}rn},
+  year = {2013},
+  pages = {175--189},
+  annote = {Coherence: eventual, causal, and sequential coherence refer to guarantees of consistency on a per-key basis. It is common practice to use consistency for both coherence and consistency models alike.},
+  annote = {Defines our consistency as "data-centric": two consistency dimensions: staleness and ordering. However these models do not consider staleness and increasing strictness of ordering often leads to higher staleness values. This paper nominates the following consistency models and describes them in detail:
+
+Weak
+Eventual (EC)
+Causal
+Sequential
+Linearizability
+
+See also Table 1: the relationship between client-centric and data-centric consistency models, ordered by strictness.
+~},
+  file = {[PDF] kit.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/CX63RGEC/CX63RGEC.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/P88RTVUC/978-3-642-40148-0_13.html:text/html}
+}
+
 
