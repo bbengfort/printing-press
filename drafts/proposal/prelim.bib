@@ -1,4 +1,17 @@
 
+@inproceedings{drago_inside_2012,
+  title = {Inside Dropbox: Understanding Personal Cloud Storage Services},
+  shorttitle = {Inside Dropbox},
+  timestamp = {2016-04-27T20:10:07Z},
+  urldate = {2016-04-27},
+  booktitle = {Proceedings of the 2012 {{ACM}} Conference on {{Internet}} Measurement Conference},
+  publisher = {{ACM}},
+  author = {Drago, Idilio and Mellia, Marco and {M Munafo}, Maurizio and Sperotto, Anna and Sadre, Ramin and Pras, Aiko},
+  year = {2012},
+  pages = {481--494},
+  file = {[PDF] from utwente.nl:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/2PEXBC6J/Drago et al. - 2012 - Inside dropbox understanding personal cloud stora.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/TZXT9E7C/citation.html:text/html}
+}
+
 @article{lamport_time_1978,
   title = {Time, Clocks, and the Ordering of Events in a Distributed System},
   volume = {21},
@@ -96,6 +109,91 @@ I think it is necessary that Bayou considered the access controls of a system li
   file = {paxosMadeLive.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/VXVIGPGK/paxosMadeLive.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/GHN8T7NI/citation.html:text/html}
 }
 
+@article{vogels_eventually_2009,
+  title = {Eventually Consistent},
+  volume = {52},
+  timestamp = {2016-04-29T00:58:02Z},
+  number = {1},
+  urldate = {2016-04-29},
+  journal = {Communications of the ACM},
+  author = {Vogels, Werner},
+  year = {2009},
+  pages = {40--44},
+  file = {[PDF] from psu.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/BCJMUF23/Vogels - 2009 - Eventually consistent.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/SZVPHTEF/citation.html:text/html}
+}
+
+@inproceedings{decandia_dynamo:_2007,
+  title = {Dynamo: Amazon's Highly Available Key-Value Store},
+  volume = {41},
+  shorttitle = {Dynamo},
+  timestamp = {2016-04-27T14:53:01Z},
+  urldate = {2014-10-15},
+  booktitle = {{{ACM SIGOPS Operating Systems Review}}},
+  publisher = {{ACM}},
+  author = {DeCandia, Giuseppe and Hastorun, Deniz and Jampani, Madan and Kakulapati, Gunavardhan and Lakshman, Avinash and Pilchin, Alex and Sivasubramanian, Swaminathan and Vosshall, Peter and Vogels, Werner},
+  year = {2007},
+  pages = {205--220},
+  annote = {Dynamo is another production-grade distributed data service that meets the specific needs of a major web application. However, Dynamo does seem to have more general design principles compared to GFS. Specifically the problem that Dynamo is trying to address is the fact that most of their web application dependencies do not involve relationships; that is lookups and writes are to a single key in a single table. Relational databases have a lot of overhead to provide ACID transactions on related data and do not scale or partition well. If single key GET and PUT operations are all that's required of the data store, Amazon hopes to trade on consistency to ensure a highly available system that is partition tolerant.~
+
+Dynamo seems to be an implementation of many of the papers we've read so far, especially Chord and the idea of distributed hash tables). It also borrows ideas to a lesser extent from Oceanstore in terms of routing and versioning, Bayou in terms of anti-entropy, and Ori in terms of replication (and this paper mentions other file systems that we haven't read that probably also contribute significantly to the architecture). Versions are stored with vector clocks and routing is handled by fingerprint tables stored on each node. Consistency is handled by quorum and ring membership and failures are handled through a gossip synchronization protocol.~
+
+In all, it seems that the application-specific requirements of Dynamo led to an implementation that was able to reduce the impact of the criticisms of earlier work. For example, because the key space is not hierarchical like a file system is, some of the anti-entropy and and Merckle tree synchronizations become a lot simpler. Because the data objects are small (usually less than a MB) no chunking is required around the key ring. Because Amazon owns the infrastructure, routing can be handled by tables on every node. Dynamo is a true peer to peer distributed system (no centralized services for maintenance) that has been heavily tuned to the requirements of Amazon applications.~},
+  file = {amazonDynamo.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/AQH9AZHQ/amazonDynamo.pdf:application/pdf;[PDF] from harvard.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/EIHW3SC8/DeCandia et al. - 2007 - Dynamo amazon's highly available key-value store.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/5J7C4EBG/citation.html:text/html;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/XDPRWZCW/citation.html:text/html}
+}
+
+@article{corbett_spanner:_2013,
+  title = {Spanner: {{Google}}'s Globally Distributed Database},
+  volume = {31},
+  shorttitle = {Spanner},
+  timestamp = {2014-11-06T15:45:01Z},
+  number = {3},
+  urldate = {2014-11-06},
+  journal = {ACM Transactions on Computer Systems (TOCS)},
+  author = {Corbett, James C. and Dean, Jeffrey and Epstein, Michael and Fikes, Andrew and Frost, Christopher and Furman, J. J. and Ghemawat, Sanjay and Gubarev, Andrey and Heiser, Christopher and Hochschild, Peter and {others}},
+  year = {2013},
+  pages = {8},
+  file = {spanner-osdi2012.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/TEZW78D5/spanner-osdi2012.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/ESR9NREA/citation.html:text/html}
+}
+
+@inproceedings{zhang_viewbox:_2014,
+  title = {{{ViewBox}}: Integrating Local File Systems with Cloud Storage Services.},
+  shorttitle = {{{ViewBox}}},
+  timestamp = {2014-11-25T21:04:27Z},
+  urldate = {2014-11-25},
+  booktitle = {{{FAST}}},
+  author = {Zhang, Yupu and Dragga, Chris and Arpaci-Dusseau, Andrea C. and Arpaci-Dusseau, Remzi H.},
+  year = {2014},
+  pages = {119--132},
+  file = {viewbox.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/ANNVTM8E/viewbox.pdf:application/pdf}
+}
+
+@inproceedings{feldman_sporc:_2010,
+  title = {{{SPORC}}: {{Group Collaboration}} Using {{Untrusted Cloud Resources}}.},
+  volume = {10},
+  shorttitle = {{{SPORC}}},
+  timestamp = {2014-12-03T14:20:54Z},
+  urldate = {2014-12-03},
+  booktitle = {{{OSDI}}},
+  author = {Feldman, Ariel J. and Zeller, William P. and Freedman, Michael J. and Felten, Edward W.},
+  year = {2010},
+  pages = {337--350},
+  file = {sporc.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/HIXRAEJ6/sporc.pdf:application/pdf}
+}
+
+@article{lakshman_cassandra:_2010,
+  title = {Cassandra: A Decentralized Structured Storage System},
+  volume = {44},
+  shorttitle = {Cassandra},
+  timestamp = {2016-09-01T03:45:41Z},
+  number = {2},
+  urldate = {2016-04-29},
+  journal = {ACM SIGOPS Operating Systems Review},
+  author = {Lakshman, Avinash and Malik, Prashant},
+  year = {2010},
+  pages = {35--40},
+  file = {[PDF] from cam.ac.uk:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/DHCHP4CF/Lakshman and Malik - 2010 - Cassandra a decentralized structured storage syst.pdf:application/pdf;[PDF] cam.ac.uk:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/SDKP5SCI/Lakshman and Malik - 2010 - Cassandra a decentralized structured storage syst.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/IRCWVWA9/citation.html:text/html;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/PFN2B8FA/citation.html:text/html}
+}
+
 @inproceedings{gray_dangers_1996,
   title = {The Dangers of Replication and a Solution},
   volume = {25},
@@ -120,6 +218,19 @@ I think it is necessary that Bayou considered the access controls of a system li
   year = {2014},
   pages = {279--302},
   file = {[PDF] from bailis.org:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/HK83EDHA/Bailis et al. - 2014 - Quantifying eventual consistency with PBS.pdf:application/pdf;ec-pbs.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/SJE9D5BW/SJE9D5BW.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/662V4BGN/s00778-013-0330-1.html:text/html;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/AKJCUEFB/s00778-013-0330-1.html:text/html}
+}
+
+@inproceedings{kraska_mdcc:_2013,
+  title = {{{MDCC}}: {{Multi}}-Data Center Consistency},
+  shorttitle = {{{MDCC}}},
+  timestamp = {2016-05-01T17:31:44Z},
+  urldate = {2016-05-01},
+  booktitle = {Proceedings of the 8th {{ACM European Conference}} on {{Computer Systems}}},
+  publisher = {{ACM}},
+  author = {Kraska, Tim and Pang, Gene and Franklin, Michael J. and Madden, Samuel and Fekete, Alan},
+  year = {2013},
+  pages = {113--126},
+  file = {mdcc.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/I2CVANFX/I2CVANFX.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/F3EPXCSU/citation.html:text/html}
 }
 
 @article{thomas_majority_1979,
@@ -147,6 +258,19 @@ I think it is necessary that Bayou considered the access controls of a system li
   file = {[PDF] from kelehers.me:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/EPIUBHBP/EPIUBHBP.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/JU2V4PV4/citation.html:text/html}
 }
 
+@inproceedings{bermbach_eventual_2011,
+  title = {Eventual Consistency: {{How}} Soon Is Eventual? {{An}} Evaluation of {{Amazon S3}}'s Consistency Behavior},
+  shorttitle = {Eventual Consistency},
+  timestamp = {2016-02-12T17:10:36Z},
+  urldate = {2016-02-12},
+  booktitle = {Proceedings of the 6th {{Workshop}} on {{Middleware}} for {{Service Oriented Computing}}},
+  publisher = {{ACM}},
+  author = {Bermbach, David and Tai, Stefan},
+  year = {2011},
+  pages = {1},
+  file = {[PDF] from researchgate.net:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/HAUQIC3B/HAUQIC3B.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/IS7TJ2G9/citation.html:text/html}
+}
+
 @inproceedings{ongaro_search_2014,
   title = {In Search of an Understandable Consensus Algorithm},
   timestamp = {2016-05-02T18:51:57Z},
@@ -157,6 +281,19 @@ I think it is necessary that Bayou considered the access controls of a system li
   pages = {305--319},
   annote = {Core consensus group in federated system; inspiration for consensus protocols in hierarchical.},
   file = {raft.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/WFQ5VNT6/raft.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/KSZZBIN9/ongaro.html:text/html}
+}
+
+@article{bailis_probabilistically_2012,
+  title = {Probabilistically Bounded Staleness for Practical Partial Quorums},
+  volume = {5},
+  timestamp = {2016-01-04T19:48:40Z},
+  number = {8},
+  urldate = {2016-01-04},
+  journal = {Proceedings of the VLDB Endowment},
+  author = {Bailis, Peter and Venkataraman, Shivaram and Franklin, Michael J. and Hellerstein, Joseph M. and Stoica, Ion},
+  year = {2012},
+  pages = {776--787},
+  file = {[PDF] from arxiv.org:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/HZCTDXV8/Bailis et al. - 2012 - Probabilistically bounded staleness for practical .pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/MNX52TTT/citation.html:text/html}
 }
 
 @inproceedings{venkataramani_operating_2002,
@@ -218,6 +355,20 @@ Linearizability
 See also Table 1: the relationship between client-centric and data-centric consistency models, ordered by strictness.
 ~},
   file = {[PDF] kit.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/CX63RGEC/CX63RGEC.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/P88RTVUC/978-3-642-40148-0_13.html:text/html}
+}
+
+@article{miorandi_internet_2012,
+  title = {Internet of Things: {{Vision}}, Applications and Research Challenges},
+  volume = {10},
+  shorttitle = {Internet of Things},
+  timestamp = {2016-10-12T19:32:41Z},
+  number = {7},
+  urldate = {2016-10-12},
+  journal = {Ad Hoc Networks},
+  author = {Miorandi, Daniele and Sicari, Sabrina and {De Pellegrini}, Francesco and Chlamtac, Imrich},
+  year = {2012},
+  pages = {1497--1516},
+  file = {[PDF] uninsubria.it:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/D85V9AQK/Miorandi et al. - 2012 - Internet of things Vision, applications and resea.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/XKTHWEBS/S1570870512000674.html:text/html}
 }
 
 
