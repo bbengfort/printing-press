@@ -74,7 +74,7 @@ I propose that consistency is primarily related to the network environment as mu
 
 \begin{enumerate}
     \item \textbf{Hierarchical Consensus}: distribute consensus decisions of sequential ordering in order to make stronger consistency more available.
-    \item \textbf{Federated Consistency}: allow multiple consistency models for different replica servers, integrating over different aspects: temporal, spatial, and synchronization to create a flexible topology of devices with different characteristics and nodes. 
+    \item \textbf{Federated Consistency}: allow multiple consistency models for different replica servers, integrating over different aspects: temporal, spatial, and synchronization to create a flexible topology of devices with different characteristics and nodes.
 \end{enumerate}
 
 The experimentation on and development of multi-modal replication protocols via a holistic view will have a large impact in both the data center context as well as in personal distributed file systems.
@@ -91,20 +91,7 @@ The experimentation on and development of multi-modal replication protocols via 
 \newpage
 \doublespacing
 
-
-\section{Introduction}
-
-%\begin{figure}
-%\begin{center}
-%\includegraphics[scale=1.0]{img/sample_figure}
-%\end{center}
-%\caption{Sample camption}
-%\label{fig:sample_figure}
-%\end{figure}
-
-Introduction here \cite{SourceYear}.
-
-%\begin{figure}
+%\begin{figure}[!h]
 %\begin{center}
 %\begin{verbatim}
 %/* Sample code snippet */
@@ -114,25 +101,93 @@ Introduction here \cite{SourceYear}.
 %\label{fig:sample_code}
 %\end{figure}
 
+% \begin{figure}[!h]
+%     \centering
+%         \includegraphics[width=.9\textwidth]{figures/figure.png}
+%         \caption{Figure caption}
+%         \label{fig:label}
+% \end{figure}
+
+\section{Introduction}
+
+
+
+
 
 \section{Related Work}
 
+\subsection{Consistency}
+
+\subsection{Anti-Entropy}
+
+\subsection{Consensus}
+
+\subsection{Systems}
+
+\subsubsection{Bayou}
+
+\subsubsection{SUNDR}
+
+\subsubsection{Camlistore}
+
+\subsubsection{OriFS}
+
+\subsubsection{Stellar}
 
 \section{Preliminary Work}
 
+\subsection{Topology}
+
+\begin{figure}[!h]
+    \centering
+        \includegraphics[width=.9\textwidth]{figures/topology}
+        \caption{Proposed topology}
+        \label{fig:topology}
+\end{figure}
+
+\subsection{System Description}
+
+\begin{figure*}[!h]
+    \centering
+    \minipage{0.5\textwidth}
+      \includegraphics[width=\linewidth]{figures/scaling/visible_writes}
+      \caption{Percent versions that become fully replicated.}\label{fig:scaling_visible_writes}
+    \endminipage\hfill
+    \minipage{0.5\textwidth}
+      \includegraphics[width=\linewidth]{figures/scaling/visibility_latency}
+      \caption{Time to full visibility.}\label{fig:scaling_visibility_latency}
+    \endminipage
+\end{figure*}
+
+\begin{figure*}[!h]
+    \centering
+    \minipage{0.5\textwidth}
+      \includegraphics[width=\linewidth]{figures/scaling/forked_writes}
+      \caption{Forks in homogenous Raft and eventual consistency systems.}\label{fig:scaling_forked_writes}
+    \endminipage\hfill
+    \minipage{0.5\textwidth}
+      \includegraphics[width=\linewidth]{figures/scaling/stale_reads}
+      \caption{Stale reads in homogenous Raft and eventual consistency systems.}\label{fig:scaling_stale_reads}
+    \endminipage
+\end{figure*}
 
 \section{Proposed Work}
 
+\subsection{Federated Consistency}
+
+\subsection{Hierarchical Consensus}
+
+\subsection{Adaptive Consistency}
 
 \section{Timeline}
 
 \begin{center}
 \begin{tabular}{|l|c|}
 \hline
-Item 1 & 2 months \\
-Item 2 & 3 months \\
-Item 3 & 4-5 months \\
-Item 4 & 2-3 months \\
+Federated Consistency & 2 months \\
+Hierarchical Consensus & 3 months \\
+Flow File System & 4-5 months \\
+Adaptive Consistency & 2-3 months \\
 \hline
 \textbf{TOTAL} & 11-13 months \\
 \hline
@@ -142,9 +197,12 @@ Item 4 & 2-3 months \\
 Paper deadline goals:
 
 \begin{itemize}
-\item Conference, Month Year: Project 1
-\item Conference, Month Year: Project 2
-\item Conference, Month Year: Project 3
+\item IEEE International Conference on Distributed Computing Systems, June 2017: Federated Consistency
+% http://icdcs2017.gatech.edu/
+\item ACM Hot Topics in Storage and File Systems 2017, July 2017: Personal Clouds
+% https://www.usenix.org/conferences
+\item ACM Principles of Distributed Computing, July 2017: Hierarchical Consensus
+% http://www.podc.org/
 \end{itemize}
 
 
