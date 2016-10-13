@@ -83,6 +83,7 @@ The experimentation on and development of multi-modal replication protocols via 
 \setstretch{.5}
 
 \newpage
+\setcounter{tocdepth}{2}
 \tableofcontents
 
 \newpage
@@ -120,43 +121,99 @@ Our approach therefore focuses on two primary techniques: the \textit{federation
 
 \section{Related Work}
 
-text
+Our work stems from open questions related to data-centric consistency models, previously thought of as discrete levels but now viewed as a continuum along the dimensions of ordering and staleness \cite{bermbach_consistency_2013}. In the first part of this section, I will review and identify various consistency models. There are two primary mechanisms to replicate data with specific consistency: anti-entropy combined with various policies and centralization via consensus, each of which I will explore in detail. Finally I will contextualize our work with consistency rationing and hierarchical models of consensus previously put forward as well as a specific look at related systems.
 
 \subsection{Consistency}
 
-text
+% Should I review the client-centric consistency models
+
+Our consistency model is a \textit{data-centric} model which concerns two primary dimensions: ordering and staleness. Given that every replica maintains a local log of accesses with respect to some abstract total ordering based on the sequence of version numbers and potentially concurrent operations, we can define those dimensions as follows:
+
+\begin{enumerate}
+    \item \textit{Ordering} refers to how closely individual logs adhere to the abstract global ordering. A \textit{strict ordering} requires every single log to be exactly the same whereas weaker ordering allows some divergence in the order writes are stored in the log.
+    \item \textit{Staleness} refers to how far behind the latest global version a local log is and can be either expressed by the visibility latency of replicating a version to all replicas or simply by how many versions the latest is behind by.
+\end{enumerate}
+
+Most data-centric consistency models do not consider staleness but instead refer to the strictness of ordering guarantees and the method by which updates are applied to the state of the replica. Indeed, ordering strictness can lead to to increased staleness because writes cannot be accepted until they have fulfilled their dependencies first, creating further delay. Our consistency model considers instead the primary symptom of stale reads and writes: \textit{forks}.
+
+\begin{description}
+    \item[\textbf{Fork}] A fork occurs when two replicas concurrently write a new version to the same parent object as shown in Figure \ref{fig:forks}. Forks introduce inconsistency because there are now two potential orderings of updates to the log, but forks are primarily the symptom of staleness; e.g. the second writer wrote to a stale version of the object.
+\end{description}
+
+There are two primary causes of forks: concurrent accesses by multiple replicas and stale reads. The former is distinguished from the latter only if the possibility of synchronization could have occurred. From the point of view of the system, they are identical causes. Forks can branch to arbitrary lengths as replicas continue to write to their latest local copies, however when synchronization occurs a decision as to which ordering of writes is correct must occur.
+
+\begin{figure}
+    \centering
+        \includegraphics[width=.9\textwidth]{figures/forks}
+        \caption{Forks branch sequentially ordered version numbers}
+        \label{fig:forks}
+\end{figure}
+
+With this context and consistency model in mind, we can now identify several consistency models in order of increasing ordering strictness and define how each model's correctness criteria responds in the face of forks.
+
+\subsubsection{Weak Consistency}
+
+A weakly consistent system makes no guarantees whatsoever about the relationship of local vs. remote writes and whether or not any given update will become visible \cite{vogels_eventually_2009}. Weak consistency is often described as ``replicas might get lucky and become consistent'' and in fact a weakly consistent implementation may not have a synchronization protocol whatsoever \cite{bermbach_consistency_2013}.
+
+\subsubsection{Eventual Consistency}
+
+Eventual consistency is primarily concerned with the final state of all logs in the system given some period of quiescence that allows the system to converge. In this case, all replicas, no matter their log ordering, should have identical final versions for all objects in the namespace. This suggests that eventual consistency requires some \textit{anti-entropy} mechanism to propagate writes and a policy to handle convergence \cite{terry_managing_1995}. Eventual consistency is very popular for NoSQL databases and hosted distributed storage services \cite{decandia_dynamo:_2007,lakshman_cassandra:_2010} because it favors an optimistic approach to consistency: in most systems conflicts are rare, and if something does go wrong, conflict resolution is up to the application layer. In practice, most applications can handle some inconsistency and moreover the small inconsistency windows due to low latencies in cloud data centers make such conflicts rare and short-lived enough to be worth the risk \cite{bailis_quantifying_2014}.
+
+Eventual consistency implemented by a \textit{last writer wins} policy simply accepts all writes so long as they are more recent than the latest local versions. Eventual reads and writes are always performed locally, and therefore with little performance overhead. Eventual allows forks to occur and moreover allows individual replica logs to have wholly different orderings so long as the last version for each object is in the same given no writes for a long enough period of time. As a result, the latest version of an object may alternate between writes to competing forks (a fairly weak semantic) and in this case, it is up to the application to detect the inconsistency. However, Eventual logs do have one important property - for each object, every write in the log is ordered in a monotonically increasing fashion.
+
+\subsubsection{Causal Consistency}
+
+In causal consistency all writes that have causal relationships must have those dependencies satisfied, e.g. inserted into the log before that write can become visible. Therefore, even though a write might have been propagated to another replica server it cannot be read until all of its dependencies have also been propagated. Causal consistency can increase staleness particularly when implicit or potential causality creates large dependency graphs that must be resolved before writes can be applied \cite{lloyd_dont_2011}. This can be managed by allowing the application to explicitly specify the dependencies for each write \cite{bailis_potential_2012}.
+
+\subsubsection{Sequential Consistency}
+
+Sequential consistency is a strong consistency model that requires that all replicas have the exact same ordering of their logs, such that all writes by all clients are appended in the same exact order \cite{attiya_sequential_1994}. Sequential consistency is not strict in that it does not make guarantees about staleness (or the ordering of reads) but does require that all writes become visible in the same order \cite{bermbach_consistency_2013}. Sequentially consistency is typically implemented with consensus algorithms such as Paxos \cite{lamport_fast_2006} or Raft \cite{ongaro_search_2014} that coordinate logs by defining a transitive, global ordering for all conflicts. Alternatively, sequential consistency and can be implemented with warranties -- time based assertions about a group of objects that must be met on all replicas before the assertions expired \cite{liu_warranties_2014}.
+
+\subsubsection{Linearizability}
+
+Linearizability is the strongest form of consistency; not only must all write operations occur in sequence, but all operations including reads must be ordered chronologically \cite{herlihy_linearizability:_1990}. A consensus algorithm alone cannot implement linearizability and instead some distributed locking mechanism is required. For example a consensus algorithm can be adapted to instead of making decisions about the total ordering of conflicting writes, granting or releasing locks from requestors, however this opens up the potential for deadlock and extremely poor performance, defeating the purposes of replication in the first place! Data center environments that don't have to deal with issues of clock skew by using super precise atomic and GPS clocks can use precise time measurements to enable a distributed two phase commit protocol \cite{corbett_spanner:_2013}, however every replica is required to have such a time piece, which is not practical for heterogenous topologies.
 
 \subsection{Anti-Entropy}
 
-text
+Eventual consistency is implemented by periodic \textit{anti-entropy} sessions that converge replicas towards the same state (e.g. reducing entropy, the divergence between the states of individual replicas) \cite{kempe_gossip-based_2003, karp_randomized_2000}. On a routine interval, specified by the \texttt{anti-entropy delay} timing parameter, a replica will randomly select one of the other replicas in the system and send a \texttt{Gossip} message that contains the latest version of all objects in the replica's local log.
 
 \subsection{Consensus}
 
-text
+Consensus algorithms are generally variations of the Paxos algorithm \cite{lamport_paxos_2001} and more specifically the Fast Paxos implementation \cite{lamport_fast_2006}. For example S-Paxos \cite{biely_s-paxos:_2012} attempts to distribute the workload of the leader (similar to hierarchical consensus), Multi-Paxos \cite{camargos_multicoordinated_2007} allows multiple leaders per round, Flexible Paxos \cite{2016arXiv160806696H} allows for multiple quorum intersections, and Egalitarian Paxos \cite{moraru_egalitarian_2012,moraru_there_2013} allow fast and slow track voting.
+
+However, Paxos has been shown to be very difficult to correctly implement and verify \cite{chandra_paxos_2007} and although attempts have been made to highlight the practicality of a subset of the Paxos guarantees \cite{mazieres_paxos_2007} it has been shown that Paxos is not understandable. To that end, we have used the Raft consensus protocol \cite{ongaro_search_2014, howard_raft_2015} as our primary consensus implementation.
+
+\subsection{Consistency Rationing and Hybridization}
+
+One of the earliest attempts to hybridize weak and strong consistency was a model for parallel programming on shared memory systems by Agrawal et al \cite{agrawal_mixed_1994}. This model allowed programmers to relax strong consistency in certain contexts with causal memory or pipelined random access in order to improve parallel performance of applications. Per-operation consistency was extended to distributed storage by the RedBlue consistency model of Li et al \cite{li_making_2012}. Here, replication operations are broken down into small, commutative suboperations that are classified as red (must be executed in the same order on all replicas) or blue (execution order can vary from site to site), so long as the dependencies of each suboperation are maintained. The consistency model is therefore global, specified by the red/blue ordering and can be adapted by redefining the ratio of red to blue operations, e.g. all blue operations is an eventually consistent system and all red is sequential.
+
+The next level above per-operation consistency hybridization is called \textit{consistency rationing} wherein individual objects or groups of objects have different consistency levels applied to them to create a global quality of service guarantee. Kraska et al. \cite{kraska_consistency_2009} initially proposed consistency rationing be on a per-transaction basis by classifying objects in three tiers: eventual, adaptable, and linearizable. Objects in the first and last groups were automatically assigned transaction semantics that maintained that level of consistency; however objects assigned the adaptable categorization had their consistency policies switched at runtime based on a cost function that either minimized time or write costs depending on user preference. This allowed consistency in the adaptable tier to be flexible and responsive to usage.
+
+Chihoub et al. extended the idea of consistency rationing and proposed limiting the number of stale reads or the automatic minimization of some consistency cost metric by using reporting and consistency levels already established in existing databases \cite{chihoub_harmony:_2012,chihoub_consistency_2013}. Here multiple consistency levels are being utilized, but only one consistency model is employed at any given time for all objects, relaxing or strengthening depending on observed costs. By utilizing all possible consistency semantics in the database, this model allows a greater spectrum of consistency guarantees that adapt at runtime.
+
+Al-Ekram and Holt \cite{al-ekram_multi-consistency_2010} propose a middleware based scheme to allow multiple consistency models in a single distributed storage system. They identify a similar range of consistency models, but use a middleware layer to forward client requests to an available replica that maintains consistency at the lowest required criteria by the client. However, although their work can be extended to deploying several consistency models in one system, they still expect a homogenous consistency model that can be swapped out on demand as client requirements change. Additionally their view of the ordering of updates of a system is from one versioned state to another and they apply their consistency reasoning to the divergence of a local replica's state version and the global version. Similar to SUNDR, proposed by Li et al. \cite{li_secure_2004}, an inconsistency is a fork in the global ordering of reads and writes (a ``history fork''). Our consistency model instead considers object forks, a more granular level that allows concurrent access to different objects without conflict while still ensuring that no history forks can happen.
+
+Hybridization and adaptation build upon previous work that strictly categorizes different consistency schemes. An alternative approach is to view consistency along a continuous scale with a variety of axes that can be tuned precisely. Yu and Vahdat \cite{yu_design_2002} propose the \textit{conit}, a consistency unit described as a three dimensional vector that describes tolerable deviations from linearizability along staleness, order error, and numeric ordering. Similarly, Afek et al. \cite{afek_quasi-linearizability:_2010} present quasi-linearizable histories which specify a bound on the relative movement of ordered items in a log which make it legally sequential.
 
 \subsection{Systems}
 
-text
+In this section we will present several similar systems to our responsive consistency file system.
 
 \subsubsection{Bayou}
 
-text
+Bayou \cite{terry_managing_1995,terry_session_1994} is an eventually consistent system that implements anti-entropy as its replication mechanism and conflict resolution by some primary or trusted centralized server.
 
 \subsubsection{SUNDR}
 
-text
-
-\subsubsection{Camlistore}
-
-text
+SUNDR \cite{li_secure_2004} is a secure file system that integrates local and cloud storage and detects inconsistencies by identifying forks.
 
 \subsubsection{OriFS}
 
-text
+The Ori File System \cite{mashtizadeh_replication_2013} replicates file history and allows the merge and grafting of histories similar to Git trees.
 
 \subsubsection{Stellar}
 
-text
+The Stellar consensus protocol \cite{mazieres_stellar_2015} provides federated byzantine agreement through the use of quorum slices.
 
 \section{Preliminary Work}
 
@@ -198,11 +255,11 @@ As the number of nodes increases, both Raft and Eventual systems start to degrad
 
 Read and write accesses were conducted on each device on 15 objects such that the probability of conflict, $P_c=0.3$ meaning that 30\% of the objects accessed on each device would also be accessed on another device. Accesses were issued at intervals normally distributed with the access interval mean, $A_{\mu}=3000$ms and the access interval standard deviation, $A_{\sigma}=380$ms such that accesses were roughly related to the timing parameter. As the number of nodes increases, the number of conflicts also increase, but not the likelihood of a conflict. Our system measures inconsistencies as \textit{forks} and \textit{stale reads}. As shown in Figure \ref{fig:scaling_forked_writes}, the number of conflicts in Raft is lower than in eventual as are the number of stale reads as shown in \ref{fig:scaling_stale_reads} but at the cost of a performance decrease, particularly as the number of nodes increases.
 
-We believe that these initial investigations show a critical opportunity: that we can blend the high availability of an eventually consistent system and leverage the best parts of anti-entropy and eventual consistency in network environments where messages cannot get through along with the stability and increased visibility of a strongly consistent core, similar to the central core and flexible outer shell proposed by Gray and Oceanstore \cite{gray_dangers_1996,kubiatowicz_oceanstore:_2000}: we call this \textit{Federated Consistency}. Furthermore, if we can find a way to allocate decision space to a smaller number of nodes, we should be able to scale Raft to greater number of nodes without as steep a curve: we investigate this in \textit{Hierarchical Consensus}. Finally, as suggested by the $T$ timing parameter (though not explicitly covered), the timing measures and performance of consistency protocols are related to the network environment, which is dynamic. Potentially we can improve performance by monitoring the environment and adapting timing parameters to minimize the number of inconsistencies: investigated in \textit{Adaptive Consistency}. 
+We believe that these initial investigations show a critical opportunity: that we can blend the high availability of an eventually consistent system and leverage the best parts of anti-entropy and eventual consistency in network environments where messages cannot get through along with the stability and increased visibility of a strongly consistent core, similar to the central core and flexible outer shell proposed by Gray and Oceanstore \cite{gray_dangers_1996,kubiatowicz_oceanstore:_2000}: we call this \textit{Federated Consistency}. Furthermore, if we can find a way to allocate decision space to a smaller number of nodes, we should be able to scale Raft to greater number of nodes without as steep a curve: we investigate this in \textit{Hierarchical Consensus}. Finally, as suggested by the $T$ timing parameter (though not explicitly covered), the timing measures and performance of consistency protocols are related to the network environment, which is dynamic. Potentially we can improve performance by monitoring the environment and adapting timing parameters to minimize the number of inconsistencies: investigated in \textit{Adaptive Consistency}.
 
 \subsection{Topology}
 
-text
+In order to investigate the effect of variable latency and the network environment on consistency, we have constructed a fully connected topology of replica nodes that are each assigned a geographic region as shown in Figure \ref{fig:topology}. Within each region, replica nodes enjoy stable, low-latency connections with their neighbors. However, across regions the latency is higher and the connections variable, meaning that out of order messages are more common across the wide area than in the local area.
 
 \begin{figure*}
     \centering
@@ -218,33 +275,49 @@ text
     \endminipage
 \end{figure*}
 
+In this type of topology there are two types of failure: node failure and network partitions. \textit{Node failure} occurs when a single node is shut off or stops responding to messages. \textit{Network partitions} occur when it is not possible for messages to be sent or received from a single geographic region. In both cases, two conditions must be dealt with by the replication protocol in order to satisfy correctness criteria: first the fact that accesses may continue at a partitioned node which are not being replicated by the system and second that the partitioned nodes are behind the global state and must be brought up to date.
+
+For hierarchical consensus we have introduced a three tier topology consisting of three regions where nodes enjoy two types of network connections as shown in Figure \ref{fig:tiers}. Each region of nine nodes has three inner circles of very high connectivity (e.g. hard lines) while connectivity in the rest of the region is moderate and connectivity across the wide area is variable. This topology will allow us to explore hierarchical models in depth.
+
 \subsection{System Description}
 
-text
+Our file system aggregates individual accesses into \textit{Close-To-Open} (CTO) consistency where read and write accesses are ``whole file'' \cite{muthitacharoen_low-bandwidth_2001}. Furthermore, with respect to local accesses we guarantee that a read returns the last write (given no remote updates, \textit{Read Your Writes Consistency}\pjk{cite}) and that writes are atomic with respect to each other (\textit{Monotonic Write Consistency}) \cite{bermbach_consistency_2013}.
 
+Each replica's log is composed of a series of write accesses to multiple objects. Each object has a unique name that identifies it to the system and a monotonically increasing version number which can be implemented either as a vector clock \cite{parker_detection_1983} (or a simple Lamport scaler) in the case of a fixed topology or as a vector stamp \cite{almeida_version_2002} in the case of dynamic topologies. Therefore a write access encapsulate the following information: the name of the object being written to, the parent version of the object to which the write is being applied, the versions and object names of any other dependencies, the replica id where the write occurred, and an array of blob ids that compose the file at the conclusion of the write.
 
+A read access to a particular object simply looks up the latest local version of that object. Because dependency information can be embedded into a write, it is not necessary to include read accesses in the log. For example, in order to create a transaction that reads from objects $X$ and $Y$, performs a computation then updates objects $Y$ and then $Z$: the write to $Y$ would include as a dependency the earlier version of $Y$ and the read version of $X$ and the write to $Z$ would include the updated version of $Y$ and the read version of $X$. Other notions of dependencies include implicit session dependencies, e.g. all writes are dependent on any access that occur within a minimum time threshold of each other, or explicit dependencies that are added by the application.
 
-text
+Because our system model accounts for heterogenous devices and each write in the log is simply metadata about the version of a file we consider version replication as a separate issue from object or blob replication. Furthermore, system consistency depends only on the replication of version information since a version defines what is visible on each replica to be read (and writes follow an implicit read). While a version must become visible (replicated to) all devices in order for the system to be consistent, the blobs that make up data may not be stored on all devices with different storage resources. If a read access requires blobs that it doesn't have, it can simply request them from a local neighbor that does, or from the origin replica itself.
 
 \section{Proposed Work}
 
-text
+I propose three primary approaches and projects that will integrate into a final, fully implemented file system: Federated Consistency, Hierarchical Consensus, and Adaptive Consistency.
 
 \subsection{Federated Consistency}
 
-text
+The Federated Consistency model allows individual replicas to select their own local consistency policies and engage in replication according to the mechanism specified by the policy. Each replica maintains its own local state which is modified in response to local accesses as well as the receipt of messages from remote replicas. Each replica sends messages to other nodes in order to propagate the latest writes as well as to perform housekeeping. Therefore every replica can be seen as an event handler that responds to local access events as well as remote messages and generates more events (sent messages) in return. Simply put, so long as every federated replica has an event handler for all types of RPC messages, federation only has to be defined at the \textit{consistency boundaries}, that is when replicas of one consistency type send messages to that of another.
+
+Given the consistency models discussed in the previous section, we will omit weak consistency as being too simplistic and linearizability as being too performance restrictive. Instead we will focus on the federation of eventual consistency, implemented with latest-writer wins gossip based anti-entropy, and sequential consistency implemented with the Raft consensus algorithm.
 
 \subsection{Hierarchical Consensus}
 
-text
+A leader with a large tag of dependent objects can grant sub-leadership of a portion of the tag to a different node, creating a sub-tagset of two independent tags. This is probably all the similarity to tag consensus above at this point though.
+
+This creates a tiered structure of leadership, where a single quorum is responsible for the root tagset, and smaller sub-quorums are responsible for sub-tagsets. The basic idea therefore is a centralized, two-tier leadership structure like in Oceanstore (and the danger of the Dangers of Replication and a Solution). The root tier manages the tag, and sub quorums manage their individual objects.
+
+There are two distinct kinds of failure in a hierarchical system: replica failures (a single node crashes and dies) and partitions, where parts of the network are cut off from receiving messages. We believe that we can model failure tolerance from both of these perspectives through a formulation of quorum size, minimal intersection set between quorums, and the depth/breadth of the hierarchy.
+
+Accesses (reads/writes) go to the correct tag leader and consensus decisions must be made locally with respect to the correct ordering within the tag. Tag reconfiguration (changes between epochs) is another consensus decision that is separate from the  access consensus, and is handled at the highest root of the tag concerned.
+
+Tag changes are implemented through epoch locks, which must be agreed to for the system to continue. This is what separates partition tolerance from node failure.
 
 \subsection{Adaptive Consistency}
 
-text
+Given the federation of multiple consistency models and the improved performance of consensus via hierarchical agreement, I propose the final step is the real time adaptation of the network according to observed latency values. Eventually consistent nodes can change their timing parameters at will to take advantage of lower latencies or to save work in sparse network conditions. Joint consensus is required to adapt the parameters of a consensus group. Machine learning algorithms can be used to further learn from the environment and optimize consistency guarantees.
 
 \section{Timeline}
 
-This is some timeline text.
+My proposed timeline is as follows:
 
 \begin{center}
 \begin{tabular}{|l|c|}
@@ -269,8 +342,6 @@ Paper deadline goals:
 \item ACM Principles of Distributed Computing, July 2017: Hierarchical Consensus
 % http://www.podc.org/
 \end{itemize}
-
-text
 
 \section{Conclusion}
 
