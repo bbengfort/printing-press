@@ -2,13 +2,13 @@
 
 \usepackage{caption,color,fancyvrb,subfig}
 \usepackage{code,algorithmic,algorithm}
-%\usepackage{graphicx,epsfig}
+\usepackage{graphicx,epsfig}
 \usepackage{amsmath,amsthm,amsfonts}
-%\usepackage{url}
-\usepackage{graphicx}
+\usepackage{amssymb}
 \usepackage{setspace}
 \usepackage{bibentry}
- \nobibliography{prelim}
+
+\nobibliography{prelim}
 
 \textwidth = 6.5 in
 \textheight = 9 in
@@ -17,15 +17,15 @@
 \topmargin = 0.0 in
 \headheight = 0.0 in
 \headsep = 0.0 in
-\parskip = 0.2in
+\parskip = 0.12in
 \parindent = 0.0in
+
 
 \def\inv{^{-1}}
 
 
+
 \begin{document}
-
-
 
 \begin{titlepage}
 \begin{center}
@@ -63,7 +63,7 @@ Philosophy}\\[5.5cm]
 
 \newpage
 \setcounter{page}{1}
-\doublespacing
+\onehalfspacing
 \begin{abstract}
 
 Data-oriented consistency is not a discrete set of various levels, weak, eventual, causal, strong etc. but rather a continuum that can be adapted in response to environmental conditions. Recent studies of consistency have focused on data center environments which are low latency, high bandwidth, and generally stable; and as a result data distribution involves a relatively small network of devices. I propose to study consistency in a user-oriented context composed of heterogenous devices (mobile phones, desktops, laptops, cloud storage) that can be mobile, creating a network topology of highly variable latency with routine failure and whose networks are larger than typically studied - dozens to hundreds of replica servers.
@@ -90,7 +90,7 @@ The experimentation on and development of multi-modal replication protocols via 
 \listoffigures
 
 \newpage
-\doublespacing
+\onehalfspacing
 
 %\begin{figure}[!h]
 %\begin{center}
@@ -281,7 +281,7 @@ For hierarchical consensus we have introduced a three tier topology consisting o
 
 \subsection{System Description}
 
-Our file system aggregates individual accesses into \textit{Close-To-Open} (CTO) consistency where read and write accesses are ``whole file'' \cite{muthitacharoen_low-bandwidth_2001}. Furthermore, with respect to local accesses we guarantee that a read returns the last write (given no remote updates, \textit{Read Your Writes Consistency}\pjk{cite}) and that writes are atomic with respect to each other (\textit{Monotonic Write Consistency}) \cite{bermbach_consistency_2013}.
+Our file system aggregates individual accesses into \textit{Close-To-Open} (CTO) consistency where read and write accesses are ``whole file'' \cite{muthitacharoen_low-bandwidth_2001}. Furthermore, with respect to local accesses we guarantee that a read returns the last write (given no remote updates, \textit{Read Your Writes Consistency}) and that writes are atomic with respect to each other (\textit{Monotonic Write Consistency}) \cite{bermbach_consistency_2013}.
 
 Each replica's log is composed of a series of write accesses to multiple objects. Each object has a unique name that identifies it to the system and a monotonically increasing version number which can be implemented either as a vector clock \cite{parker_detection_1983} (or a simple Lamport scaler) in the case of a fixed topology or as a vector stamp \cite{almeida_version_2002} in the case of dynamic topologies. Therefore a write access encapsulate the following information: the name of the object being written to, the parent version of the object to which the write is being applied, the versions and object names of any other dependencies, the replica id where the write occurred, and an array of blob ids that compose the file at the conclusion of the write.
 
@@ -299,18 +299,73 @@ The Federated Consistency model allows individual replicas to select their own l
 
 Given the consistency models discussed in the previous section, we will omit weak consistency as being too simplistic and linearizability as being too performance restrictive. Instead we will focus on the federation of eventual consistency, implemented with latest-writer wins gossip based anti-entropy, and sequential consistency implemented with the Raft consensus algorithm.
 
+\newpage
 \subsection{Hierarchical Consensus}
 
-A leader with a large tag of dependent objects can grant sub-leadership of a portion of the tag to a different node, creating a sub-tagset of two independent tags. This is probably all the similarity to tag consensus above at this point though.
+Federated consistency presents the opportunity to extend distributed storage systems to medium to large scale networks comprised of dozens of replica servers even in the face of high variability in unstable, mobile network environments. By allowing replicas to participate in eventual consistency replication if required to maintain a minimum quality of service, the system becomes flexible enough to handle variability. The key to Federation, however, is the strong central quorum that coordinates partitions in the eventual cloud, handling conflicts and pruning forked branches, minimizing overall inconsistency in the system.
 
-This creates a tiered structure of leadership, where a single quorum is responsible for the root tagset, and smaller sub-quorums are responsible for sub-tagsets. The basic idea therefore is a centralized, two-tier leadership structure like in Oceanstore (and the danger of the Dangers of Replication and a Solution). The root tier manages the tag, and sub quorums manage their individual objects.
+Given the critical nature of the central quorum, particularly with quorum nodes distributed geographically to provide high availability to synchronization requests, a natural question arises: can the quorum scale to meet the availability needs of the Federated system as the topology grows?
 
-There are two distinct kinds of failure in a hierarchical system: replica failures (a single node crashes and dies) and partitions, where parts of the network are cut off from receiving messages. We believe that we can model failure tolerance from both of these perspectives through a formulation of quorum size, minimal intersection set between quorums, and the depth/breadth of the hierarchy.
+% Note that Fast Paxos language says "avoid the leader and send directly to acceptors" providing two "paths" to consensus - fast and short. However, I have read other places that this is the equivalent of performing the propose phase in advance of the quorum decision, similar to Raft.
+Raft and Paxos optimize the three phase consensus procedure (propose, accept, commit) of quorums by nominating a dedicated proposer, often called the leader or coordinator, who is solely allowed to make voting proposals thus staging the propose phase in advance of any consensus decisions via election. However, the leader is also a single point of failure, and most work in consensus protocols regards correctness and fault tolerance of a system given partitions that remove the leader from connecting to a majority of nodes. Additionally, in order to achieve linearizablity, every single access (including reads) must go through the leader, making the leader a bottleneck whose response performance creates a floor for the overall performance of the system. In order to scale consensus to larger systems, leadership must be addressed.
 
-Accesses (reads/writes) go to the correct tag leader and consensus decisions must be made locally with respect to the correct ordering within the tag. Tag reconfiguration (changes between epochs) is another consensus decision that is separate from the  access consensus, and is handled at the highest root of the tag concerned.
+There are two primary approaches to increasing the availability of the leader in the literature: optimistic ``paths'' and multiple leaders. The former method, implemented in Fast Paxos \cite{lamport_fast_2006}, Egalatarian Paxos \cite{moraru_egalitarian_2012}, and S-Paxos \cite{biely_s-paxos:_2012} allows clients to directly contact acceptors (followers) with proposals, bypassing the leader and distributing leadership activities in a so called optimistic ``fast path''. However, in order to maintain correctness some conflict detection method is required; for example Fast Paxos requires larger quorums for fast path, and Egalitarian Paxos adds dependencies that are checked at ``execution'', where a dependency failure requires a fall back to the ``classic (slow) path''. The latter method allocates the decision space to multiple coordinators either by load balancing multiple quorums as in Multi-Paxos \cite{camargos_multicoordinated_2007} or by utilizing a per-tablet (a grouping of objects) quorum as in BigTable \cite{chang_bigtable:_2008}. Per-tablet quorums also reduce the likelihood of conflicts introducing the possibility of a hybrid approach: optimistic fast paths on multiple quorums with conflict detection and slow path resolution as in MDCC \cite{kraska_mdcc:_2013}.
 
-Tag changes are implemented through epoch locks, which must be agreed to for the system to continue. This is what separates partition tolerance from node failure.
+Unfortunately these approaches, while working well on smaller scale quorum sizes (3-7 nodes), do not scale well in heterogenous and variable-latency environments. Fast-path requires optimism that conflict is relatively rare, otherwise it performs worse than simple classic-path methods since it must implement conflict detection. In larger networks, conflict is more likely, both because of the increased number of writers and owing to message delay. Allocating multiple, small quorums to different decision spaces requires that objects in different tablets be independent of each other; that is, there is no way to order writes sequentially to objects in tablets maintained by separate quorums. Federated consistency, however, requires a single, sequential ordering of all writes to maintain the eventual cloud and many applications of personal clouds that have implicit dependencies not easily embedded as application-level invariants, such as those specified database schemas.
 
+We propose Hierarchical Consensus as a solution to scaling consensus to larger networks while still maintaining a sequential ordering across all objects such that dependencies between objects are determined at runtime. Our approach uses a tiered structure of leadership where the object namespace is governed by a root quorum that partitions the namespace to smaller subquorums via consensus decisions. This allocation creates an ordered set of epochs where each epoch defines a specific mapping of objects to subquorums such that all objects maintained by a single quorum are dependent on each other and \textit{on no other subquorum}. Every access that occurs in a single epoch is said to have \textit{happened before} every access in previous epochs, every write within a subquorum is ordered with respect to that quorum's decisions, and every write between quorums within a single epoch is said to be concurrent.
+
+Hierarchical consensus therefore provides \textit{sequential consistency} on the entire namespace with accesses to objects whose dependencies may change over time. Hierarchical consensus is more available due to the use of multiple, smaller quorums and the localization of leadership to where accesses are occurring.
+
+\subsubsection{Consensus Consistency}
+
+Generalized consensus considers the problem of commands applied to a state machine in the same order. A distributed system of state machines is said to be consistent if all nodes have the same state within some reasonable delay and correct if the same exact sequence of commands was applied in the same order to reach the final state. The commands themselves generally have no dependencies and agreement considers no invariants beyond whether or not accepting the command would violate the consistency and correctness.
+
+In order to implement a file system with generalized consensus, a couple of approaches can be taken. The most obvious approach is to use consensus to grant locks to replica, object pairs and unlocks once the write has been fully replicated. So long as read/write locks are observed, this system implements linearizeablity and is equivalent to two phase commit though such a system suffers from poor performance. Instead, the approach that we take is to make accesses the commands such that the state machine becomes an ordered series of accesses. If both read and write accesses are applied to the log (meaning that both a read and a write must be remote through the leader) then the system remains linearizable. However, in order to improve performance, we allow reads to occur to the local log of each follower, introducing the possibility of a fork if the local read is behind the global state and a write is submitted that modifies the stale read. Leaders must therefore check writes to ensure that they are not forked and drop those that are.
+
+\begin{figure}
+    \centering
+        \includegraphics[width=.9\textwidth]{figures/ordered}
+        \caption{Sequential ordering in consensus based file system}
+        \label{fig:ordered}
+\end{figure}
+
+Consider the simple example shown in Figure \ref{fig:ordered}, implemented using the Raft protocol where writes are aggregated in \texttt{AppendEntries} (shown as green lines that occur routinely every heartbeat interval). In this example the object namespace is the set $\{A, B, C\}$ and each version is represented as the object name dot annotated with a monotonically increasing version number (we presume that version 1 of each object has already been written to the log). A write is conducted by reading the latest version of the object and writing the new version, therefore a write by replica $i$ that reads version $n$ and writes to version $m$ on object $O$ is given as follows: $W_i(O.n \rightarrowtail O.m)$.   Writes are ordered with respect to their arrival at the leader ($R_j$), are appended to the logs of the followers on \texttt{AppendEntries}, are committed by the leader when a majority of followers responds affirmative to the append RPC, and are marked as committed by followers on the subsequent \texttt{AppendEntries}. The leader must reject $W_i(B.2 \rightarrowtail B.4)$ in order to maintain consistency because that write would cause a fork to occur in the log. The final log is identically ordered on all replicas for all objects, therefore we can say we have achieved sequential consistency such that every write that appears in log position $i$ happens before ($\rightarrow$) the log entry at $i-1$.
+
+In this example, we have only nominated one \textit{explicit} dependency on each write, the parent version, and enforced a no-forks invariant as a policy on this dependency at the leader. A consequence of this style consistency is the \textit{implicit} causality of all prior writes to a given write. For example, $W_i(C.1 \rightarrowtail C.2)$ implies implicit dependencies on $A.2$ and $B.3$, e.g. any versions that could have possibly been read prior to the write (and also the reason that reads must be logged in order to achieve linearizability). Similarly $W_k(B.3 \rightarrowtail B.5)$ has implicit dependencies on $A.2$ and $C.1$, more closely inspecting the log we can see that $C.2 \rightarrow B.5$ and $C.1 \rightarrow C.2$ therefore by transitivity, $C.1 \rightarrow B.5$, a correct interpretation of the log and implicit dependencies.
+
+While implicit dependencies are critical to consistency, we observe that it is unlikely that a write is truly dependent on every historical write but is rather dependent on a local, recent subset of the namespace \cite{bailis_potential_2012}. Hierarchical consensus therefore makes use of \textit{explicit} causality to allocate the namespace to subquorums in order to balance the leader workload.
+
+\subsubsection{Namespace Allocation}
+
+\begin{figure}
+    \centering
+        \includegraphics[width=.9\textwidth]{figures/hierarchical}
+        \caption{Hierarchical consensus partitions the namespace across subquorums}
+        \label{fig:hierarchical}
+\end{figure}
+
+An open question for our research is how to automatically allocate the namespace such that leadership of a subset of the namespace is local to the accesses and that members of the quorum are distributed to provide wide area durability and availability. The goal of allocation, is shown in Figure \ref{fig:hierarchical} - a hierarchy of quorums such that the children of each tier manage consensus decisions on a non-overlapping portion of the namespace.
+
+Consider a motivating example using the notion of \textit{sessions}. Starting from a quiescent state (no accesses), a node or a group of nodes begins reading and writing to a set of objects (perhaps collaborative editing of a document, or a series of financial transactions); we expect that after some finite amount of time, the access pattern will change or cease. We can therefore state that all objects involved in a single session are explicitly causally related to each other and to no other objects in the namespace. Whether we describe sessions as a fixed, sliding window or as something more variable, some automatic determination that those objects should be coordinated together is necessary. To that end we will define a \textit{tag} as a time-annotated subset of the namespace and a \textit{tagspace} as the set of non-overlapping tags that compose the namespace for a given time period.
+
+Hierarchical consensus starts with a root quorum whose responsibility is to govern the entire namespace. The root quorum does so by maintaining a root \textit{epoch}, a monotonically increasing counter which identifies the current \textit{tagspace}. In addition to consensus decisions related to leader election, accesses, and membership changes, decisions that modify the tagspace also require consensus. We define two primary operations: \textit{split} creates a new subquorum, splitting a larger tag from the previous tagspace and \textit{join} removes a subquorum, joining two smaller tags from the previous tagspace. Any decision that modifies the tagspace (thus creating a new tagspace) requires an increment of the \textit{epoch}.
+
+The fundamental relationship between accesses in epochs is as follows: any access that happens in epoch $i$ happened before every access in epoch $i-1$; accesses in different tags but in the same epoch happen concurrently from the global perspective, but are ordered locally in the quorum that governs that tag. As a result, every log has a determined, sequentially consistent and correct ordering, though the logs of two individual replicas may differ. Hierarchical consensus cannot provide linearizability, but does provide sequential consistency.
+
+\subsubsection{Operation}
+
+The namespace allocation creates a tiered structure of leadership such that the root quorum is responsible for the entire namespace, subquorums are responsible for tags, and leaves are responsible for handling accesses to their tag. Any access to an object must be forwarded as a remote access to the leader of the quorum that handles the tag that encapsulates the object. The only exception is the optimization made for members of the quorum who can read locally any object in their tag space. By optimizing the locality of access and spreading the workload to multiple leaders, we hope to show that the overall performance of the system increases.
+
+When a member of a quorum wishes to access an object that is not in that quorum's tag, one of two things must happen: either a tag decision must be made to reallocate the tag space such that it is local to the new accessor or some mechanism must allow remote accesses between quorums. The former case is expensive, but if the accesses to that object become routine then the upfront cost will pay for future accesses. However, for non-routine accesses some mechanism for remote access is required.
+
+The issue is that a remote access from one tag to another creates an implicit dependency between all accesses that happened before the remote access and all those that follow the local one. Correctness is maintained by the ordering of epochs, so some local split is required. Our proposed solution is similar to the epoch solution: each tag quorum maintains a per-epoch, monotonically increasing sub-epoch counter. In the case of a remote access, that counter is incremented to demarcate the ordering of all accesses in the tag that happened before the remote access and all those that follow. This counter must be replicated in addition to the version number, and can therefore be seen as an explicit dependency applied to all remote writes. As a result, any quorum that receives these ordering indicators can appropriately order their logs.
+
+This mechanism also leads us to suspect that generalizing the consensus hierarchy to arbitrarily deep levels is possible; particularly since the notion of sub-epoch numbers already exists. Clearly some coordination is required to ensure that tag space changes filter down to all leaf nodes, and that is the primary subject of our future work related to this proposal.
+
+In addition to correctness, we also propose to show failure tolerance by utilize Raft-style quorum mechanics. There are two distinct kinds of failure in a hierarchical system: replica failures (a single node crashes and dies) and partitions, where parts of the network are cut off from receiving messages. We believe that we can model failure tolerance from both of these perspectives through a formulation of quorum size, minimal intersection set between quorums, and the depth/breadth of the hierarchy. We propose to show correctness in the face of failure in the least and will stretch to show inherent robustness due to the structure of the hierarchy.
+
+\newpage
 \subsection{Adaptive Consistency}
 
 Given the federation of multiple consistency models and the improved performance of consensus via hierarchical agreement, I propose the final step is the real time adaptation of the network according to observed latency values. Eventually consistent nodes can change their timing parameters at will to take advantage of lower latencies or to save work in sparse network conditions. Joint consensus is required to adapt the parameters of a consensus group. Machine learning algorithms can be used to further learn from the environment and optimize consistency guarantees.
