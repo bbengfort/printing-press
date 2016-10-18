@@ -1,31 +1,134 @@
-# UMD LaTeX Template
+# Requirements for Proposal and Dissertation
 
-Originally from: [Thesis/Dissertation Templates from IREAP](http://www.ipr.umd.edu/resources/thesis-templates#latex)
+This is from Bobby. We can discuss specifics, but I think it lays out
+the a very sweet set of requirements and goals.
 
-The original LaTeX thesis template files were developed by Dorothea Brosius in 2004 as a result of several requests from graduate students writing their dissertations.   The template now in use was updated in January 2015. The software used for Windows-based PC's can be PCTEX, Miktex and WinEdt; Apple users can use Texshop.  Although the sample documents were based on parts of the thesis of Bhaskar Khubchandani, who received his Ph.D. from the University of Maryland, College Park in the Spring of 2004, the template has been updated and follows "[The University of Maryland Electronic Thesis and Dissertation (ETD) Style Guide](http://www.gradschool.umd.edu/sites/gradschool.umd.edu/files/uploads/etd_style_guide_2014.pdf)" (pdf).  In addition, the Table of Contents, the List of Figures, the List of Tables, and the Bibliography are now single-spaced; the main text is double-spaced.
+## Proposal
 
-The current mainthesis.tex uses the hyperref package which links items in your Table of Contents, List of Figures, and List of Tables to corresponding sections in your thesis.   The links will show in blue when you save your thesis as a pdf file.  
+### Talk/Exam
 
-Please email [dbrosius@umd.edu](dbrosius@umd.edu) if you are actually using the LaTeX template (for my records) and also if you have any problems when submitting your thesis to the Graduate School (margins, indentations, etc.) so adjustments can be made to the template.
 
-All of the files needed for your dissertation can be found in [LatexTemplateFiles-2015.zip](http://www.ipr.umd.edu/sites/default/files/documents/theses/LatexTemplateFiles-2015.zip). All of the files should be placed in the folder with your thesis files. Thesis.cls should not be changed. Mainthesis.tex should not be changed unless you include tables in your thesis, in which case you should delete the % sign on the listoftables line and the newpage line.
+ - must not waste time talking about the popularity of the
+    Internet, social networks, mobile systems, *
+      - get to the point.  fast.
 
-Insert your own text and figures in the following files: abstract.tex, titlepage.tex, copyright.tex, acknowledgements.tex, dedication.tex, foreword.tex, chapter1.tex, chapter2.tex, etc., appendix.tex, and bibliography.tex. I have included Bhaskar's .eps files from Chapter 2. If you pdf the files as they are, you can see exactly how a thesis using this template will look. The information in Chapter 2 and the Appendix is identical; I simply copied the text to show the difference between the numbering in a chapter and an appendix.
+ - must put proposed work in context of prior research
 
-These files contain examples of several types of displayed equations (including arrays), as well as enumerated lists, theorems, axioms, references, tables, and displayed figures.
+ - must present specific and falsifiable hypothesis within the first
+five minutes
+     - 'improving wireless networks' is not a reasonable hypothesis
 
-Please note that you must Latex "mainthesis.tex" twice so the references will be properly shown in the dvi file. The dvi file must be changed to a pdf file before it can be submitted to the Graduate Office.
+ - must describe how prior/proposed work satisfies hypothesis
 
-We hope these files will be useful to you. If you need additional assistance or if this information is unclear, please contact [Dottie Brosius](dbrosius@umd.edu) at dbrosius at umd.edu or 301-405-4955.
+ - must be able to articulate and defend assumptions, implied or explicit
 
-## LaTeX "How To" Documents
+ - must be able to to defend why the proposed work is the proper
+      course of action
 
-Thanks to Ryan Clary, Ph.D., 2009, for finding this 13-page document on the web explaining several features of LaTex: "[LaTex--A Typesetting Program](http://www.jgsee.kmutt.ac.th/exell/General/LaTeX.html)".
+ - must be able to articulate why specific lines are not being explored
 
-Another resource, recommended by Dr. Nicholas Mecholsky, Ph.D., 2010, is "[The Not So Short Introduction to LaTex 2ε](http://mirrors.ibiblio.org/CTAN/info/lshort/english/lshort.pdf)" (pdf), by Tobias Oetiker, et al.
+ - must be able to state what will be open even if proposed work is successful
 
-## Using Bibtex
+ - must describe fallback plan if proposed work is not successful
 
-Using Bibtex with LaTeX documents is not difficult. The bulk of the work is organizing your Bibtex file, which is a data base compiled by you of the articles, books, etc. which you use in the bibliographies or reference sections of your publications. The file BibtexSamples.tex contains examples of information needed for the different types of references you may wish to use (e.g., articles in refereed journals, books, uinpublished articles, conference proceedings).
+ - must be able to summarize and explain details of papers on the reading list
+     - OK to consult paper, but not OK to say, 'I was not expecting a question
+        on that paper'.
+     - be able to put paper in context of related papers
 
-Please read the file "[bibtex-instructions.pdf](http://www.ipr.umd.edu/sites/default/files/documents/theses/bibtex-instructions.pdf)". The first two pages explain how to set up and run Bibtex; the remaining pages were taken from a published article and show how the references were cited in the .tex file. The files bibtex-instructions.tex, galactic.bib, and bibtex-samples.tex are the original .tex files used with bibtex-instructions.pdf. The files diorio.bib and griem-bibtex.bib will be helpful when you are using Bibtex.
+
+### Document
+
+ - at most twenty pages, including references
+ - must identify hypotheses
+
+ - must describe prior work in support
+ - detail what is left to do
+ - why the proposed work supports hypothesis
+
+
+### Timeline
+
+  - produce document at least max(three weeks, as agreed with committee member) before proposal date
+
+  - must meet with each committee member at least once prior to proposal to discuss document and proposed work
+        
+     - incumbent upon student to choose committee and timeline such that this is possible
+
+## Dissertation
+
+### Defense
+
+ - talk should identify hypothesis
+    - hypothesis should be falsifiable
+
+ - must be able to *defend* the work
+
+ - must be able to articulate why the hypothesis is satisfied
+
+ - must be able to defend assumptions made in work
+     - committee members should not be able to surprise student
+        with assumptions student had not yet thought about
+
+ - must be able to answer questions about any related work, and any
+      general computer science questions pertaining to techniques
+      used in dissertation
+
+ - must be able to defend details of experiments
+     - must be able to describe what the experiment settings were,
+        why there were chosen, what the limitations were, how
+        valid the results are, what statistical significance the results
+        have, how the experiment could be re-done in retrospect, and why
+        this was not done
+
+### Timeline
+
+  - produce document at least max(three weeks, as agreed with committee member)
+     before proposal date
+       - good idea to produce chapters as they come ready and get them
+         read by committee member.
+       - write well, and get edits from good writers, perhaps in the
+          literature departments
+       - unlikely to get poorly written 250 pages of glop read by anyone
+
+  - must meet with each committee member at least once prior to defense
+     to discuss document and defense
+        - incumbent upon student to choose committee
+           and timeline such that this is possible
+        - ideally meet with committee members once a month
+           after committee is set
+
+### Dissertation Document
+
+ - must be written by student, not by advisor or
+    co-authors of papers
+
+ - must be technical prose,  no colloquialisms
+     - be precise
+     - back up claims with cites
+     - be careful with adjectives and be ready to defend them
+     - give reader information to decide whether something
+        is very *, extremely *, ...
+     - be ready to back up 'optimal' whenever it is written down
+     - define units, watch out for 'overhead'
+
+ - must include an intro that puts work in perspective
+     - describes why the problem is interesting (optionally important)
+
+  - must identify falsifiable hypothesis
+
+  - must describe why the work satisfies hypothesis
+
+  - each research chapter should be more than merely published  (page-limited)
+     conference papers
+       - if there is an obvious experiment that could not  be included
+          in the conference paper, it MUST be included in the dissertation
+
+  - must contain _comprehensive_ description of related work.  the bar for
+     a dissertation is much much higher than a conference or even journal
+     paper
+
+ - conclusions should describe what the student learned, what the hard problems
+    were, and outline open problems
+       - conclusions are where a personal statement about the work can be
+           formalized.  use the opportunity.
