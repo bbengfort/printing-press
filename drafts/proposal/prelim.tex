@@ -291,15 +291,52 @@ Because our system model accounts for heterogenous devices and each write in the
 
 \section{Proposed Work}
 
-I propose three primary approaches and projects that will integrate into a final, fully implemented file system: Federated Consistency, Hierarchical Consensus, and Adaptive Consistency.
+In order to investigate the effects of consistency and scaling in heterogenous, partition prone, variable latency networks we propose to build a distributed file system called FlowFS that implements two primary methodologies: Federated Consistency and Hierarchical Consensus. Federated Consistency allows us to create a flexible, heterogenous distributed system, allowing different replica servers to maintain different consistency levels based on need, but ensuring that global consistency guarantees are met. Hierarchical Consensus extends the Raft consensus protocol such that the quorum can scale, providing high availability sequential consistency. We further propose the stretch goal of the investigation of real time optimization and adaptation in response to changing network environments in mobile contexts. This stretch investigation will explore heuristic methods of optimization and steering configuration changes, as well as explore active, machine learning mechanisms
 
 \subsection{Federated Consistency}
+
+Heterogenous topologies with multiple users mean a variety of requirements for both availability and correctness. For example, consider a user working on a non-critical document on a train with limited cellular connectivity; the requirement here is probably high availability and progress rather than strong replication. On the other hand, during collaborative document editing, users might want to ensure strong sequential consistency and are willing to accept minimal delays such that the document is always in a consistent state. However, it is not possible to maintain a single, global consistency level that meets both of these requirements, leading us to the question: can consistency be adapted or tuned at runtime in such a way as to provide more availability in low connectivity situations or for low conflict objects and strong consistency and correctness in optimal network conditions or for critical or high priority workloads?
+
+% Make sure to show that this is work already underway.
+
+In order to scale a distributed storage system in the face of variable, partition-prone network environments and heterogenous, wide-area topologies
 
 The Federated Consistency model allows individual replicas to select their own local consistency policies and engage in replication according to the mechanism specified by the policy. Each replica maintains its own local state which is modified in response to local accesses as well as the receipt of messages from remote replicas. Each replica sends messages to other nodes in order to propagate the latest writes as well as to perform housekeeping. Therefore every replica can be seen as an event handler that responds to local access events as well as remote messages and generates more events (sent messages) in return. Simply put, so long as every federated replica has an event handler for all types of RPC messages, federation only has to be defined at the \textit{consistency boundaries}, that is when replicas of one consistency type send messages to that of another.
 
 Given the consistency models discussed in the previous section, we will omit weak consistency as being too simplistic and linearizability as being too performance restrictive. Instead we will focus on the federation of eventual consistency, implemented with latest-writer wins gossip based anti-entropy, and sequential consistency implemented with the Raft consensus algorithm.
 
-\newpage
+A federated consistency protocol finds a middle ground in the trade-off between performance and consistency, particularly between an eventually consistent system implemented via gossip-based anti-entropy \cite{kempe_gossip-based_2003} and a sequential consistency model implemented by the Raft consensus protocol \cite{ongaro_search_2014}. By exploring these two extremes in the consistency spectrum we show that the overall number of inconsistencies in the system is reduced from the homogenous eventual system and that the access latency is decreased from the homogenous sequential system. Moreover, because the global consistency of the system is topology-dependent, it can be said to have flexible or dynamic consistency. We have found that large systems with variable latency in different geographic regions can perform well by allowing most nodes to operate in an optimistic fashion, but maintain a strong central quorum to reduce the amount of global conflict.
+
+\subsubsection{Gossip and Anti-Entropy}
+
+Eventual consistency is implemented by periodic \textit{anti-entropy} sessions that converge replicas towards the same state (e.g. reducing entropy, the divergence between the states of individual replicas) \cite{kempe_gossip-based_2003}. On a routine interval, specified by the \texttt{anti-entropy delay} timing parameter, a replica will randomly select one of the other replicas in the system and send a \texttt{Gossip} message that contains the latest version of all objects in the replica's local log. On receipt of the \texttt{Gossip} message, the remote replica will compare the RPC object versions with those in its local log. If the RPC versions are later, it will append the later versions of the object to the log (\textit{last-writer wins}). However if the remote object version is later it will send that version back to the originating node in a \texttt{GossipResponse} message. As a result, our anti-entropy implementation is \textit{bilateral}.
+
+Replicas that implement eventual consistency read locally and write to their local latest version introducing zero read and write latency. Forks are caused by staleness due to the amount of time it takes to propagate a write to the rest of the system, the visibility latency.
+
+\subsubsection{Strong Core Consensus Group}
+
+Sequential consistency is implemented via the Raft consensus algorithm \cite{ongaro_search_2014}. However, consensus alone does not ensure that sequential consistency is implemented and a number of policy decisions about how Raft followers read and write and interact with the leader must be discussed.
+
+The Raft leader has the primary responsibility of coordinating all other Raft replicas. To that end, the leader will broadcast periodic \texttt{AppendEntries} messages to all other Raft followers in order to maintain their leadership for the given term. A write access that originates at a follower must be sent as a \texttt{RemoteWrite} to the leader. The leader accepts writes in the order that they are received, and if the leader detects a fork -- that is that a write has a parent version who already has a child version in the log -- Raft will simply reject (drop) the write. In order to minimize the number of messages that Raft sends, Raft will aggregate all writes into the next \texttt{AppendEntries} message and send them together.
+
+Because all writes that originate at followers are forwarded to the leader, the leader can guarantee a sequential ordering of updates. Therefore on receipt of an \texttt{AppendEntries} message, followers simply add the entries to their log and respond with their last index. If a majority of followers append entries to their logs, the leader will mark those entries as committed and inform the followers the write has been committed on the next \texttt{AppendEntries}.
+
+However, although all writes are sequentially ordered, Raft nodes must decide what to do read, and there are several options:
+
+\begin{enumerate}
+    \item \textit{READ COMMITTED} Raft replicas will only read the latest committed version of an object, guaranteeing that the write will not be rolled back in the case of an outage. However, this read mode introduces the potential for a lot of staleness and therefore forks.
+    \item \textit{READ LATEST} Raft replicas will read the latest version of the object in their log, even if it hasn't been committed. Moreover, replicas will read their own local writes rather than waiting for an \texttt{AppendEntries} to return their write.
+    \item \textit{REMOTE READ} Rather than read locally, simply request the latest version from the leader. This introduces the potential for additional latency, but may be faster if the expected message latency is less than the heartbeat interval.
+\end{enumerate}
+
+Each of these options has critical implications for the likelihood of stale reads and writes in the system. Replicas would choose read committed if the network was highly partition prone and messages from the leader were unstable and prone to being rolled back. Remote read servers replicas well when the average message latency is far lower than the heartbeat interval, though this could be improved by making the heartbeat interval similar to the network latency. For this reason, we have selected read latest as the most likely scenario for a file system implementing sequential consistency with Raft.
+
+\subsubsection{Integration}
+
+A key requirement of Federated Consistency is the opportunity to create a homogenous systems with no performance cost, e.g. a homogenous eventual cloud and a homogenous Raft cloud will perform equivalently even if they implement the Federated protocol. However, if a strong, central consensus group is present, the eventual cloud should be able to synchronize with it, minimizing forks in the long run. Similarly, Raft nodes should be able to use anti-entropy mechanisms to replicate data and continue writing even if the leader is unavailable and no consensus can be reached to elect a leader.
+
+Because anti-entropy messages have no implication on the state of consensus, we have elected to use 
+
 \subsection{Hierarchical Consensus}
 
 Federated consistency presents the opportunity to extend distributed storage systems to medium to large scale networks comprised of dozens of replica servers even in the face of high variability in unstable, mobile network environments. By allowing replicas to participate in eventual consistency replication if required to maintain a minimum quality of service, the system becomes flexible enough to handle variability. The key to Federation, however, is the strong central quorum that coordinates partitions in the eventual cloud, handling conflicts and pruning forked branches, minimizing overall inconsistency in the system.
@@ -334,7 +371,7 @@ Consider the simple example shown in Figure \ref{fig:ordered}, implemented using
 
 In this example, we have only nominated one \textit{explicit} dependency on each write, the parent version, and enforced a no-forks invariant as a policy on this dependency at the leader. A consequence of this style consistency is the \textit{implicit} causality of all prior writes to a given write. For example, $W_i(C.1 \rightarrowtail C.2)$ implies implicit dependencies on $A.2$ and $B.3$, e.g. any versions that could have possibly been read prior to the write (and also the reason that reads must be logged in order to achieve linearizability). Similarly $W_k(B.3 \rightarrowtail B.5)$ has implicit dependencies on $A.2$ and $C.1$, more closely inspecting the log we can see that $C.2 \rightarrow B.5$ and $C.1 \rightarrow C.2$ therefore by transitivity, $C.1 \rightarrow B.5$, a correct interpretation of the log and implicit dependencies.
 
-While implicit dependencies are critical to consistency, we observe that it is unlikely that a write is truly dependent on every historical write but is rather dependent on a local, recent subset of the namespace \cite{bailis_potential_2012}. Hierarchical consensus therefore makes use of \textit{explicit} causality to allocate the namespace to subquorums in order to balance the leader workload.
+While implicit dependencies are critical to consistency, we observe that it is unlikely that a write is truly dependent on every historical write but is rather dependent on a local, recent subset of the namespace \cite{bailis_potential_2012}. Hierarchical consensus therefore makes use of \textit{explicit} causality to allocate the namespace to subquorums in order to balance the leader workload. This has several implications including allowing the ability to lock the ownership of a series of critical files, to specify particular replicas as stable storage for high value data, or to maintain policies and invariants that go beyond ordering; for example spatial polices (what data gets stored), temporal policies (what versions are stored) and synchronization policies (how and when replication occurs).
 
 \subsubsection{Namespace Allocation}
 
@@ -355,39 +392,54 @@ The fundamental relationship between accesses in epochs is as follows: any acces
 
 \subsubsection{Operation}
 
+\begin{figure}
+    \centering
+        \includegraphics[width=.9\textwidth]{figures/subepoch}
+        \caption{Sub-epochs allow remote accesses between tags without a tagspace change.}
+        \label{fig:subepoch}
+\end{figure}
+
 The namespace allocation creates a tiered structure of leadership such that the root quorum is responsible for the entire namespace, subquorums are responsible for tags, and leaves are responsible for handling accesses to their tag. Any access to an object must be forwarded as a remote access to the leader of the quorum that handles the tag that encapsulates the object. The only exception is the optimization made for members of the quorum who can read locally any object in their tag space. By optimizing the locality of access and spreading the workload to multiple leaders, we hope to show that the overall performance of the system increases.
 
 When a member of a quorum wishes to access an object that is not in that quorum's tag, one of two things must happen: either a tag decision must be made to reallocate the tag space such that it is local to the new accessor or some mechanism must allow remote accesses between quorums. The former case is expensive, but if the accesses to that object become routine then the upfront cost will pay for future accesses. However, for non-routine accesses some mechanism for remote access is required.
 
-The issue is that a remote access from one tag to another creates an implicit dependency between all accesses that happened before the remote access and all those that follow the local one. Correctness is maintained by the ordering of epochs, so some local split is required. Our proposed solution is similar to the epoch solution: each tag quorum maintains a per-epoch, monotonically increasing sub-epoch counter. In the case of a remote access, that counter is incremented to demarcate the ordering of all accesses in the tag that happened before the remote access and all those that follow. This counter must be replicated in addition to the version number, and can therefore be seen as an explicit dependency applied to all remote writes. As a result, any quorum that receives these ordering indicators can appropriately order their logs.
+The issue is that a remote access from one tag to another creates an implicit dependency between all accesses that happened before the remote access and all those that follow the local one. Correctness is maintained by the ordering of epochs, so some local split is required. Consider the example in Figure \ref{fig:subepoch}: the remote read access, $R_j(C)$ implies any writes to tag $D-F$ following the read depends an all writes in tag $A-C$ that occurred before the read. Furthermore, the remote write $W_j(C.3 \rightarrowtail C.4)$ is a non-conflicting write, depends on all writes on tag $D-F$ that happened before \textit{and} depends on all writes in tag $A-C$ that occurred before the remote read, and occurs concurrently with any writes that happen after so long as there is no conflict.
+
+Our proposed solution is similar to the epoch solution: each tag quorum maintains a per-epoch, monotonically increasing sub-epoch counter. In the case of a remote access, that counter is incremented to demarcate the ordering of all accesses in the tag that happened before the remote access and all those that follow. This counter must be replicated in addition to the version number, and can therefore be seen as an explicit dependency applied to all remote writes. As a result, any quorum that receives these ordering indicators can appropriately order their logs.
 
 This mechanism also leads us to suspect that generalizing the consensus hierarchy to arbitrarily deep levels is possible; particularly since the notion of sub-epoch numbers already exists. Clearly some coordination is required to ensure that tag space changes filter down to all leaf nodes, and that is the primary subject of our future work related to this proposal.
 
 In addition to correctness, we also propose to show failure tolerance by utilize Raft-style quorum mechanics. There are two distinct kinds of failure in a hierarchical system: replica failures (a single node crashes and dies) and partitions, where parts of the network are cut off from receiving messages. We believe that we can model failure tolerance from both of these perspectives through a formulation of quorum size, minimal intersection set between quorums, and the depth/breadth of the hierarchy. We propose to show correctness in the face of failure in the least and will stretch to show inherent robustness due to the structure of the hierarchy.
 
-\newpage
 \subsection{Adaptive Consistency}
 
 Given the federation of multiple consistency models and the improved performance of consensus via hierarchical agreement, I propose the final step is the real time adaptation of the network according to observed latency values. Eventually consistent nodes can change their timing parameters at will to take advantage of lower latencies or to save work in sparse network conditions. Joint consensus is required to adapt the parameters of a consensus group. Machine learning algorithms can be used to further learn from the environment and optimize consistency guarantees.
 
 \section{Timeline}
 
-My proposed timeline is as follows:
+In order to meet the requirements of this proposal and provide substantive results for a dissertation, we propose to undertake the following projects, along with their given priority and timeline.
 
 \begin{center}
-\begin{tabular}{|l|c|}
+\begin{tabular}{|l c|c|}
 \hline
-Federated Consistency & 2 months \\
-Hierarchical Consensus & 3 months \\
-Flow File System & 4-5 months \\
-Adaptive Consistency & 2-3 months \\
+Project & Priority & Time Estimate \\
 \hline
-\textbf{TOTAL} & 11-13 months \\
+Simulation of Federated Consistency & $\bigtriangleup$ & 1 months \\
+Simulation of Hierarchical Consensus & $\bigtriangleup$ & 2 months \\
+Implementation of the FlowFS & $\bigtriangleup$ & 3-4 months \\
+Evaluation of FlowFS on real workloads & $\bigtriangleup$ & 2-3 months \\
+Proof of correctness and consistency & $\bigtriangleup$ & 1 month \\
+Heuristics to optimize and allocate FlowFS & $\bigtriangledown$ & 1 month \\
+Online optimization and consistency adaptation & $\bigtriangledown$ & 2-3 months \\
+\hline
+\multicolumn{2}{|l|}{\textbf{TOTAL}} & 12-16 months \\
 \hline
 \end{tabular}
 \end{center}
 
-Paper deadline goals:
+After investigations and evaluations of Federated Consistency and Hierarchical Consensus in simulation, I propose to implement a file system utilizing both mechanisms and verify the system meets consistency requirements on large networks in real world workflows. Goals marked with $\bigtriangleup$ indicate necessary checkpoints to the successful completion of the dissertation, including some proof of correctness. I further propose the stretch goals (marked with $\bigtriangledown$) of real time adaptation and online optimization, investigating the application of both heuristics and active machine learning techniques to learn usage patterns and improve consistency and performance.
+
+Based on preliminary work done in simulation I propose the following paper deadline goals:
 
 \begin{itemize}
 \item IEEE International Conference on Distributed Computing Systems, June 2017: Federated Consistency

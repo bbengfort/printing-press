@@ -1,1 +1,811 @@
 
+@inproceedings{drago_inside_2012,
+  title = {Inside Dropbox: Understanding Personal Cloud Storage Services},
+  shorttitle = {Inside Dropbox},
+  timestamp = {2016-04-27T20:10:07Z},
+  urldate = {2016-04-27},
+  booktitle = {Proceedings of the 2012 {{ACM}} Conference on {{Internet}} Measurement Conference},
+  publisher = {{ACM}},
+  author = {Drago, Idilio and Mellia, Marco and {M Munafo}, Maurizio and Sperotto, Anna and Sadre, Ramin and Pras, Aiko},
+  year = {2012},
+  pages = {481--494},
+  file = {[PDF] from utwente.nl:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/2PEXBC6J/Drago et al. - 2012 - Inside dropbox understanding personal cloud stora.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/TZXT9E7C/citation.html:text/html}
+}
+
+@inproceedings{muthitacharoen_low-bandwidth_2001,
+  title = {A Low-Bandwidth Network File System},
+  volume = {35},
+  timestamp = {2014-09-23T21:14:10Z},
+  urldate = {2014-09-23},
+  booktitle = {{{ACM SIGOPS Operating Systems Review}}},
+  publisher = {{ACM}},
+  author = {Muthitacharoen, Athicha and Chen, Benjie and Mazieres, David},
+  year = {2001},
+  pages = {174--187},
+  annote = {LBFS uses an rsync-like approach to reduce network traffic by comparing chunks of the remote and local files and only sending data that has changed across the network. They solved one of the main problems with rsync, namely that if a change happens towards the beginning of a file the rsync algorithm has the potential of being required to sync all chunks after the change. By using a sliding window based on Rabin's fingerprint, the LBFS attempts to chunk files based on their content, not on a fixed chunk size; thereby allowing insertions and deletions to only affect surrounding chunks.
+~
+The innovation of this paper therefore is the use of a variable chunk size to perform synchronization over the network by comparing the hashes of chunks and only transmitting any required chunk of data. This approach also allows LBFS to sync chunks from multiple files rather than comparing by file name by using the chunk hashes a broad sketch for the contents of any file.
+~
+My concern with this file system is that it uses timestamps and TCP to ensure consistency. Although a three tiered system included leases is used to determine change; these leases are measured by the attributes of a timestamp on both the client and the server. Synchronization of the clocks could become a huge issue. Additionally, although they use a temporary file to prevent errors or corruption and rely on the the ordered nature of TCP to ensure that a commit always happens after all the writes; it feels like the possibility exists for two clients to be writing to the file and the same time to manage to corrupt a file through bad timing or bad clocks. This filesystem was designed for a single client to access a remote file system at a time, not to have multiple clients sharing the same file system.},
+  file = {lbfs.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/7FI2U46D/lbfs.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/D9VWQBIR/citation.html:text/html}
+}
+
+@article{lamport_time_1978,
+  title = {Time, Clocks, and the Ordering of Events in a Distributed System},
+  volume = {21},
+  timestamp = {2016-04-27T14:51:27Z},
+  number = {7},
+  urldate = {2014-09-23},
+  journal = {Communications of the ACM},
+  author = {Lamport, Leslie},
+  year = {1978},
+  pages = {558--565},
+  file = {time-clocks.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/78B6GF2X/time-clocks.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/UKM49XF2/citation.html:text/html}
+}
+
+@article{stoica_chord:_2001,
+  title = {Chord: {{A}} Scalable Peer-to-Peer Lookup Service for Internet Applications},
+  volume = {31},
+  shorttitle = {Chord},
+  timestamp = {2016-04-29T02:35:08Z},
+  number = {4},
+  urldate = {2014-09-23},
+  journal = {ACM SIGCOMM Computer Communication Review},
+  author = {Stoica, Ion and Morris, Robert and Karger, David and Kaashoek, M. Frans and Balakrishnan, Hari},
+  year = {2001},
+  pages = {149--160},
+  annote = {Peer-to-peer systems are dynamic and robust because no node is more important than any other node; this leads to fault tolerance and network adaptation, but also a significant challenge: how do you efficiently locate data in a peer-to-peer network? There is no one oracle that knows the location of everything to ask, so you have to engage in a game of telephone with other computers to find what you're looking for. How to efficiently go about this game is the problem that Chord solves. The innovation of the Chord system is the implementation of a \_key-node\_ data storage system. Unlike a key-value store where, given some key you are able to quickly find a value, the key-node store utilizes the key to report the location of the closest node that is assigned the key. It does this by utilizing a ring topology with a consistent hashing algorithm to assign key/identifiers pairs to each node in the network. The ring topology ensures that~ nodes that enter and exit the network minimize disruption (and they have implemented algorithms to handle failures and resizing of the network) - but more importantly it ensures the following two theorems, proved in the paper:1. Each node only has to store information about local nodes, about O(log \_N\_) and therefore lookups only require that same amount of information. 2. When the nth node leaves the network, with high probability only O(1/n) fraction of keys must be moved, ensuring load balancing.These are fantastic claims for the effeciency of a distributed system, and the authors do a very good job of demonstrating proofs for their claims; including probability density functions along with their simulation results to show the likelihood of the orders discussed above. I especially liked the idea that with a flat keyspace; names could be anything and DNS-style lookups might not be required in a network configured with Chord.My primary critique of this paper centers around the idea that every node can connect to every other node; as in the simulation. In section 6.1 they state that Chord can operate in two modes: \_iterative\_ where the requesting node makes routing requests until it finds the node it was looking for and \_recursive\_ where requests are forwarded along the network and then back again. The simulation that they reported was for the \_iterative\_ method. The problem is, that an \_iterative\_ method does require some routing capability alongside the nodes to send network traffic correctly to the right node. Clearly the authors had an Internet system in mind when they designed this; but what about a dynamic network topology? It would seem that in this case, the \_recursive\_ method would bog down the nodes in keyspace requests and that the O(log\textsuperscript{2} \_N\_) messages for routing updates would actually end up being O(\_N\_ log\textsuperscript{2} \_N\_).},
+  file = {chord_sigcomm.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/EITB4QE2/chord_sigcomm.pdf:application/pdf;[PDF] from psu.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/VWGA2P8F/Stoica et al. - 2001 - Chord A scalable peer-to-peer lookup service for .pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/8U6AJD7G/citation.html:text/html;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/EVQ2M2Q3/citation.html:text/html}
+}
+
+@article{kubiatowicz_oceanstore:_2000,
+  title = {Oceanstore: {{An}} Architecture for Global-Scale Persistent Storage},
+  volume = {35},
+  shorttitle = {Oceanstore},
+  timestamp = {2014-09-23T21:17:00Z},
+  number = {11},
+  urldate = {2014-09-23},
+  journal = {ACM Sigplan Notices},
+  author = {Kubiatowicz, John and Bindel, David and Chen, Yan and Czerwinski, Steven and Eaton, Patrick and Geels, Dennis and Gummadi, Ramakrishan and Rhea, Sean and Weatherspoon, Hakim and Weimer, Westley and {others}},
+  year = {2000},
+  pages = {190--201},
+  annote = {OceanStore is an interesting paper - it explores the topic of persistent information storage in a world of many high performing, interconnected computing devices. The problem of storage is no longer local to a single machine (storage is cheap for that machine), because the machines outnumber humans. Therefore the multiple machines that a human uses in multiple locations will have to have access to the same information in a transparent, secure and durable manner. The question then becomes, where should that information be stored?
+~
+OceanStore proposes a uniform, distributed infrastructure for data storage (an ocean, not a cloud) based on the availability of connectivity and cheap storage; OceanStore is a data management layer on top of storage. The user will know nothing about where the data is located, just that it's always available. Importantly, OceanStore proposes a global infrastructure, meaning that only a world-wide disaster would cause data loss.
+~
+There seems to be no single innovation that you can point to in this paper; the innovation is rather the integration of several ideas into a concerted whole, with a particular emphasis on security. The first is the idea of using self-certifying path names that are hashed with identifiers to act as GUIDs for the objects in the data store, a second is the use of encryption for both read and write access control. The third is a way of using ECB encryption to ensure that block-level updates and block-based management of files can be implemented in a system that contains all encrypted files. A fourth is the distributed routing that combines attenuated bloom filters for pobabilistic routing with the Plaxton location based routing algorithm as a fall back.
+~
+The fifth idea is the use of Byzantine agreement protocols to handle serial updating in the network. A sixth is the use of deep archival storage for versioning, but also importantly using tornado or other erasure marking algorithms for deletion. Finally, the last idea (that I'll mention) is the use of introspection to maintain the cluster as it persists for a long time.
+~
+There are probably more ideas that I didn't mention that are embedded in this paper, but all of these ideas drive to one theme: a secure, global data infrastructure that provides low-latency access to a user's data anywhere. It's hard to critique these ideas; except to say that the emphasis on security, particularly in a global context is absolutely required and I approve of the authors focusing on it. One comment that I should make, though, is that OceanStore requires a global distributed network in order to function in the manner described; the implementation of such an infrastructure would require not just technological changes, but also policy and social ones as well.},
+  file = {oceanstore-asplos.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/SA3WZVT9/oceanstore-asplos.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/FNRG8IBV/citation.html:text/html}
+}
+
+@inproceedings{mashtizadeh_replication_2013,
+  title = {Replication, History, and Grafting in the {{Ori}} File System},
+  timestamp = {2014-09-29T15:07:48Z},
+  urldate = {2014-09-29},
+  booktitle = {Proceedings of the {{Twenty}}-{{Fourth ACM Symposium}} on {{Operating Systems Principles}}},
+  publisher = {{ACM}},
+  author = {Mashtizadeh, Ali Jos{\'e} and Bittau, Andrea and Huang, Yifeng Frank and Mazieres, David},
+  year = {2013},
+  pages = {151--166},
+  annote = {Users have multiple devices, and many of those devices have data storage capacities that far exceeds data transfer rates over a standard broadband connection. Therefore, as the authors state, if you bring a laptop with a 256 GB disk to work with you; you've achieved a significant increase in bandwidth over using Dropbox or S3 to store your data in the cloud. The OriFS attempts to solve data synchronization and backup with a Git-like peer-to-peer file system.
+~
+The more cynical might say that the OriFS is solving the problem "what should I do with all of this extra disk space I have on my 3 TB harddisk?" Ori's answer? Fill it up with versioning!
+~
+The innovation in this paper is grafting - essentially the ability to rebase two file systems from some historical point in their version trees. Utilizing a grafting mechanism, the authors of the paper are able to synchronize file systems, resolving dependencies and conflicts with the version history. The best way to describe what is happening in the file system is to use distributed version control terminology - and in fact, the authors have to compare and contrast what the OriFS is doing throughout their paper with DVCS systems like Git and Mercurial. Essentially, they have applied DVCS to a general purpose file system and thought about the differences needed between the two.
+~
+For example, although Ori uses RK blocks to store blobs of data, it cannot use delta compression algorithms like Git does because these are too resource intensive for the file system. Unlike Git and Mercurial, (and more like Dropbox) Ori has an automatic synchronization daemon that always runs so that users do not have to push and pull merges themselves - this assists with file conflicts because always connected devices should receive grafts in a timely fashion. Also unlike Git, Ori has space reclamation processes to free up disk space from old versions.
+~
+Using FUSE, Ori really does feel like a distributed version control system implemented as a file system. They put a lot of thought into the DVCS-like aspects of the file system, but not a lot of effort into the file system parts. For example; the authors could have put more thought into the policies for automatically deleting old versions, more akin to the thought in the Elephant File system. Although the authors do have automatic synchronization; it does feel that they have to do a bit more work to handle conflict resolution and to minimize the effort the user has to put into the file system. Although tools like Git are intended to be collaborative (and Git users are expected to deal with conflicts), this might be more onerous in a general purpose file system.},
+  file = {[PDF] from sigops.org:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/J3355CD6/J3355CD6.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/ZP2VB24X/Mashtizadeh et al. - 2013 - Replication, history, and grafting in the Ori file.html:text/html}
+}
+
+@article{lamport_paxos_2001,
+  title = {Paxos Made Simple},
+  volume = {32},
+  timestamp = {2016-05-02T18:52:43Z},
+  number = {4},
+  urldate = {2014-11-03},
+  journal = {ACM Sigact News},
+  author = {Lamport, Leslie},
+  year = {2001},
+  pages = {18--25},
+  file = {paxosMadeSimple.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/W6A4KIAI/paxosMadeSimple.pdf:application/pdf}
+}
+
+@article{terry_managing_1995,
+  title = {Managing Update Conflicts in {{Bayou}}, a Weakly Connected Replicated Storage System},
+  volume = {29},
+  timestamp = {2014-10-01T19:18:57Z},
+  urldate = {2014-10-01},
+  journal = {ACM},
+  author = {Terry, Douglas B. and Theimer, Marvin M. and Petersen, Karin and Demers, Alan J. and Spreitzer, Mike J. and Hauser, Carl H.},
+  year = {1995},
+  annote = {Mobile computing environments particularly those that involve laptops or cell phones have less than ideal connectivity. Laptops, even with the profusion of wireless networks will have generally less bandwidth traveling than their desktop counterparts attached to broadband lines. Cell phones are charged by the minute and most applications should not consider cellular connectivity as a constantly on pipe. Moreover, computing happens in scary places like in University libraries where folks undertaking bibliographic data entry may find themselves "subject to student hackers" (page 2, last paragraph of section 2.2).~
+~
+Bayou provides a data infrastructure for collaborative applications in such environments through an eventually consistent peer-to-peer data transfer protocol. Eventually consistent systems mean that if no new writes are added all applications will have the same state eventually depending on connectivity, latency, and various policies. The key innovation of this paper stems from thought about dealing with conflicts.~
+~
+Bayou nodes synchronize data routinely through "anti-entropy" protocols that are designed to synchronize write logs. Every write has a dependency check associated with it as well as an application-specific conflict resolution. Two servers exchange data compare their logs in time order then replay writes along with the conflict resolutions so that when the sync is done, both servers have the same data. These anti-entropy synchronizations happen on demand as clients and servers are connected to the network ensuring that everyone is updated eventually.~
+~
+Every write is marked tentative until some primary server responsible for the application deems it time to commit. Tentative writes must have conflict resolution applied in order to sort out the state of the data; but committed data is accepted without~ quorum. Even if the primary is not attached to the network, when it does become attached the commits will spread through the network. Having a primary seems like a useful and simple way of achieving a committed write, but it does add extra burdens to the network. The primary machine can't be down for long; and if that machine resides on campus or on a specific local network, it might be a long time before mobile devices can get commits, which could impair the functionality of many applications especially time sensitive ones like meeting schedulers.~
+~
+I think it is necessary that Bayou considered the access controls of a system like this - tentative writes and primary systems pose potential problems for access. On the one hand Bayou could be implemented on a trusted network, but the peer-to-peer sharing aspects are what make the eventual consistency work. However, the idea of a certificate purse doesn't seem too innovative; especially when keys might be shared in the same eventually consistent manner. The access control aspects seemed tacked on and could use more thought.~},
+  file = {bayou.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/855BHFVP/bayou.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/F2HXDSBX/citation.html:text/html}
+}
+
+@inproceedings{terry_session_1994,
+  title = {Session Guarantees for Weakly Consistent Replicated Data},
+  timestamp = {2014-10-01T19:19:31Z},
+  urldate = {2014-10-01},
+  booktitle = {Parallel and {{Distributed Information Systems}}, 1994., {{Proceedings}} of the {{Third International Conference}} on},
+  publisher = {{IEEE}},
+  author = {Terry, Douglas B. and Demers, Alan J. and Petersen, Karin and Spreitzer, Mike J. and Theimer, Marvin M. and Welch, Brent B.},
+  year = {1994},
+  pages = {140--149},
+  annote = {Applications that work on eventually consistent replica systems are highly available and scalable (not to mention simple to implement), however they suffer from a lack of guarantees concerning the order of reads and writes. My favorite example from the paper was someone who updates their password; but then immediately afterwards gets an incorrect password error when attempting to log in because the system is still reading the password from before the write of the new password. This is obviously not a good situation for users who may be confused about what happens in the background and such inconsistencies can cause application behaviors that may worsen the problem.
+~
+Terry et al. propose session guarantees; essentially four policies for how applications view data from the point of view of their own actions. These guarantees if requested and given from a server allow the application to view the weakly consistent system as a single server making transactions; but in no way correspond to atomicity in modern DBMSs. This paper is essentially additional work from the Bayou system where session guarantees are implemented in Bayou client-server interactions.
+~
+The guarantees themselves; Read your writes; monotonic reads; writes follow reads; and monotonic writes are familiar to those who have dealt with atomic transactions in other systems. The policies themselves scale from a minimal amount of required state to much more state required for each interaction - and the application can choose the level at which it requires operation.
+~
+Practically, these session guarantees are requested from the client to the server the client is interacting with; and the server can decide whether or not to provide the guarantee; there is no system wide effect. This system therefore assumes that clients really only interact with one server at a time and that a local view of the data is enough for the user to work with said guarantees. Certainly if the client is interacting with a primary server (meaning that the server is able to make commits) these guarantees should all be easily implantable. However, peer systems will probably not give any guarantees of the session, which leads to the original problem.
+~
+I believe that sessions work in Bayou systems with a variety of routinely available primary systems, but am skeptical about their practicality in general. Since these guarantees are essentially at the local level; they are important to individual applications interacting with a single server, but are not a complete or sufficient solution; the application will still need to deal with tentative data that may or may not have conflict resolutions.},
+  file = {sessionGuarantees.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/HECFA9XG/sessionGuarantees.pdf:application/pdf;[HTML] from parc.com:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/2BP4AII2/www.parc.com.html:text/html;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/G2RVX28B/cookiedetectresponse.html:text/html}
+}
+
+@inproceedings{chandra_paxos_2007,
+  title = {Paxos Made Live: An Engineering Perspective},
+  shorttitle = {Paxos Made Live},
+  timestamp = {2016-05-02T18:52:41Z},
+  urldate = {2014-11-03},
+  booktitle = {Proceedings of the Twenty-Sixth Annual {{ACM}} Symposium on {{Principles}} of Distributed Computing},
+  publisher = {{ACM}},
+  author = {Chandra, Tushar D. and Griesemer, Robert and Redstone, Joshua},
+  year = {2007},
+  pages = {398--407},
+  file = {paxosMadeLive.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/VXVIGPGK/paxosMadeLive.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/GHN8T7NI/citation.html:text/html}
+}
+
+@article{vogels_eventually_2009,
+  title = {Eventually Consistent},
+  volume = {52},
+  timestamp = {2016-04-29T00:58:02Z},
+  number = {1},
+  urldate = {2016-04-29},
+  journal = {Communications of the ACM},
+  author = {Vogels, Werner},
+  year = {2009},
+  pages = {40--44},
+  file = {[PDF] from psu.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/BCJMUF23/Vogels - 2009 - Eventually consistent.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/SZVPHTEF/citation.html:text/html}
+}
+
+@inproceedings{decandia_dynamo:_2007,
+  title = {Dynamo: Amazon's Highly Available Key-Value Store},
+  volume = {41},
+  shorttitle = {Dynamo},
+  timestamp = {2016-04-27T14:53:01Z},
+  urldate = {2014-10-15},
+  booktitle = {{{ACM SIGOPS Operating Systems Review}}},
+  publisher = {{ACM}},
+  author = {DeCandia, Giuseppe and Hastorun, Deniz and Jampani, Madan and Kakulapati, Gunavardhan and Lakshman, Avinash and Pilchin, Alex and Sivasubramanian, Swaminathan and Vosshall, Peter and Vogels, Werner},
+  year = {2007},
+  pages = {205--220},
+  annote = {Dynamo is another production-grade distributed data service that meets the specific needs of a major web application. However, Dynamo does seem to have more general design principles compared to GFS. Specifically the problem that Dynamo is trying to address is the fact that most of their web application dependencies do not involve relationships; that is lookups and writes are to a single key in a single table. Relational databases have a lot of overhead to provide ACID transactions on related data and do not scale or partition well. If single key GET and PUT operations are all that's required of the data store, Amazon hopes to trade on consistency to ensure a highly available system that is partition tolerant.~
+
+Dynamo seems to be an implementation of many of the papers we've read so far, especially Chord and the idea of distributed hash tables). It also borrows ideas to a lesser extent from Oceanstore in terms of routing and versioning, Bayou in terms of anti-entropy, and Ori in terms of replication (and this paper mentions other file systems that we haven't read that probably also contribute significantly to the architecture). Versions are stored with vector clocks and routing is handled by fingerprint tables stored on each node. Consistency is handled by quorum and ring membership and failures are handled through a gossip synchronization protocol.~
+
+In all, it seems that the application-specific requirements of Dynamo led to an implementation that was able to reduce the impact of the criticisms of earlier work. For example, because the key space is not hierarchical like a file system is, some of the anti-entropy and and Merckle tree synchronizations become a lot simpler. Because the data objects are small (usually less than a MB) no chunking is required around the key ring. Because Amazon owns the infrastructure, routing can be handled by tables on every node. Dynamo is a true peer to peer distributed system (no centralized services for maintenance) that has been heavily tuned to the requirements of Amazon applications.~},
+  file = {amazonDynamo.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/AQH9AZHQ/amazonDynamo.pdf:application/pdf;[PDF] from harvard.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/EIHW3SC8/DeCandia et al. - 2007 - Dynamo amazon's highly available key-value store.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/5J7C4EBG/citation.html:text/html;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/XDPRWZCW/citation.html:text/html}
+}
+
+@inproceedings{lloyd_dont_2011,
+  title = {Don't Settle for Eventual: Scalable Causal Consistency for Wide-Area Storage with {{COPS}}},
+  shorttitle = {Don't Settle for Eventual},
+  timestamp = {2014-11-06T15:44:10Z},
+  urldate = {2014-11-06},
+  booktitle = {Proceedings of the {{Twenty}}-{{Third ACM Symposium}} on {{Operating Systems Principles}}},
+  publisher = {{ACM}},
+  author = {Lloyd, Wyatt and Freedman, Michael J. and Kaminsky, Michael and Andersen, David G.},
+  year = {2011},
+  pages = {401--416},
+  file = {cops-sosp11.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/MFVZE5AA/cops-sosp11.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/P352X5A8/citation.html:text/html}
+}
+
+@article{corbett_spanner:_2013,
+  title = {Spanner: {{Google}}'s Globally Distributed Database},
+  volume = {31},
+  shorttitle = {Spanner},
+  timestamp = {2014-11-06T15:45:01Z},
+  number = {3},
+  urldate = {2014-11-06},
+  journal = {ACM Transactions on Computer Systems (TOCS)},
+  author = {Corbett, James C. and Dean, Jeffrey and Epstein, Michael and Fikes, Andrew and Frost, Christopher and Furman, J. J. and Ghemawat, Sanjay and Gubarev, Andrey and Heiser, Christopher and Hochschild, Peter and {others}},
+  year = {2013},
+  pages = {8},
+  file = {spanner-osdi2012.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/TEZW78D5/spanner-osdi2012.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/ESR9NREA/citation.html:text/html}
+}
+
+@inproceedings{zhang_viewbox:_2014,
+  title = {{{ViewBox}}: Integrating Local File Systems with Cloud Storage Services.},
+  shorttitle = {{{ViewBox}}},
+  timestamp = {2014-11-25T21:04:27Z},
+  urldate = {2014-11-25},
+  booktitle = {{{FAST}}},
+  author = {Zhang, Yupu and Dragga, Chris and Arpaci-Dusseau, Andrea C. and Arpaci-Dusseau, Remzi H.},
+  year = {2014},
+  pages = {119--132},
+  file = {viewbox.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/ANNVTM8E/viewbox.pdf:application/pdf}
+}
+
+@inproceedings{li_secure_2004,
+  title = {Secure Untrusted Data Repository ({{SUNDR}})},
+  volume = {4},
+  timestamp = {2014-12-03T14:20:15Z},
+  urldate = {2014-12-03},
+  booktitle = {{{OSDI}}},
+  author = {Li, Jinyuan and Krohn, Maxwell N. and Mazieres, David and Shasha, Dennis},
+  year = {2004},
+  pages = {9--9},
+  file = {sundr.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/XA8HPF9R/sundr.pdf:application/pdf}
+}
+
+@inproceedings{feldman_sporc:_2010,
+  title = {{{SPORC}}: {{Group Collaboration}} Using {{Untrusted Cloud Resources}}.},
+  volume = {10},
+  shorttitle = {{{SPORC}}},
+  timestamp = {2014-12-03T14:20:54Z},
+  urldate = {2014-12-03},
+  booktitle = {{{OSDI}}},
+  author = {Feldman, Ariel J. and Zeller, William P. and Freedman, Michael J. and Felten, Edward W.},
+  year = {2010},
+  pages = {337--350},
+  file = {sporc.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/HIXRAEJ6/sporc.pdf:application/pdf}
+}
+
+@article{lakshman_cassandra:_2010,
+  title = {Cassandra: A Decentralized Structured Storage System},
+  volume = {44},
+  shorttitle = {Cassandra},
+  timestamp = {2016-09-01T03:45:41Z},
+  number = {2},
+  urldate = {2016-04-29},
+  journal = {ACM SIGOPS Operating Systems Review},
+  author = {Lakshman, Avinash and Malik, Prashant},
+  year = {2010},
+  pages = {35--40},
+  file = {[PDF] from cam.ac.uk:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/DHCHP4CF/Lakshman and Malik - 2010 - Cassandra a decentralized structured storage syst.pdf:application/pdf;[PDF] cam.ac.uk:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/SDKP5SCI/Lakshman and Malik - 2010 - Cassandra a decentralized structured storage syst.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/IRCWVWA9/citation.html:text/html;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/PFN2B8FA/citation.html:text/html}
+}
+
+@inproceedings{gray_dangers_1996,
+  title = {The Dangers of Replication and a Solution},
+  volume = {25},
+  timestamp = {2016-04-27T14:53:03Z},
+  urldate = {2015-04-07},
+  booktitle = {{{ACM SIGMOD Record}}},
+  publisher = {{ACM}},
+  author = {Gray, Jim and Helland, Pat and O'Neil, Patrick and Shasha, Dennis},
+  year = {1996},
+  pages = {173--182},
+  file = {[PDF] from googlecode.com:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/3FKXD6NN/3FKXD6NN.pdf:application/pdf;replicas.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/7K6KBZ6I/replicas.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/HV6DK48X/citation.html:text/html;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/I2CVG87K/citation.html:text/html}
+}
+
+@article{bailis_quantifying_2014,
+  title = {Quantifying Eventual Consistency with {{PBS}}},
+  volume = {23},
+  timestamp = {2016-04-27T14:53:04Z},
+  number = {2},
+  urldate = {2015-04-07},
+  journal = {The VLDB Journal},
+  author = {Bailis, Peter and Venkataraman, Shivaram and Franklin, Michael J. and Hellerstein, Joseph M. and Stoica, Ion},
+  year = {2014},
+  pages = {279--302},
+  file = {[PDF] from bailis.org:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/HK83EDHA/Bailis et al. - 2014 - Quantifying eventual consistency with PBS.pdf:application/pdf;ec-pbs.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/SJE9D5BW/SJE9D5BW.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/662V4BGN/s00778-013-0330-1.html:text/html;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/AKJCUEFB/s00778-013-0330-1.html:text/html}
+}
+
+@article{alekeish_consensus_2012,
+  title = {Consensus in Sparse, Mobile Ad Hoc Networks},
+  volume = {23},
+  timestamp = {2016-05-04T15:04:26Z},
+  number = {3},
+  urldate = {2016-05-04},
+  journal = {Parallel and Distributed Systems, IEEE Transactions on},
+  author = {Alekeish, Khaled and Ezhilchelvan, Paul},
+  year = {2012},
+  pages = {467--474},
+  file = {[PDF] from psu.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/5Q2E2FQG/Alekeish and Ezhilchelvan - 2012 - Consensus in sparse, mobile ad hoc networks.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/HDGFVFNH/abs_all.html:text/html}
+}
+
+@article{attiya_sequential_1994,
+  title = {Sequential Consistency versus Linearizability},
+  volume = {12},
+  timestamp = {2016-04-29T02:37:24Z},
+  number = {2},
+  urldate = {2016-04-29},
+  journal = {ACM Transactions on Computer Systems (TOCS)},
+  author = {Attiya, Hagit and Welch, Jennifer L.},
+  year = {1994},
+  pages = {91--122},
+  file = {[PDF] from mit.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/KZ7PC3NF/Attiya and Welch - 1994 - Sequential consistency versus linearizability.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/SMKM3QIW/citation.html:text/html}
+}
+
+@inproceedings{kraska_mdcc:_2013,
+  title = {{{MDCC}}: {{Multi}}-Data Center Consistency},
+  shorttitle = {{{MDCC}}},
+  timestamp = {2016-05-01T17:31:44Z},
+  urldate = {2016-05-01},
+  booktitle = {Proceedings of the 8th {{ACM European Conference}} on {{Computer Systems}}},
+  publisher = {{ACM}},
+  author = {Kraska, Tim and Pang, Gene and Franklin, Michael J. and Madden, Samuel and Fekete, Alan},
+  year = {2013},
+  pages = {113--126},
+  file = {mdcc.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/I2CVANFX/I2CVANFX.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/F3EPXCSU/citation.html:text/html}
+}
+
+@article{thomas_majority_1979,
+  title = {A Majority Consensus Approach to Concurrency Control for Multiple Copy Databases},
+  volume = {4},
+  timestamp = {2016-08-30T14:25:59Z},
+  number = {2},
+  urldate = {2016-08-30},
+  journal = {ACM Transactions on Database Systems (TODS)},
+  author = {Thomas, Robert H.},
+  year = {1979},
+  pages = {180--209},
+  file = {[PDF] dtic.mil:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/Q6C4GQPR/Thomas - 1979 - A majority consensus approach to concurrency contr.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/UXHF2T9K/citation.html:text/html}
+}
+
+@inproceedings{bailis_potential_2012,
+  title = {The Potential Dangers of Causal Consistency and an Explicit Solution},
+  timestamp = {2016-02-12T17:07:42Z},
+  urldate = {2016-02-12},
+  booktitle = {Proceedings of the {{Third ACM Symposium}} on {{Cloud Computing}}},
+  publisher = {{ACM}},
+  author = {Bailis, Peter and Fekete, Alan and Ghodsi, Ali and Hellerstein, Joseph M. and Stoica, Ion},
+  year = {2012},
+  pages = {22},
+  file = {[PDF] from kelehers.me:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/EPIUBHBP/EPIUBHBP.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/JU2V4PV4/citation.html:text/html}
+}
+
+@inproceedings{bermbach_eventual_2011,
+  title = {Eventual Consistency: {{How}} Soon Is Eventual? {{An}} Evaluation of {{Amazon S3}}'s Consistency Behavior},
+  shorttitle = {Eventual Consistency},
+  timestamp = {2016-02-12T17:10:36Z},
+  urldate = {2016-02-12},
+  booktitle = {Proceedings of the 6th {{Workshop}} on {{Middleware}} for {{Service Oriented Computing}}},
+  publisher = {{ACM}},
+  author = {Bermbach, David and Tai, Stefan},
+  year = {2011},
+  pages = {1},
+  file = {[PDF] from researchgate.net:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/HAUQIC3B/HAUQIC3B.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/IS7TJ2G9/citation.html:text/html}
+}
+
+@inproceedings{ongaro_search_2014,
+  title = {In Search of an Understandable Consensus Algorithm},
+  timestamp = {2016-05-02T18:51:57Z},
+  urldate = {2016-05-01},
+  booktitle = {2014 {{USENIX Annual Technical Conference}} ({{USENIX ATC}} 14)},
+  author = {Ongaro, Diego and Ousterhout, John},
+  year = {2014},
+  pages = {305--319},
+  annote = {Core consensus group in federated system; inspiration for consensus protocols in hierarchical.},
+  file = {raft.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/WFQ5VNT6/raft.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/KSZZBIN9/ongaro.html:text/html}
+}
+
+@article{bailis_probabilistically_2012,
+  title = {Probabilistically Bounded Staleness for Practical Partial Quorums},
+  volume = {5},
+  timestamp = {2016-01-04T19:48:40Z},
+  number = {8},
+  urldate = {2016-01-04},
+  journal = {Proceedings of the VLDB Endowment},
+  author = {Bailis, Peter and Venkataraman, Shivaram and Franklin, Michael J. and Hellerstein, Joseph M. and Stoica, Ion},
+  year = {2012},
+  pages = {776--787},
+  file = {[PDF] from arxiv.org:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/HZCTDXV8/Bailis et al. - 2012 - Probabilistically bounded staleness for practical .pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/MNX52TTT/citation.html:text/html}
+}
+
+@article{liu_warranties_2014,
+  title = {Warranties for Faster Strong Consistency},
+  timestamp = {2016-05-02T18:52:04Z},
+  urldate = {2016-01-08},
+  journal = {Proc. of the 11th USENIX NSDI},
+  author = {Liu, Jed and Magrino, Tom and Arden, Owen and George, Michael D. and Myers, Andrew C.},
+  year = {2014},
+  file = {[PDF] from usenix.org:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/G96QJCPZ/Liu et al. - 2014 - Warranties for faster strong consistency.pdf:application/pdf}
+}
+
+@article{mazieres_stellar_2015,
+  title = {The Stellar Consensus Protocol: {{A}} Federated Model for Internet-Level Consensus},
+  shorttitle = {The Stellar Consensus Protocol},
+  timestamp = {2016-05-02T18:51:53Z},
+  urldate = {2016-02-04},
+  journal = {Draft, Stellar Development Foundation, 15th May, available at: https://www. stellar. org/papers/stellarconsensus-protocol. pdf (accessed 23rd May, 2015)},
+  author = {Mazieres, David},
+  year = {2015},
+  file = {stellar-consensus-protocol.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/B3ERKJHX/stellar-consensus-protocol.pdf:application/pdf}
+}
+
+@inproceedings{venkataramani_operating_2002,
+  title = {Operating System Support for Massive Replication},
+  timestamp = {2016-03-31T10:58:02Z},
+  urldate = {2016-03-31},
+  booktitle = {Proceedings of the 10th Workshop on {{ACM SIGOPS European}} Workshop},
+  publisher = {{ACM}},
+  author = {Venkataramani, Arun and Kokku, Ravi and Dahlin, Mike},
+  year = {2002},
+  pages = {227--230},
+  file = {massive-replication.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/GMJ7MNA9/massive-replication.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/HM9KPTUX/citation.html:text/html}
+}
+
+@inproceedings{moraru_there_2013,
+  title = {There Is More Consensus in Egalitarian Parliaments},
+  timestamp = {2016-05-02T18:51:51Z},
+  urldate = {2016-04-27},
+  booktitle = {Proceedings of the {{Twenty}}-{{Fourth ACM Symposium}} on {{Operating Systems Principles}}},
+  publisher = {{ACM}},
+  author = {Moraru, Iulian and Andersen, David G. and Kaminsky, Michael},
+  year = {2013},
+  pages = {358--372},
+  file = {[PDF] from cmu.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/DB5FRJUT/DB5FRJUT.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/4BR6WIEA/citation.html:text/html}
+}
+
+@inproceedings{moraru_egalitarian_2012,
+  title = {Egalitarian Paxos},
+  timestamp = {2016-05-02T18:51:49Z},
+  urldate = {2016-04-27},
+  booktitle = {{{ACM Symposium}} on {{Operating Systems Principles}}},
+  author = {Moraru, Iulian and Andersen, David G. and Kaminsky, Michael},
+  year = {2012},
+  file = {[PDF] from usenix.org:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/KNU6GNM5/Moraru et al. - 2012 - Egalitarian paxos.pdf:application/pdf}
+}
+
+@article{lamport_fast_2006,
+  title = {Fast Paxos},
+  volume = {19},
+  timestamp = {2016-05-02T18:51:50Z},
+  number = {2},
+  urldate = {2016-04-27},
+  journal = {Distributed Computing},
+  author = {Lamport, Leslie},
+  year = {2006},
+  pages = {79--103},
+  file = {[PDF] from microsoft.com:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/RFER345B/Lamport - 2006 - Fast paxos.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/3X7TM9XF/s00446-006-0005-x.html:text/html}
+}
+
+@article{howard_raft_2015,
+  title = {Raft Refloated: Do We Have Consensus?},
+  volume = {49},
+  shorttitle = {Raft Refloated},
+  timestamp = {2016-05-02T18:51:38Z},
+  number = {1},
+  urldate = {2016-04-27},
+  journal = {ACM SIGOPS Operating Systems Review},
+  author = {Howard, Heidi and Schwarzkopf, Malte and Madhavapeddy, Anil and Crowcroft, Jon},
+  year = {2015},
+  pages = {12--21},
+  file = {[PDF] from cam.ac.uk:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/9MU3AMIE/9MU3AMIE.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/XVH7AZ2V/citation.html:text/html}
+}
+
+@article{herlihy_linearizability:_1990,
+  title = {Linearizability: {{A}} Correctness Condition for Concurrent Objects},
+  volume = {12},
+  shorttitle = {Linearizability},
+  timestamp = {2016-04-29T02:35:09Z},
+  number = {3},
+  urldate = {2016-04-27},
+  journal = {ACM Transactions on Programming Languages and Systems (TOPLAS)},
+  author = {Herlihy, Maurice P. and Wing, Jeannette M.},
+  year = {1990},
+  pages = {463--492},
+  annote = {Linearizability is a local property, meaning that "a system is linearizable if each individual object is linearizable". This only applies to operations that target single objects, or more generaly to operations for which interference is transitive. The equivalent property for multi-object operations is strict-serializability. Described by EPaxos (There is more Consensus in Egalatarian Parlaiments).},
+  file = {[PDF] from ic.ac.uk:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/U5GJKTM5/Herlihy and Wing - 1990 - Linearizability A correctness condition for concu.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/P59MG35M/citation.html:text/html}
+}
+
+@inproceedings{almeida_version_2002,
+  title = {Version Stamps-Decentralized Version Vectors},
+  timestamp = {2016-08-31T17:29:17Z},
+  urldate = {2016-08-31},
+  booktitle = {Distributed {{Computing Systems}}, 2002. {{Proceedings}}. 22nd {{International Conference}} on},
+  publisher = {{IEEE}},
+  author = {Almeida, Paulo S{\'e}rgio and Baquero, Carlos and Fonte, Victor},
+  year = {2002},
+  pages = {544--551},
+  annote = {Version stamps paper.},
+  file = {[PDF] uminho.pt:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/I6S5JP8I/Almeida et al. - 2002 - Version stamps-decentralized version vectors.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/43R3AJE6/1022304.html:text/html}
+}
+
+@inproceedings{biely_s-paxos:_2012,
+  title = {S-Paxos: {{Offloading}} the Leader for High Throughput State Machine Replication},
+  shorttitle = {S-Paxos},
+  timestamp = {2016-05-03T13:20:10Z},
+  urldate = {2016-05-03},
+  booktitle = {Reliable {{Distributed Systems}} ({{SRDS}}), 2012 {{IEEE}} 31st {{Symposium}} on},
+  publisher = {{IEEE}},
+  author = {Biely, Martin and Milosevic, Zoran and Santos, Nuno and Schiper, Andre},
+  year = {2012},
+  pages = {111--120},
+  file = {[PDF] from computer.org:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/RS45H9V4/Biely et al. - 2012 - S-paxos Offloading the leader for high throughput.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/GBQ352H8/login.html:text/html}
+}
+
+@inproceedings{camargos_multicoordinated_2007,
+  title = {Multicoordinated Paxos},
+  timestamp = {2016-05-03T13:20:45Z},
+  urldate = {2016-05-03},
+  booktitle = {Proceedings of the Twenty-Sixth Annual {{ACM}} Symposium on {{Principles}} of Distributed Computing},
+  publisher = {{ACM}},
+  author = {Camargos, L{\'a}saro Jonas and Schmidt, Rodrigo Malta and Pedone, Fernando},
+  year = {2007},
+  pages = {316--317},
+  file = {[PDF] from rero.ch:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/SN7ID2ET/Camargos et al. - 2007 - Multicoordinated paxos.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/R73RTQM4/citation.html:text/html}
+}
+
+@article{chang_bigtable:_2008,
+  title = {Bigtable: {{A}} Distributed Storage System for Structured Data},
+  volume = {26},
+  shorttitle = {Bigtable},
+  timestamp = {2016-05-03T13:32:15Z},
+  number = {2},
+  urldate = {2016-05-03},
+  journal = {ACM Transactions on Computer Systems (TOCS)},
+  author = {Chang, Fay and Dean, Jeffrey and Ghemawat, Sanjay and Hsieh, Wilson C. and Wallach, Deborah A. and Burrows, Mike and Chandra, Tushar and Fikes, Andrew and Gruber, Robert E.},
+  year = {2008},
+  pages = {4},
+  file = {Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/DJJPRWGK/citation.html:text/html;[HTML] from usenix.org:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/ENQ2TKPD/chang_html.html:text/html}
+}
+
+@article{mazieres_paxos_2007,
+  title = {Paxos Made Practical},
+  timestamp = {2016-05-03T13:34:00Z},
+  urldate = {2016-05-03},
+  journal = {Unpublished manuscript},
+  author = {Mazieres, David},
+  year = {2007},
+  file = {[PDF] from harvard.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/ES8497X5/Mazieres - 2007 - Paxos made practical.pdf:application/pdf}
+}
+
+@inproceedings{agrawal1990tree,
+  title = {The {{Tree Quorum Protocol}}: {{An Efficient Approach}} for {{Managing Replicated Data}}.},
+  volume = {90},
+  timestamp = {2016-08-08T19:44:37Z},
+  booktitle = {{{VLDB}}},
+  author = {Agrawal, Divyakant and {El Abbadi}, Amr},
+  year = {1990},
+  pages = {243--254},
+  file = {tree-quorum-1990.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/M8IFZUP4/tree-quorum-1990.pdf:application/pdf}
+}
+
+@article{parker_detection_1983,
+  title = {Detection of Mutual Inconsistency in Distributed Systems},
+  timestamp = {2016-08-31T17:35:14Z},
+  number = {3},
+  urldate = {2016-08-31},
+  journal = {IEEE transactions on Software Engineering},
+  author = {Parker, D. Stott and Popek, Gerald J. and Rudisin, Gerard and Stoughton, Allen and Walker, Bruce J. and Walton, Evelyn and Chow, Johanna M. and Edwards, David and Kiser, Stephen and Kline, Charles},
+  year = {1983},
+  pages = {240--247},
+  annote = {Version vector paper.},
+  file = {[PDF] yale.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/NNQU3G2M/Parker et al. - 1983 - Detection of mutual inconsistency in distributed s.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/2ERS6ARX/1703051.html:text/html}
+}
+
+@inproceedings{agrawal_mixed_1994,
+  title = {Mixed Consistency: A Model for Parallel Programming},
+  shorttitle = {Mixed Consistency},
+  timestamp = {2016-08-09T10:57:07Z},
+  urldate = {2016-08-09},
+  booktitle = {Proceedings of the Thirteenth Annual {{ACM}} Symposium on {{Principles}} of Distributed Computing},
+  publisher = {{ACM}},
+  author = {Agrawal, Divyakant and Choy, Manhoi and {Va Leong}, Hong and Singh, Ambuj K.},
+  year = {1994},
+  pages = {101--110},
+  annote = {Shared memory system that mixes two kinds of weak consistency and four kinds of explicit synchronizations:
+Weak:
+
+causal memory
+pipelined random access memory
+
+Explicit:
+
+Read locks
+Write locks
+barriers
+await
+
+Proposal is different from hybrid consistency, which seems to simply be a relaxed consistency (implications for federated). Proposes a new programming model for mixed consistency.
+We are not hybrid consistency because we implement separate replication protocols in a single system; we are not mixed in the sense that it is not a programming model but rather a resource allocation problem.},
+  file = {[PDF] psu.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/MPE4MM4W/Agrawal et al. - 1994 - Mixed consistency a model for parallel programmin.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/I5KQNPJZ/citation.html:text/html}
+}
+
+@inproceedings{al-ekram_multi-consistency_2010,
+  title = {Multi-Consistency Data Replication},
+  timestamp = {2016-08-09T11:06:42Z},
+  urldate = {2016-08-09},
+  booktitle = {Parallel and {{Distributed Systems}} ({{ICPADS}}), 2010 {{IEEE}} 16th {{International Conference}} on},
+  publisher = {{IEEE}},
+  author = {Al-Ekram, Raihan and Holt, Ric},
+  year = {2010},
+  pages = {568--577},
+  annote = {Presents McRep (Multi-Consistency Replication) as a middleware that supports multiple consistency models in a replicated data system. Also allows the system to configure correctness and divergence. Correctness criteria include:
+
+linearizability
+sequential consistency
+serializability
+snapshot isolation
+causal consistency
+
+Middleware system sits between clients and replica servers, routing the client to the appropriate type of replica server.
+Middleware implements global version number as well as a client specific session version number and reconciles the replica version number.
+Correctness criteria specify requirements on legal sequence of transaction execution that will leave replicas equivalent to each other according to concurrent access.
+Divergence bound specifies how far replica states may diverge from correct system state before being brought up to date by propagating updates.
+Also used a simulation model - did not take into account latency, but rather number of replicas, clients, update probability, think time, conflict time, divergence, number of data items and their size, min reads/writes, and read and write time.
+Observed behavior as \# of clients increased as well as correctness criteria increased according to network traffic, number of conflicts, number of update propagation messages, and average response time.},
+  file = {05695649.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/6ZCWDRMX/6ZCWDRMX.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/NG2NAZV7/login.html:text/html}
+}
+
+@inproceedings{afek_quasi-linearizability:_2010,
+  title = {Quasi-Linearizability: {{Relaxed}} Consistency for Improved Concurrency},
+  shorttitle = {Quasi-Linearizability},
+  timestamp = {2016-08-09T11:28:56Z},
+  urldate = {2016-08-09},
+  booktitle = {International {{Conference}} on {{Principles}} of {{Distributed Systems}}},
+  publisher = {{Springer}},
+  author = {Afek, Yehuda and Korland, Guy and Yanovsky, Eitan},
+  year = {2010},
+  pages = {395--410},
+  annote = {Defines a data structure that provides limited non-determinism (e.g. a relaxation of linearizability) on a continuous scale; particularly for distributed counting.
+Q-Quasi-Linearizable History: specifies the upper bound on the relative movement allowed among members of the ordering to make it legally sequential. Complete Linearizability has Q=0.
+Q-Quasi-Linearizable-Object: an object implementation if for any run, the history is Q-Quasi-Linearizable.
+See also timed consistency where the period of non-sequential ordering is bound by a fixed time delta.},
+  file = {[PDF] velox-project.eu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/6WFXFK7K/Afek et al. - 2010 - Quasi-linearizability Relaxed consistency for imp.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/A929S7HK/10.html:text/html}
+}
+
+@incollection{bermbach_consistency_2013,
+  title = {Consistency in Distributed Storage Systems},
+  timestamp = {2016-08-09T11:29:52Z},
+  urldate = {2016-08-09},
+  booktitle = {Networked {{Systems}}},
+  publisher = {{Springer}},
+  author = {Bermbach, David and Kuhlenkamp, J{\"o}rn},
+  year = {2013},
+  pages = {175--189},
+  annote = {Coherence: eventual, causal, and sequential coherence refer to guarantees of consistency on a per-key basis. It is common practice to use consistency for both coherence and consistency models alike.},
+  annote = {Defines our consistency as "data-centric": two consistency dimensions: staleness and ordering. However these models do not consider staleness and increasing strictness of ordering often leads to higher staleness values. This paper nominates the following consistency models and describes them in detail:
+
+Weak
+Eventual (EC)
+Causal
+Sequential
+Linearizability
+
+See also Table 1: the relationship between client-centric and data-centric consistency models, ordered by strictness.
+~},
+  file = {[PDF] kit.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/CX63RGEC/CX63RGEC.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/P88RTVUC/978-3-642-40148-0_13.html:text/html}
+}
+
+@article{yu_design_2002,
+  title = {Design and Evaluation of a Conit-Based Continuous Consistency Model for Replicated Services},
+  volume = {20},
+  timestamp = {2016-08-09T11:32:53Z},
+  number = {3},
+  urldate = {2016-08-09},
+  journal = {ACM Transactions on Computer Systems (TOCS)},
+  author = {Yu, Haifeng and Vahdat, Amin},
+  year = {2002},
+  pages = {239--282},
+  annote = {A conit: a consistency unit which is a 3d vector that describes tolerable deviations from LIN along staleness, order error, and numerical order.
+First place where we see that consistency is a continuum not discrete activity.},
+  file = {[PDF] nus.edu.sg:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/DNHMXKXV/Yu and Vahdat - 2002 - Design and evaluation of a conit-based continuous .pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/UV4RTNWV/citation.html:text/html}
+}
+
+@inproceedings{chihoub_consistency_2013,
+  title = {Consistency in the Cloud: {{When}} Money Does Matter!},
+  shorttitle = {Consistency in the Cloud},
+  timestamp = {2016-08-09T11:36:55Z},
+  urldate = {2016-08-09},
+  booktitle = {Cluster, {{Cloud}} and {{Grid Computing}} ({{CCGrid}}), 2013 13th {{IEEE}}/{{ACM International Symposium}} on},
+  publisher = {{IEEE}},
+  author = {Chihoub, Houssem-Eddine and Ibrahim, Shadi and Antoniu, Gabriel and Perez, Maria S.},
+  year = {2013},
+  pages = {352--359},
+  annote = {See also: Harmony.
+~},
+  file = {[PDF] inria.fr:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/H5BBTGGD/Chihoub et al. - 2013 - Consistency in the cloud When money does matter!.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/AQVPV3GB/login.html:text/html}
+}
+
+@inproceedings{chihoub_harmony:_2012,
+  title = {Harmony: {{Towards}} Automated Self-Adaptive Consistency in Cloud Storage},
+  shorttitle = {Harmony},
+  timestamp = {2016-08-09T11:37:10Z},
+  urldate = {2016-08-09},
+  booktitle = {2012 {{IEEE International Conference}} on {{Cluster Computing}}},
+  publisher = {{IEEE}},
+  author = {Chihoub, Houssem-Eddine and Ibrahim, Shadi and Antoniu, Gabriel and Perez, Maria S.},
+  year = {2012},
+  pages = {293--301},
+  annote = {User specifies maximum stale read rates or consistency cost as part of SLA. System then dynamically uses different consistency levels by modifying Cassandra directly to guarantee the SLA.},
+  file = {[PDF] archives-ouvertes.fr:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/XNAE7WMI/XNAE7WMI.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/UST355SD/login.html:text/html}
+}
+
+@article{kraska_consistency_2009,
+  title = {Consistency Rationing in the Cloud: Pay Only When It Matters},
+  volume = {2},
+  shorttitle = {Consistency Rationing in the Cloud},
+  timestamp = {2016-08-09T11:50:59Z},
+  number = {1},
+  urldate = {2016-08-09},
+  journal = {Proceedings of the VLDB Endowment},
+  author = {Kraska, Tim and Hentschel, Martin and Alonso, Gustavo and Kossmann, Donald},
+  year = {2009},
+  pages = {253--264},
+  annote = {First point in adaptive consistency: cluster data items based on importance, e.g. A B and C - A is LIN C is EC, but B changes its consistency requirements based on an external cost function.
+e.g. B is handled at LIN whenever the cost of inconsistency exceeds cost of opportunity caused by unavailability or high latency.},
+  file = {[PDF] brown.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/K5CZ3RE8/Kraska et al. - 2009 - Consistency rationing in the cloud pay only when .pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/I3C4QFQV/citation.html:text/html}
+}
+
+@inproceedings{li_making_2012,
+  title = {Making Geo-Replicated Systems Fast as Possible, Consistent When Necessary},
+  timestamp = {2016-08-09T11:54:48Z},
+  urldate = {2016-08-09},
+  booktitle = {Presented as Part of the 10th {{USENIX Symposium}} on {{Operating Systems Design}} and {{Implementation}} ({{OSDI}} 12)},
+  author = {Li, Cheng and Porto, Daniel and Clement, Allen and Gehrke, Johannes and Pregui{\c c}a, Nuno and Rodrigues, Rodrigo},
+  year = {2012},
+  pages = {265--278},
+  annote = {Propose operations be broken down into small commutative suboperations that are categorized as either synchronous or asynchronous (red/blue) then replicated according to varying consistency levels and the dependencies between sub-operations.
+Consistency rationing tunes based on data type, this tunes based on operation.},
+  file = {[PDF] usenix.org:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/M73QI9I8/Li et al. - 2012 - Making geo-replicated systems fast as possible, co.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/GIWSEIPE/li.html:text/html}
+}
+
+@inproceedings{karp_randomized_2000,
+  title = {Randomized Rumor Spreading},
+  timestamp = {2016-08-19T18:33:39Z},
+  urldate = {2016-08-19},
+  booktitle = {Foundations of {{Computer Science}}, 2000. {{Proceedings}}. 41st {{Annual Symposium}} on},
+  publisher = {{IEEE}},
+  author = {Karp, Richard and Schindelhauer, Christian and Shenker, Scott and Vocking, Berthold},
+  year = {2000},
+  pages = {565--574},
+  file = {[PDF] psu.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/EKD5ADAT/Karp et al. - 2000 - Randomized rumor spreading.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/MK9WDHHK/abs_all.html:text/html}
+}
+
+@inproceedings{kempe_gossip-based_2003,
+  title = {Gossip-Based Computation of Aggregate Information},
+  timestamp = {2016-08-19T18:34:17Z},
+  urldate = {2016-08-19},
+  booktitle = {Foundations of {{Computer Science}}, 2003. {{Proceedings}}. 44th {{Annual IEEE Symposium}} on},
+  publisher = {{IEEE}},
+  author = {Kempe, David and Dobra, Alin and Gehrke, Johannes},
+  year = {2003},
+  pages = {482--491},
+  file = {[PDF] nus.edu.sg:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/VMXDQJ8K/VMXDQJ8K.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/QV865JZG/abs_all.html:text/html}
+}
+
+@article{2016arXiv160806696H,
+  title = {Flexible {{Paxos}}: {{Quorum}} Intersection Revisited},
+  timestamp = {2016-08-26T17:55:15Z},
+  journal = {ArXiv e-prints},
+  author = {Howard, H. and Malkhi, D. and Spiegelman, A.},
+  month = aug,
+  year = {2016},
+  keywords = {and Cluster Computing,C.2.4,Computer Science - Distributed,Parallel},
+  file = {1608.06696v1.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/4ADMETFS/1608.06696v1.pdf:application/pdf},
+  archiveprefix = {arXiv},
+  primaryclass = {cs.DC},
+  adsurl = {http://adsabs.harvard.edu/abs/2016arXiv160806696H},
+  adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+@article{miorandi_internet_2012,
+  title = {Internet of Things: {{Vision}}, Applications and Research Challenges},
+  volume = {10},
+  shorttitle = {Internet of Things},
+  timestamp = {2016-10-12T19:32:41Z},
+  number = {7},
+  urldate = {2016-10-12},
+  journal = {Ad Hoc Networks},
+  author = {Miorandi, Daniele and Sicari, Sabrina and {De Pellegrini}, Francesco and Chlamtac, Imrich},
+  year = {2012},
+  pages = {1497--1516},
+  file = {[PDF] uninsubria.it:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/D85V9AQK/Miorandi et al. - 2012 - Internet of things Vision, applications and resea.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/XKTHWEBS/S1570870512000674.html:text/html}
+}
