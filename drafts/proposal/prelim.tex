@@ -335,7 +335,7 @@ Each of these options has critical implications for the likelihood of stale read
 
 A key requirement of Federated Consistency is the opportunity to create a homogenous systems with no performance cost, e.g. a homogenous eventual cloud and a homogenous Raft cloud will perform equivalently even if they implement the Federated protocol. However, if a strong, central consensus group is present, the eventual cloud should be able to synchronize with it, minimizing forks in the long run. Similarly, Raft nodes should be able to use anti-entropy mechanisms to replicate data and continue writing even if the leader is unavailable and no consensus can be reached to elect a leader.
 
-Because anti-entropy messages have no implication on the state of consensus, we have elected to use 
+Because anti-entropy messages have no implication on the state of consensus, we have elected to use
 
 \subsection{Hierarchical Consensus}
 
@@ -439,16 +439,36 @@ Online optimization and consistency adaptation & $\bigtriangledown$ & 2-3 months
 
 After investigations and evaluations of Federated Consistency and Hierarchical Consensus in simulation, I propose to implement a file system utilizing both mechanisms and verify the system meets consistency requirements on large networks in real world workflows. Goals marked with $\bigtriangleup$ indicate necessary checkpoints to the successful completion of the dissertation, including some proof of correctness. I further propose the stretch goals (marked with $\bigtriangledown$) of real time adaptation and online optimization, investigating the application of both heuristics and active machine learning techniques to learn usage patterns and improve consistency and performance.
 
-Based on preliminary work done in simulation I propose the following paper deadline goals:
+Based on preliminary work done in simulation as well as the above timeline, I propose the following paper and conference submission goals:
 
-\begin{itemize}
-\item IEEE International Conference on Distributed Computing Systems, June 2017: Federated Consistency
+\begin{center}
+\begin{tabular}{|l|l|l|c|c|}
+\hline
+Paper & Title & Location & RFP & Date \\
+\hline
+Federated Consistency & IEEE ICDCS 2017 & Atlanta, GA & Dec 5, 2016 & Jun 5-8 2017 \\
 % http://icdcs2017.gatech.edu/
-\item ACM Hot Topics in Storage and File Systems 2017, July 2017: Personal Clouds
+% IEEE International Conference on Distributed Computing Systems
+
+User-Centric Dynamic Clouds & ACM HotStorage 2017 & Santa Clara, CA & N/A & Jul 10-11, 2017 \\
 % https://www.usenix.org/conferences
-\item ACM Principles of Distributed Computing, July 2017: Hierarchical Consensus
+% ACM Hot Topics in Storage and File Systems 2017
+
+Hierarchical Consensus & ACM PODC 2017 & Washington DC & Feb 10, 2017 & July 2017 \\
 % http://www.podc.org/
-\end{itemize}
+% ACM Principles of Distributed Computing
+
+Hierarchical FlowFS & ACM SOSP 2017 & Shanghai, China & Apr 21, 2017 & Oct 29-31, 2017 \\
+% https://www.sigops.org/sosp/sosp17/index.html
+% ACM Symposium on Operating Systems Principles
+
+Responsive Consistency & USENIX NSDI 2018 & N/A & N/A & N/A \\
+% https://www.usenix.org/conference/nsdi17
+% USENIX Symposium on Networked Systems Design and Implementation
+
+\hline
+\end{tabular}
+\end{center}
 
 \section{Conclusion}
 
