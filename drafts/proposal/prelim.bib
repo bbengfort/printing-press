@@ -201,6 +201,18 @@ In all, it seems that the application-specific requirements of Dynamo led to an 
   file = {amazonDynamo.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/AQH9AZHQ/amazonDynamo.pdf:application/pdf;[PDF] from harvard.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/EIHW3SC8/DeCandia et al. - 2007 - Dynamo amazon's highly available key-value store.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/5J7C4EBG/citation.html:text/html;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/XDPRWZCW/citation.html:text/html}
 }
 
+@inproceedings{bailis_bolt-causal_2013,
+  title = {Bolt-on Causal Consistency},
+  timestamp = {2014-10-30T13:43:41Z},
+  urldate = {2014-10-30},
+  booktitle = {Proceedings of the 2013 International Conference on {{Management}} of Data},
+  publisher = {{ACM}},
+  author = {Bailis, Peter and Ghodsi, Ali and Hellerstein, Joseph M. and Stoica, Ion},
+  year = {2013},
+  pages = {761--772},
+  file = {[PDF] from berkeley.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/NSZR8UTW/Bailis et al. - 2013 - Bolt-on causal consistency.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/BDGP7QFW/citation.html:text/html}
+}
+
 @inproceedings{lloyd_dont_2011,
   title = {Don't Settle for Eventual: Scalable Causal Consistency for Wide-Area Storage with {{COPS}}},
   shorttitle = {Don't Settle for Eventual},
@@ -504,6 +516,18 @@ In all, it seems that the application-specific requirements of Dynamo led to an 
   file = {[PDF] from ic.ac.uk:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/U5GJKTM5/Herlihy and Wing - 1990 - Linearizability A correctness condition for concu.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/P59MG35M/citation.html:text/html}
 }
 
+@article{ahamad_causal_1990,
+  title = {Causal Memory: {{Definitions}}, Implementation and Programming},
+  volume = {1},
+  shorttitle = {Causal Memory},
+  timestamp = {2016-04-27T16:05:31Z},
+  urldate = {2016-04-27},
+  journal = {IEEE Transactions on Parallel and Distributed Systems},
+  author = {Ahamad, Mustaque and Neiger, Gil and Kohli, Prince and Burns, James and Hutto, Phil and Anderson, T. E.},
+  year = {1990},
+  pages = {6--16}
+}
+
 @inproceedings{almeida_version_2002,
   title = {Version Stamps-Decentralized Version Vectors},
   timestamp = {2016-08-31T17:29:17Z},
@@ -515,6 +539,20 @@ In all, it seems that the application-specific requirements of Dynamo led to an 
   pages = {544--551},
   annote = {Version stamps paper.},
   file = {[PDF] uminho.pt:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/I6S5JP8I/Almeida et al. - 2002 - Version stamps-decentralized version vectors.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/43R3AJE6/1022304.html:text/html}
+}
+
+@article{schneider_implementing_1990,
+  title = {Implementing Fault-Tolerant Services Using the State Machine Approach: {{A}} Tutorial},
+  volume = {22},
+  shorttitle = {Implementing Fault-Tolerant Services Using the State Machine Approach},
+  timestamp = {2016-05-27T11:29:55Z},
+  number = {4},
+  urldate = {2016-05-27},
+  journal = {ACM Computing Surveys (CSUR)},
+  author = {Schneider, Fred B.},
+  year = {1990},
+  pages = {299--319},
+  file = {[PDF] from umn.edu:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/BSM24PG3/Schneider - 1990 - Implementing fault-tolerant services using the sta.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/SXJVKDBH/citation.html:text/html}
 }
 
 @inproceedings{biely_s-paxos:_2012,
@@ -637,7 +675,7 @@ causal consistency
 
 Middleware system sits between clients and replica servers, routing the client to the appropriate type of replica server.
 Middleware implements global version number as well as a client specific session version number and reconciles the replica version number.
-Correctness criteria specify requirements on legal sequence of transaction execution that will leave replicas equivalent to each other according to concurrent access.
+Correctness criteria specify requirements on legal sequence of transaction execution that will leave replicas equivalent to each other according to concurrent access. 
 Divergence bound specifies how far replica states may diverge from correct system state before being brought up to date by propagating updates.
 Also used a simulation model - did not take into account latency, but rather number of replicas, clients, update probability, think time, conflict time, divergence, number of data items and their size, min reads/writes, and read and write time.
 Observed behavior as \# of clients increased as well as correctness criteria increased according to network traffic, number of conflicts, number of update propagation messages, and average response time.},
@@ -809,3 +847,17 @@ Consistency rationing tunes based on data type, this tunes based on operation.},
   pages = {1497--1516},
   file = {[PDF] uninsubria.it:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/D85V9AQK/Miorandi et al. - 2012 - Internet of things Vision, applications and resea.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/XKTHWEBS/S1570870512000674.html:text/html}
 }
+
+@inproceedings{guerraoui_consistency_2002,
+  title = {On the Consistency Problem in Mobile Distributed Computing},
+  timestamp = {2016-10-20T04:08:58Z},
+  urldate = {2016-10-20},
+  booktitle = {Proceedings of the Second {{ACM}} International Workshop on {{Principles}} of Mobile Computing},
+  publisher = {{ACM}},
+  author = {Guerraoui, Rachid and Hari, Corine},
+  year = {2002},
+  pages = {51--57},
+  file = {[PDF] epfl.ch:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/8VCB7CRD/Guerraoui and Hari - 2002 - On the consistency problem in mobile distributed c.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/DJAFGFQ2/citation.html:text/html}
+}
+
+
