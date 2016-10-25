@@ -296,7 +296,13 @@ Because our system model accounts for heterogenous devices and each write in the
 
 \section{Proposed Work}
 
-\pjk{Needs to be stronger.} \sout{In order to} investigate the effects of consistency and scaling in heterogenous, partition prone, variable latency networks we propose to build a distributed file system called FlowFS that implements two primary methodologies: Federated Consistency and Hierarchical Consensus. Federated Consistency allows us to create a flexible, heterogenous distributed system, allowing different replica servers to maintain different consistency levels based on need, but ensuring that global consistency guarantees are met. Hierarchical Consensus extends the Raft consensus protocol \pete{to use consensus partitioning as a means of achieving scale and high availability among replicated logs, without sacrificing sequential consistency} \sout{such that the quorum can scale, providing high availability sequential consistency}. We further propose the stretch goal of the investigation of real time optimization and adaptation in response to changing network environments in mobile contexts. This stretch investigation will explore heuristic methods of optimization and steering configuration changes, as well as explore active, machine learning mechanisms
+We propose two mechanisms that together will provide responsive, flexible consistency in user-centric dynamic clouds: Federated Consistency and Hierarchical consensus. We hypothesize that the integration of federated consistency models and scalable consensus through these two methodologies will lead to a system that is quantitatively more available (experiences lower aggregate read, write, commit, and visibility latencies) than a homogenous implementation of a sequentially consistent system implemented by Raft. Further we hypothesize that such a system will have stronger consistency guarantees (fewer forks and stale reads) than a homogenous implementation of an eventually consistent file system implemented with bilateral gossip anti-entropy.
+
+Federated Consistency and Hierarchical Consensus provide different opportunities to scale and handle variable environments, each enhancing the other. Federated Consistency allows us to create a flexible, heterogenous distributed system, allowing different replica servers to maintain different consistency levels based on need, but ensuring that global consistency guarantees are met. Hierarchical Consensus extends the Raft consensus protocol to use consensus partitioning as a means of achieving scale and high availability among replicated logs, without sacrificing sequential consistency. We hope to further stretch our proposal to include the investigation of real time optimization and adaptation in response to changing environments. The stretch goal, Adaptive Consistency proposes to utilize both heuristic methods of steering configuration change as well as active, machine learning mechanisms for online optimization.
+
+We propose to confirm our hypotheses in two ways: through the simulation of a variety of network environments and conditions and through real world experimentation on a fully implemented system. The simulation, as discussed in the preliminary work section will allow us to easily explore a variety of environments at a low cost of time and effort. We propose to extend our preliminary work to account for outages and to provide visualizations of consistency protocols. The full implementation will be a distributed file system called \emph{FlowFS} whose architecture is given in Figure \ref{fig:architecture}. By exploring real world workloads in real network environments we will be able to make constructive claims about how consistency needs to evolve as user-centric dynamic clouds become increasingly important.
+
+In this section, we present details of our proposed work. We start with a brief description of Federated Consistency, preliminary work that has already been investigated through use of our simulation. We will then propose a methodology towards hierarchical consensus. Finally, we will propose stretch goals for integrating Federated Consistency and Hierarchical Consensus to become adaptive, automatically responding to changes in the environment. We will conclude with a timeline and goals for paper publications on these topics.
 
 \subsection{Federated Consistency}
 
@@ -575,7 +581,7 @@ We have grounded our proposal in consistency, consensus, and replication. By ide
     \centering
         \includegraphics[width=\textwidth]{figures/architecture}
         \caption{Component architecture of FlowFS, our proposed file system.}
-        \label{fig:subepoch}
+        \label{fig:architecture}
 \end{figure}
 
 % \newpage
