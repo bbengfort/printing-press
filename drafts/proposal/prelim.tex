@@ -24,16 +24,16 @@
 
 \def\inv{^{-1}}
 
-\newcommand{\reminder}[1]{{\bf
-    [\marginpar[\hbox{{\Huge
-    $\bullet$}\raisebox{0ex}{\Huge $\longrightarrow$}}]%
-{\hbox{\raisebox{0ex}{\Huge $\longleftarrow$}{\Huge $\bullet$}}}#1]}}
-\newcommand{\pjk}[1]{{\bf
-    [\marginpar[\hbox{{\textcolor{blue}{pjk}}\raisebox{0ex}{\Huge $\rightarrow$}}]%
-{\hbox{\raisebox{0ex}{\Huge $\leftarrow$}{\textcolor{blue}{pjk}}}}\textcolor{blue}{#1}]}}
-\renewcommand{\pjk}[1]{\textcolor{blue}{[#1]}}
-\newcommand{\pete}[1]{\textcolor{red}{#1}}
-\newcommand{\change}[2]{\sout{#1} \textcolor{red}{#2}}
+% \newcommand{\reminder}[1]{{\bf
+%     [\marginpar[\hbox{{\Huge
+%     $\bullet$}\raisebox{0ex}{\Huge $\longrightarrow$}}]%
+% {\hbox{\raisebox{0ex}{\Huge $\longleftarrow$}{\Huge $\bullet$}}}#1]}}
+% \newcommand{\pjk}[1]{{\bf
+%     [\marginpar[\hbox{{\textcolor{blue}{pjk}}\raisebox{0ex}{\Huge $\rightarrow$}}]%
+% {\hbox{\raisebox{0ex}{\Huge $\leftarrow$}{\textcolor{blue}{pjk}}}}\textcolor{blue}{#1}]}}
+% \renewcommand{\pjk}[1]{\textcolor{blue}{[#1]}}
+% \newcommand{\pete}[1]{\textcolor{red}{#1}}
+% \newcommand{\change}[2]{\sout{#1} \textcolor{red}{#2}}
 
 
 \begin{document}
@@ -86,6 +86,10 @@ We hypothesize that we can provide responsive consistency in heterogenous, mobil
 
 \end{abstract}
 \setstretch{.5}
+
+\newpage
+\thispagestyle{empty}
+\mbox{}
 
 \newpage
 \setcounter{tocdepth}{3}
@@ -325,7 +329,7 @@ The relationship between the anti-entropy delay and the size of the network rela
 
 \subsubsection{Strong Core Consensus Group}
 
-\pjk{You've gone from laying out a research plan to describing details of a system. Need to start higher level, and put forward details as ``approaches'' etc.}
+% \pjk{You've gone from laying out a research plan to describing details of a system. Need to start higher level, and put forward details as ``approaches'' etc.}
 
 We implement sequentially consistent replicated logs via the Raft consensus algorithm~\cite{ongaro_search_2014}. However, consensus alone does not ensure that sequentially consistent file system accesses are guaranteed and a number of policy decisions about how Raft followers read, write and interact with the leader must be discussed. In order to present the possibilities for policies in our system, we must understand the background of the Raft protocol's implementation of sequential consistency.
 
@@ -498,7 +502,7 @@ In this proposal we have presented two novel approaches to provide responsivenes
 
 We have grounded our proposal in consistency, consensus, and replication. A generalized consistency model shows that consistency is a scale along dimensions of ordering and staleness; we have extended this model to account for file-system specific semantics and specifically measure forks and stale reads, symptoms of inconsistent ordering. Consensus allows the strong coordination of a distributed system, and we specifically consider the Raft consensus protocol. Finally, replication via anti-entropy gossip and broadcast protocols must consider resource constraints. By applying consistency only to the metadata of objects and by replicating immutable data blocks, we believe that a global, scalable network file system is possible.
 
-We propose to show through simulation and through a file system implementation that Federated Consistency and Hierarchical Consensus together will lead to a highly available system with strong consistency guarantees. Federation will make use of a strong-central quorum to synchronize an eventual cloud, minimizing overall inconsistency in the system, while allowing eventual nodes to make progress with reduced coordination requirements. The central quorum needs to be able to scale to dozens or hundreds of nodes and so we propose Hierarchical Consensus as a means of partitioning consensus decisions to particular objects across the namespace to different leaders. This load balancing will increase throughput but also increase correctness. Together and with potential future research into online optimization we believe that this research will lead to a high quality dissertation. 
+We propose to show through simulation and through a file system implementation that Federated Consistency and Hierarchical Consensus together will lead to a highly available system with strong consistency guarantees. Federation will make use of a strong-central quorum to synchronize an eventual cloud, minimizing overall inconsistency in the system, while allowing eventual nodes to make progress with reduced coordination requirements. The central quorum needs to be able to scale to dozens or hundreds of nodes and so we propose Hierarchical Consensus as a means of partitioning consensus decisions to particular objects across the namespace to different leaders. This load balancing will increase throughput but also increase correctness. Together and with potential future research into online optimization we believe that this research will lead to a high quality dissertation.
 
 \newpage
 
