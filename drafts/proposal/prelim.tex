@@ -24,16 +24,16 @@
 
 \def\inv{^{-1}}
 
-\newcommand{\reminder}[1]{{\bf
-    [\marginpar[\hbox{{\Huge
-    $\bullet$}\raisebox{0ex}{\Huge $\longrightarrow$}}]%
-{\hbox{\raisebox{0ex}{\Huge $\longleftarrow$}{\Huge $\bullet$}}}#1]}}
-\newcommand{\pjk}[1]{{\bf
-    [\marginpar[\hbox{{\textcolor{blue}{pjk}}\raisebox{0ex}{\Huge $\rightarrow$}}]%
-{\hbox{\raisebox{0ex}{\Huge $\leftarrow$}{\textcolor{blue}{pjk}}}}\textcolor{blue}{#1}]}}
-\renewcommand{\pjk}[1]{\textcolor{blue}{[#1]}}
-\newcommand{\pete}[1]{\textcolor{red}{#1}}
-\newcommand{\change}[2]{\sout{#1} \textcolor{red}{#2}}
+% \newcommand{\reminder}[1]{{\bf
+%     [\marginpar[\hbox{{\Huge
+%     $\bullet$}\raisebox{0ex}{\Huge $\longrightarrow$}}]%
+% {\hbox{\raisebox{0ex}{\Huge $\longleftarrow$}{\Huge $\bullet$}}}#1]}}
+% \newcommand{\pjk}[1]{{\bf
+%     [\marginpar[\hbox{{\textcolor{blue}{pjk}}\raisebox{0ex}{\Huge $\rightarrow$}}]%
+% {\hbox{\raisebox{0ex}{\Huge $\leftarrow$}{\textcolor{blue}{pjk}}}}\textcolor{blue}{#1}]}}
+% \renewcommand{\pjk}[1]{\textcolor{blue}{[#1]}}
+% \newcommand{\pete}[1]{\textcolor{red}{#1}}
+% \newcommand{\change}[2]{\sout{#1} \textcolor{red}{#2}}
 
 
 \begin{document}
@@ -86,6 +86,10 @@ We hypothesize that we can provide responsive consistency in heterogenous, mobil
 
 \end{abstract}
 \setstretch{.5}
+
+\newpage
+\thispagestyle{empty}
+\mbox{}
 
 \newpage
 \setcounter{tocdepth}{3}
@@ -320,7 +324,13 @@ Because our system model accounts for heterogenous devices and each write in the
 
 \section{Proposed Work}
 
-\pjk{Needs to be stronger.} \sout{In order to} investigate the effects of consistency and scaling in heterogenous, partition prone, variable latency networks we propose to build a distributed file system called FlowFS that implements two primary methodologies: Federated Consistency and Hierarchical Consensus. Federated Consistency allows us to create a flexible, heterogenous distributed system, allowing different replica servers to maintain different consistency levels based on need, but ensuring that global consistency guarantees are met. Hierarchical Consensus extends the Raft consensus protocol \pete{to use consensus partitioning as a means of achieving scale and high availability among replicated logs, without sacrificing sequential consistency} \sout{such that the quorum can scale, providing high availability sequential consistency}. We further propose the stretch goal of the investigation of real time optimization and adaptation in response to changing network environments in mobile contexts. This stretch investigation will explore heuristic methods of optimization and steering configuration changes, as well as explore active, machine learning mechanisms
+We propose two mechanisms that together will provide responsive, flexible consistency in user-centric dynamic clouds: Federated Consistency and Hierarchical consensus. We hypothesize that the integration of federated consistency models and scalable consensus through these two methodologies will lead to a system that is quantitatively more available (experiences lower aggregate read, write, commit, and visibility latencies) than a homogenous implementation of a sequentially consistent system implemented by Raft. Further we hypothesize that such a system will have stronger consistency guarantees (fewer forks and stale reads) than a homogenous implementation of an eventually consistent file system implemented with bilateral gossip anti-entropy.
+
+Federated Consistency and Hierarchical Consensus provide different opportunities to scale and handle variable environments, each enhancing the other. Federated Consistency allows us to create a flexible, heterogenous distributed system, allowing different replica servers to maintain different consistency levels based on need, but ensuring that global consistency guarantees are met. Hierarchical Consensus extends the Raft consensus protocol to use consensus partitioning as a means of achieving scale and high availability among replicated logs, without sacrificing sequential consistency. We hope to further stretch our proposal to include the investigation of real time optimization and adaptation in response to changing environments. The stretch goal, Adaptive Consistency proposes to utilize both heuristic methods of steering configuration change as well as active, machine learning mechanisms for online optimization.
+
+We propose to confirm our hypotheses in two ways: through the simulation of a variety of network environments and conditions and through real world experimentation on a fully implemented system. The simulation, as discussed in the preliminary work section will allow us to easily explore a variety of environments at a low cost of time and effort. We propose to extend our preliminary work to account for outages and to provide visualizations of consistency protocols. The full implementation will be a distributed file system called \emph{FlowFS} whose architecture is given in Figure \ref{fig:architecture}. By exploring real world workloads in real network environments we will be able to make constructive claims about how consistency needs to evolve as user-centric dynamic clouds become increasingly important.
+
+In this section, we present details of our proposed work. We start with a brief description of Federated Consistency, preliminary work that has already been investigated through use of our simulation. We will then propose a methodology towards hierarchical consensus. Finally, we will propose stretch goals for integrating Federated Consistency and Hierarchical Consensus to become adaptive, automatically responding to changes in the environment. We will conclude with a timeline and goals for paper publications on these topics.
 
 \subsection{Federated Consistency}
 
@@ -335,23 +345,21 @@ A federated consistency protocol finds a middle ground in the trade-off between 
 
 \subsubsection{Gossip and Anti-Entropy}
 
-Eventual consistency \change{provides an option for}{allows} replicas to operate in a highly available fashion at the risk of encountering some conflict (in the form of forks) that must be resolved in the future. \change{Our implementation utilizes} {We take the common approach of using} periodic \textit{anti-entropy} sessions \change{that}{to} converge replicas \sout{towards the same state} (e.g. reducing entropy, the divergence between the states of individual replicas) via \pete{a} gossip protocol \cite{kempe_gossip-based_2003}. \change{On a routine interval, specified by the \texttt{anti-entropy delay} timing parameter, a}{Each} replica \pete{periodically selects a random partner} \sout{will randomly select one of the other replicas in the system} and sends a \texttt{Gossip} message \change{that contains}{containing} the latest version of all objects in the replica's local log. On receipt of the \texttt{Gossip} message, the remote replica will compare the RPC object versions with those in its local log. If the RPC versions are later, it will append the later versions of the object to the log (\textit{last-writer wins}). However if the remote object version is later it will send that version back to the originating node in a \texttt{GossipResponse} message. As a result, our anti-entropy implementation is \textit{bilateral}.
+Eventual consistency allows replicas to operate in a highly available fashion at the risk of encountering some conflict (in the form of forks) that must be resolved in the future. We take the common approach of using periodic \textit{anti-entropy} sessions to converge replicas (e.g. reducing entropy, the divergence between the states of individual replicas) via a gossip protocol \cite{kempe_gossip-based_2003}. Each replica periodically selects a random partner and sends a \texttt{Gossip} message containing the latest version of all objects in the replica's local log. On receipt of the \texttt{Gossip} message, the remote replica will compare the RPC object versions with those in its local log. If the RPC versions are later, it will append the later versions of the object to the log (\textit{last-writer wins}). However if the remote object version is later it will send that version back to the originating node in a \texttt{GossipResponse} message. As a result, our anti-entropy implementation is \textit{bilateral}.
 
-\change{Replicas that implement eventual consistency}{Eventual consistency replicas} \change{read locally and write to their local latest version introducing zero read and write latency}{read and write locally, resulting in essentially read and write latency}. Forks are caused by \sout{staleness due to} the \textit{visibility latency}, i.e., the amount of time \change{it takes}{needed} to propagate a write to the rest of the system. The visibility latency is dependent on the number of nodes in the topology and the anti-entropy interval, but because of the bilateral nature of our gossip protocol, has an exponential distribution rate \pjk{grows exponentially?}. \sout{It is important to note that} the relationship between the anti-entropy delay and the size of the network relative to the mean time between accesses \sout{could} potentially means that eventual consistency would \change{have no}{not cause} forks. Said another way, nothing beats eventual consistency for availability and correctness given a fast enough network. However, because user-centric dynamic clouds are so variable, we have implemented a strong consistency core consensus group to improve the correctness of the eventual cloud\pjk{awkward}.
+Eventual consistency replicas read and write locally, resulting in essentially zero read and write latency. Forks are caused by the \textit{visibility latency}, i.e., the amount of time needed to propagate a write to the rest of the system. The visibility latency is dependent on the number of nodes in the topology and the anti-entropy interval, but because of the bilateral nature of our gossip protocol, has a logarithmic relationship to the number of nodes rather than a linear one.
+
+The relationship between the anti-entropy delay and the size of the network relative to the mean time between accesses potentially means that eventual consistency would not cause forks. Said another way, nothing beats eventual consistency for availability and correctness given a fast enough network. Unfortunately, real-world networks are not ideal and conflicts in an eventual consistent system can lead to behaviors that are especially challenging in file systems. If a partition occurs and an object is forked, both sides of the eventually consistent system will continue allowing the branch to be extended, resulting in a difficult merge. Updates can also be ``stomped'', meaning that if they are not fully replicated they will not continue to be propagated if a later version exists. In order to provide stronger file system semantics, we propose to implement a core strong consistency consensus group that will improve the overall correctness of the system.
 
 \subsubsection{Strong Core Consensus Group}
 
-\pjk{You've gone from laying out a research plan to describing details of a system. Need to start higher level, and put forward details as ``approaches'' etc.}
+% \pjk{You've gone from laying out a research plan to describing details of a system. Need to start higher level, and put forward details as ``approaches'' etc.}
 
-\change{Sequential consistency is implemented}{We implement sequentially consistent replicated logs} via the Raft consensus algorithm~\cite{ongaro_search_2014} \pjk{note the tilda in the source}. However, consensus alone does not ensure that \change{sequential consistency is}{sequentially consistent file system accesses are} guaranteed and a number of policy decisions about how Raft followers read and write and interact with the leader must be discussed.
+We implement sequentially consistent replicated logs via the Raft consensus algorithm~\cite{ongaro_search_2014}. However, consensus alone does not ensure that sequentially consistent file system accesses are guaranteed and a number of policy decisions about how Raft followers read, write and interact with the leader must be discussed. In order to present the possibilities for policies in our system, we must understand the background of the Raft protocol's implementation of sequential consistency.
 
-The Raft leader has the primary responsibility of coordinating all other Raft replicas. To that end, the leader will broadcast periodic \texttt{AppendEntries} messages to all other Raft followers in order to maintain \change{their}{its} leadership for the given term. A write access that originates at a follower must be sent as a \texttt{RemoteWrite} to the leader. The leader accepts writes in the order that they are received, and if the leader detects a fork -- that is that a write has a parent version who already has a child version in the log -- Raft will simply reject (drop) the write. In order to minimize the number of messages that Raft sends, Raft will aggregate all writes into the next \texttt{AppendEntries} message and send them together.
+The Raft leader has the primary responsibility of coordinating all other Raft replicas and therefore is also primarily responsible for ensuring a sequentially consistent system that maintains file system consistency invariants. A write access that originates at a follower must be sent as a \texttt{RemoteWrite} to the leader. The leader accepts writes in the order that they are received, and if the leader detects a fork -- that is that a write has a parent version who already has a child version in the log -- Raft will simply reject (drop) the write. In order to minimize the number of messages that Raft sends, Raft will aggregate all writes into the next \texttt{AppendEntries} message and send them together.
 
-\pjk{As a rule, begin each paragraph with a topic sentence. What's this para about?}
-
-Because all writes that originate at followers are forwarded to the leader, the leader can guarantee a sequential ordering of updates. Therefore on receipt of an \texttt{AppendEntries} message, followers simply add the entries to their log and respond with their last index. If a majority of followers append entries to their logs, the leader will mark those entries as committed and inform the followers the write has been committed on the next \texttt{AppendEntries}. This scenario provides the unusual situation that write accesses are dependent on the response time of the leader but could also be dropped, requiring the accessor to retry or to handle the conflict somehow.
-
-However, although all writes are sequentially ordered, Raft nodes must decide what to do on read, and there are several options, each that provide a varying level of safety in terms of minimizing the risk of a stale read and being able to make progress:
+The aggregation of writes and latency of coordination messages means that there is a delay between leadership decisions and follower actions. As a result, write accesses are dependent on the response time of the leader but could also be dropped, requiring the accessor to retry or to handle the conflict somehow. In order to make progress, followers must decide how to read a parent version in order to make a write. There are several options, each providing a varying level of safety, minimizing the risk of a stale read:
 
 \begin{enumerate}
     \item \textit{READ COMMITTED} Raft replicas will only read the latest committed version of an object, guaranteeing that the write will not be rolled back in the case of an outage. However, this read mode introduces the potential for a lot of staleness and therefore forks.
@@ -359,19 +367,19 @@ However, although all writes are sequentially ordered, Raft nodes must decide wh
     \item \textit{REMOTE READ} Rather than read locally, simply request the latest version from the leader. This introduces the potential for additional latency, but may be faster if the expected message latency is less than the heartbeat interval.
 \end{enumerate}
 
-Each of these options has critical implications for the likelihood of stale reads and writes in the system. Replicas would choose read committed if the network was highly partition prone and messages from the leader were unstable and prone to being rolled back. Remote read servers replicas well when the average message latency is far lower than the heartbeat interval, though this could be improved by making the heartbeat interval similar to the network latency. For this reason, we have selected read latest as the most likely scenario for a file system implementing sequential consistency with Raft.
+Each of these options has critical implications for the likelihood of stale reads and forks in the system. Replicas would choose read committed if the network was highly partition prone and messages from the leader were unstable and prone to being rolled back. Remote read servers replicas well when the average message latency is far lower than the heartbeat interval, though this could be improved by making the heartbeat interval similar to the network latency. For this reason, we propose \textit{read latest} as the most likely scenario for a file system implementing sequential consistency with Raft.
 
 \subsubsection{Integration}
 
-A key requirement of Federated Consistency is the opportunity to create \change{homogenous}{heterogeneous} systems with no performance cost, e.g. a homogenous eventual cloud and a homogenous Raft cloud will \pete{continue to} perform equivalently \pete{whether or not they participate in a federated cloud.} However, we posit that an eventual cloud should benefit in lowered data staleness and in fork frequency from being connected to a strong, central consensus group. \sout{the eventual cloud should be able to synchronize with it, minimizing forks in the long run}. Similarly, Raft nodes should be able to use anti-entropy mechanisms to replicate data and continue writing even if the leader is unavailable and no consensus can be reached to elect a leader. The question is therefore how to integrate the eventual consistency via gossip and sequential consistency via consensus in a non-invasive way.
+A key requirement of Federated Consistency is the opportunity to create heterogeneous systems with no performance cost, e.g. a homogenous eventual cloud and a homogenous Raft cloud will continue to perform equivalently whether or not they participate in a federated cloud. However, we posit that an eventual cloud should benefit in lowered data staleness and in fork frequency from being connected to a strong, central consensus group. Similarly, Raft nodes should be able to use anti-entropy mechanisms to replicate data and continue writing even if the leader is unavailable and no consensus can be reached to elect a leader. The question is therefore how to integrate the eventual consistency via gossip and sequential consistency via consensus in a non-invasive way.
 
-\pete{The central problem is that eventual and raft clouds choose the ``winner'' of a fork in exactly opposite ways. Eventual clouds choose the last of a set of conflicting writes through a latest-writer-wins policy, whereas raft clouds effectively choose the first by dropping any write that conflicts with any previously seen writes}. Our insight is that if the strong central quorum can somehow make an accepted version ``more recent'' than a dropped fork, then the propagation of the fork would cease in the eventual cloud, reducing the possibility of continued forks.
+The central problem is that eventual and Raft clouds choose the ``winner'' of a fork in exactly opposite ways. Eventual clouds choose the last of a set of conflicting writes through a latest-writer wins policy, whereas Raft clouds effectively choose the first by dropping any write that conflicts with any previously seen writes. Our insight is that if the strong central quorum can somehow make an accepted version ``more recent'' than a dropped fork, then the propagation of the fork would cease in the eventual cloud, reducing the possibility of continued forks.
 
-Communications integration happened at the Raft nodes, particularly the Raft followers who participated in anti-entropy with the eventual cloud (but not other Raft nodes). An eventual node could ``synchronize'' with the local Raft node with some synchronization probability by exchanging \texttt{Gossip} messages with the Raft nodes. The a slight increase in the synchronization probability balanced the amount of synchronization with the amount of communication in the eventual cloud given the imbalance in the ratio of eventual nodes vs. Raft nodes. Raft nodes kept local caches of forked or dropped writes and did not propagate those back to the eventual cloud or replay them to the leader. However this was not enough to stop the eventual cloud from propagating a fork around Raft, causing inconsistencies.
+In order to federated multiple consistency models, there are two integration points: communication and consistency. Our initial approach was to integrate communication at the Raft nodes, by allowing Raft nodes to participate in anti-entropy with the eventual cloud (but not other Raft nodes). Eventual nodes therefore ``synchronize'' with a local Raft node (modified by some synchronization probability) by exchanging \texttt{Gossip} messages with the Raft nodes. A slight increase in the synchronization probability balanced the amount of synchronization with the amount of communication in the eventual cloud given the imbalance in the ratio of eventual nodes to Raft nodes. In order to manage the communications delay between the anti-entropy timeout and leadership coordination, Raft nodes must keep local caches of forked or dropped writes so as to not propagate them back to the eventual cloud or replay them to the leader. However, we have observed that this was not enough to stop the eventual cloud from propagating a fork around Raft, causing further inconsistencies.
 
-\change{Each version number was extended}{We extend each version number} with an additional monotonically increasing counter called the \textit{forte} (strong) version that could only be incremented by the leader of the Raft quorum. Because the Raft leader dropped forks or any version that was not more recent than the latest version, incrementing the forte number on commit ensured that only consistent versions were being marked. In order to determine the latest version, the forte number was compared first, then the version number, thus allowing Raft to ``bump'' the consistent version to a more recent version. In order to prevent that version's children from becoming less recent, on receipt of a version with a higher forte than the local, eventual nodes would search for the forte entry in the log, then find all children in the log, setting the child versions equal to that of the parent.
+Our approach to integrate consistency is to extend each version number with an additional monotonically increasing counter called the \textit{forte} (strong) version that can only be incremented by the leader of the Raft quorum. Because the Raft leader dropped forks or any version that was not more recent than the latest version, incrementing the forte number on commit ensures that only consistent versions are marked. In order to determine the latest version, the forte number is compared first, then the version number, allowing Raft to ``bump'' the consistent version to a more recent version. In order to prevent that version's children from becoming less recent, on receipt of a version with a higher forte than the local, eventual nodes must search for the forte entry in their local log, find all children of the update, and set the child version's forte equal to that of the parent.
 
-Our initial simulations show that this integration works well to curb inconsistencies due to delays in anti-entropy but also provide high availability to the user-centric dynamic cloud.
+Our preliminary investigations show that this integration works well to curb inconsistencies due to anti-entropy delays as well as those introduced by communication integration. There are, however, quite a few knobs to turn in the system described above. Further investigation into smoothing integration points between consistency protocols and the policies that each define may lead to smoother messaging with fewer resource constraints. We have identified a current bottleneck in the system however: the leadership of the central quorum, through which every single write must pass, no matter the size of the cloud. In order to address this, we propose an adaptation to the central consensus group such that it can provide Hierarchical Consensus.
 
 \subsection{Hierarchical Consensus}
 
@@ -514,16 +522,39 @@ Responsive Consistency & USENIX NSDI 2018 & N/A & N/A & N/A \\
 
 \section{Conclusion}
 
-Distributed storage systems are an important technique to ensuring highly available, durable storage especially in multi-user, collaborative environments. \pjk{Not sure if this sentence is saying anything. At the very least it's weak for the first sentence in the conclusion.}
-Replication comes at a cost, however, the need to coordinate replicas to ensure they present a consistent view of the object space. Most of the recent research on coordination and consistency has been in the database context in data centers. However, I propose to study multi-user, heterogenous, mobile systems: user-centric dynamic clouds \pjk{so?}. As the number of computing devices per person increases, and as new devices come online via the Internet of Things; these types of systems in mobile environments will become increasingly important.
+In this proposal we have presented two novel approaches to provide responsiveness in user-centric dynamic clouds: Federated Consistency and Hierarchical Consensus, as well as stretch proposals related to automatic Adaptive Consistency. Research into these approaches is important because the number of computing devices per person is increasing and new devices are coming online via the Internet of Things. Current approaches of centralized, cloud distributed data storage provide mobile availability and durability, but do not lend themselves well to multi-user, collaborative environments. We believe that as a result, user-centric dynamic personal clouds will become increasingly important to support the increase in the number of local devices.
 
-We have grounded our proposal in consistency, consensus, and replication. By identifying various consistency levels, we propose that the federation of a variety of consistencies will lead to greater flexibility, and show that consistency is a scale, not discrete categories. Federation will make use of a strong-central quorum to synchronize an eventual cloud, minimizing overall inconsistency in the system. The central quorum needs to be able to scale to dozens or hundreds of does; so to that end we propose Hierarchical Consensus as a means of partitioning consensus decisions to particular objects across the namespace to different leaders. This load balancing will increase throughput but also increase correctness. Finally we propose to explore the automatic adaptation of the network using heuristics or even machine learning.
+We have grounded our proposal in consistency, consensus, and replication. A generalized consistency model shows that consistency is a scale along dimensions of ordering and staleness; we have extended this model to account for file-system specific semantics and specifically measure forks and stale reads, symptoms of inconsistent ordering. Consensus allows the strong coordination of a distributed system, and we specifically consider the Raft consensus protocol. Finally, replication via anti-entropy gossip and broadcast protocols must consider resource constraints. By applying consistency only to the metadata of objects and by replicating immutable data blocks, we believe that a global, scalable network file system is possible.
+
+We propose to show through simulation and through a file system implementation that Federated Consistency and Hierarchical Consensus together will lead to a highly available system with strong consistency guarantees. Federation will make use of a strong-central quorum to synchronize an eventual cloud, minimizing overall inconsistency in the system, while allowing eventual nodes to make progress with reduced coordination requirements. The central quorum needs to be able to scale to dozens or hundreds of nodes and so we propose Hierarchical Consensus as a means of partitioning consensus decisions to particular objects across the namespace to different leaders. This load balancing will increase throughput but also increase correctness. Together and with potential future research into online optimization we believe that this research will lead to a high quality dissertation.
 
 \newpage
 
 \appendix
-\section{Appendix A: Reading List}
+\section{Reading List}
 \label{app:readinglist}
+
+\subsection{Consistency}
+
+1) \bibentry{lamport_time_1978}
+
+2) \bibentry{bermbach_consistency_2013}
+
+3) \bibentry{terry_managing_1995}
+
+4) \bibentry{bailis_quantifying_2014}
+
+5) \bibentry{lloyd_dont_2011}
+
+6) \bibentry{bailis_potential_2012}
+
+7) \bibentry{almeida_version_2002}
+
+8) \bibentry{attiya_sequential_1994}
+
+9) \bibentry{liu_warranties_2014}
+
+10) \bibentry{corbett_spanner:_2013}
 
 \subsection{Consensus}
 
@@ -535,21 +566,17 @@ We have grounded our proposal in consistency, consensus, and replication. By ide
 
 4) \bibentry{lamport_fast_2006}
 
-5) \bibentry{ongaro_search_2014}
+5) \bibentry{camargos_multicoordinated_2007}
 
+6) \bibentry{ongaro_search_2014}
 
-\subsection{Consistency}
+7) \bibentry{howard_raft_2015}
 
-1) \bibentry{lamport_time_1978}
+8) \bibentry{lampson_how_1996}
 
-2) \bibentry{terry_managing_1995}
+9) \bibentry{li_hierarchical_2014}
 
-3) \bibentry{bailis_quantifying_2014}
-
-4) \bibentry{bailis_potential_2012}
-
-5) \bibentry{bermbach_consistency_2013}
-
+10) \bibentry{zhang_hierarchical_2007}
 
 \subsection{Replication}
 
@@ -561,9 +588,28 @@ We have grounded our proposal in consistency, consensus, and replication. By ide
 
 4) \bibentry{venkataramani_operating_2002}
 
-5) \bibentry{almeida_version_2002}
+5) \bibentry{kraska_mdcc:_2013}
 
+6) \bibentry{mashtizadeh_replication_2013}
 
+7) \bibentry{karp_randomized_2000}
+
+8) \bibentry{kempe_gossip-based_2003}
+
+9) \bibentry{li_secure_2004}
+
+10) \bibentry{keleher1999decentralized}
+
+\newpage
+\section{FlowFS Architecture}
+\label{app:architecture}
+
+\begin{figure}[h!]
+    \centering
+        \includegraphics[width=\textwidth]{figures/architecture}
+        \caption{Component architecture of FlowFS, our proposed file system.}
+        \label{fig:architecture}
+\end{figure}
 
 % \newpage
 
