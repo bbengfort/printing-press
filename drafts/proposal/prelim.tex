@@ -48,20 +48,19 @@
 Philosophy}\\[5.5cm]
 
 \textsc{\large DRAFT}\\
-\emph{October 24, 2016}\\[2.0cm]
+\emph{October 27, 2016}\\[2.0cm]
 
 \emph{Preliminary Oral Examination for}\\
 \textsc{\large Benjamin Bengfort}\\[2.0cm] % [4.0cm]
 \emph{Advisor:} \\
 \textsc{Dr. Peter J. Keleher}\\[.5cm]
 \emph{Committee Members:}\\
-\textsc{Dr. Bobby Bhattacharjee}\\
 \textsc{Dr. Dave Levin}\\
-\textsc{Dr. Neil Spring}\\[4.0cm]
+\textsc{Dr. Amol Deshpande}\\[4.0cm]
 
 {\bfseries Department of Computer Science}\\
 {\bfseries University of Maryland, College Park, MD 20742}\\
-{\bfseries December 9, 2016}
+{\bfseries November 29, 2016}
 \vfill
 
 \end{center}
@@ -127,13 +126,16 @@ number of master nodes that implement consensus algorithms
 \cite{lamport_paxos_2001,ongaro_search_2014} for locking or ordering
 \cite{kraska_mdcc:_2013}.
 
-\pjk{Probably the most important para in the intro. It's good, but...} The focus on data center consistency has led to a centralized approach to data storage, forcing a modality where devices must connect to the cloud for file replication even when files exist in the local area \cite{drago_inside_2012}. Although this allows systems to ignore annoyances such as local network configuration and decentralized protocols it does present unnecessary overhead in terms of cost and latency. More pernicious, perhaps, is that users must now buy-in and store their data with a single provider that could go out of business or be hacked, which has lead to research in replicating local data with multiple untrusted cloud stores \cite{zhang_viewbox:_2014,feldman_sporc:_2010}. There are more devices than ever before connecting to storage applications, partially because users have multiple, heterogenous devices from wearables to workstations and partially because of the advent of the Internet of Things \cite{miorandi_internet_2012}. Cloud storage tends to be application specific, but with more devices and more users, \textit{generalized distributed storage} is required for collaboration and sharing that is not siloed and can be easily accessed by a variety of new platforms. Therefore we see a strong motivation to turn attention back to user-oriented networks of mobile heterogenous devices that do not have the benefit of data center level connectivity.
+% \pjk{Probably the most important para in the intro. It's good, but review often and try to improve as much as possible.}
+The focus on data center consistency has led to a centralized approach to data storage, forcing a modality where devices must connect to the cloud for file replication even when files exist in the local area \cite{drago_inside_2012}. Although this allows systems to ignore annoyances such as local network configuration and decentralized protocols it does present unnecessary overhead in terms of cost and latency. More pernicious, perhaps, is that users must now buy-in and store their data with a single provider that could go out of business or be hacked, which has lead to research in replicating local data with multiple untrusted cloud stores \cite{zhang_viewbox:_2014,feldman_sporc:_2010}. There are more devices than ever before connecting to storage applications, partially because users have multiple, heterogenous devices from wearables to workstations and partially because of the advent of the Internet of Things \cite{miorandi_internet_2012}. Cloud storage tends to be application specific, but with more devices and more users, \textit{generalized distributed storage} is required for collaboration and sharing that is not siloed and can be easily accessed by a variety of new platforms. Therefore we see a strong motivation to turn attention back to user-oriented networks of mobile heterogenous devices that do not have the benefit of data center level connectivity.
 
 We propose to explore consistency mechanisms in \textit{user-centric dynamic clouds}: a multi-user tapestry of mobile, heterogenous devices connected via variable-latency and partition-prone networks that change over time. These types of clouds are interesting because they describe a much wider range of use cases than a data center environment, for example search and rescue clouds, mobile sensor clouds, or even transportation clouds. We believe that the unique challenges of this network environment require specialized consistency models in order to be effective. Because of the user-centric nature of this research, the requirement for collaboration and sharing, and in order to generalize distributed storage in this type of cloud we further propose the study of a file system as the primary data storage application. File systems must be highly available such that a user does not notice any delay due to coordination but must also have strong consistency such that any conflicts are presented to the user as soon as possible. These two requirements together provide a challenge for any single consistency model, particularly when the devices in the file system are mobile, can be turned off, and may have a variety of resource constraints.
 
 Our core contention is that \emph{consistency depends on the
 ``environment''}. In a file system, the two primary symptoms of inconsistencies are version forks and stale reads. ``Weak'' (EC) systems depend on disseminating new writes quickly in order to prevent forks and stale reads. A ``strong'' (Raft consensus) system without caching might be provably correct, but might fail to make progress as network conditions deteriorate. Furthermore, file caching is essential to providing usable performance for any file system. Caching (without expensive validations) leads to stale reads. Forks can happen even without caching unless locking is used, however locks are too expensive for data center environments, much less user-centric dynamic clouds. Hence, a strong (Raft) system does not necessarily provide strong consistency guarantees on individual application-level file accesses. Further, the extent to which the system diverges from SC increases with decreasing network quality.
-\pjk{Problem w/ this is that it's only valid if we are looking at a file system. Are we ready to make that leap?  I'm seriously asking, not sure of the answer.}
+
+% \pjk{Problem w/ this is that it's only valid if we are looking at a file system. Are we ready to make that leap?  I'm seriously asking, not sure of the answer.}
+% Ben's response: yes, I believe that file systems are a generalization of many distributed storage issues and so discussing them in this context is relevant to other contexts.
 
 In order to provide any consistency guarantees in a dynamic environment the consistency model must be \textit{responsive}, providing flexibility when the network is unavailable or laggy and providing strong consistency guarantees when stable connections exist. Our approach focuses on two primary techniques to provide responsiveness: the \textit{federation} of weak but available consistency mechanisms with consensus implemented sequential consistency and the use of \textit{hierarchical} consensus to scale consensus groups beyond a handful of devices. ``Federated Consistency'' allows devices to switch local consistency models depending on the use case or to adapt consistency protocols automatically as the network environment changes, optimizing for strong consistency or availability as required. Availability in partition prone networks is provided by eventual consistency, and federation allows users to flexibly adapt to changing environments. ``Hierarchical Consensus'' increases the availability of a consensus group by creating decision localities of interest based on accesses to particular objects by a particular group of devices. Coordination with consensus is required for strong file system semantics and we propose that a hierarchical model makes consensus flexible enough for a file system. Both models are flexible locally, but can provide global system guarantees, guarantees we propose to explore in this research.
 
@@ -291,8 +293,6 @@ Both of these inconsistencies are directly related to how updates become fully v
 
 We believe that these initial investigations show a critical opportunity: that we can blend the high availability of an eventually consistent system and leverage the best parts of anti-entropy and eventual consistency in network environments where messages cannot get through along with the stability and increased visibility of a strongly consistent core, similar to the central core and flexible outer shell proposed by Gray and Oceanstore \cite{gray_dangers_1996,kubiatowicz_oceanstore:_2000}: we call this \textit{Federated Consistency}. Furthermore, if we can find a way to allocate decision space to a smaller number of nodes, we should be able to scale Raft to greater number of nodes without as steep a curve: we investigate this in \textit{Hierarchical Consensus}. Finally, as suggested by the $T$ timing parameter (though not explicitly covered), the timing measures and performance of consistency protocols are related to the network environment, which is dynamic. Potentially we can improve performance by monitoring the environment and adapting timing parameters to minimize the number of inconsistencies: investigated in \textit{Adaptive Consistency}.
 
-\subsection{Topology}
-
 \begin{figure*}
     \centering
     \minipage{0.5\textwidth}
@@ -307,19 +307,9 @@ We believe that these initial investigations show a critical opportunity: that w
     \endminipage
 \end{figure*}
 
-As described in the previous section, the primary input to a simulation is the topology of devices and their connections. Topologies allow us to vary connectivity and to simulate a range of network environments, exploring the effect of a variety of consistency protocols in user-centric dynamic clouds. The basic topology discussed in the previous section: multiple locations with variable network connectivity in each location has become a standard model for our research. We propose to investigate a fully connected topology of replica devices each assigned a geographic region as shown in Figure \ref{fig:topology}. Within each region, replica nodes enjoy stable, low-latency connections with their neighbors. However, across regions the latency is higher and the connections variable, meaning that out of order messages and delays are more common across the wide area than in the local area. This topology can be further generalized to tiers of locations as shown in Figure \ref{fig:tiers}, such that groups of nodes are grouped hierarchically in tiers of increasing latency and variability.
+The primary input to a simulation is the topology of devices and their connections. Topologies allow us to vary connectivity and to simulate a range of network environments, exploring the effect of a variety of consistency protocols in user-centric dynamic clouds. The basic topology discussed in the previous section: multiple locations with variable network connectivity in each location has become a standard model for our research. We propose to investigate a fully connected topology of replica devices each assigned a geographic region as shown in Figure \ref{fig:topology}. Within each region, replica nodes enjoy stable, low-latency connections with their neighbors. However, across regions the latency is higher and the connections variable, meaning that out of order messages and delays are more common across the wide area than in the local area. This topology can be further generalized to tiers of locations as shown in Figure \ref{fig:tiers}, such that groups of nodes are grouped hierarchically in tiers of increasing latency and variability.
 
 Dynamic, user-centric networks are susceptible to routine partitions, events that cause replication messages not to be received. We define two types of communication failure events in our topology: node failure and network partitions. \textit{Node failure} occurs when a single node is shut off or stops responding to messages. \textit{Network partitions} occur when it is not possible for messages to be sent or received from a single geographic region. In both cases, two conditions must be dealt with by the replication protocol in order to satisfy correctness criteria: resending lost messages and bringing nodes that are behind up to date. Introducing these events in our simulation is future work, but is necessary to a complete investigation of consistency in variable network environments.
-
-\subsection{System Description}
-
-Our file system aggregates individual accesses into \textit{Close-To-Open} (CTO) consistency where read and write accesses are ``whole file'' \cite{muthitacharoen_low-bandwidth_2001}. Furthermore, with respect to local accesses we guarantee that a read returns the last write (given no remote updates, \textit{Read Your Writes Consistency}) and that writes are atomic with respect to each other (\textit{Monotonic Write Consistency}) \cite{bermbach_consistency_2013}.
-
-Each replica's log is composed of a series of write accesses to multiple objects. Each object has a unique name that identifies it to the system and a monotonically increasing version number which can be implemented either as a vector clock \cite{parker_detection_1983} (or a simple Lamport scaler) in the case of a fixed topology or as a vector stamp \cite{almeida_version_2002} in the case of dynamic topologies. Therefore a write access encapsulate the following information: the name of the object being written to, the parent version of the object to which the write is being applied, the versions and object names of any other dependencies, the replica id where the write occurred, and an array of blob ids that compose the file at the conclusion of the write.
-
-A read access to a particular object simply looks up the latest local version of that object. Because dependency information can be embedded into a write, it is not necessary to include read accesses in the log. For example, in order to create a transaction that reads from objects $X$ and $Y$, performs a computation then updates objects $Y$ and then $Z$: the write to $Y$ would include as a dependency the earlier version of $Y$ and the read version of $X$ and the write to $Z$ would include the updated version of $Y$ and the read version of $X$. Other notions of dependencies include implicit session dependencies, e.g. all writes are dependent on any access that occur within a minimum time threshold of each other, or explicit dependencies that are added by the application.
-
-Because our system model accounts for heterogenous devices and each write in the log is simply metadata about the version of a file we consider version replication as a separate issue from object or blob replication. Furthermore, system consistency depends only on the replication of version information since a version defines what is visible on each replica to be read (and writes follow an implicit read). While a version must become visible (replicated to) all devices in order for the system to be consistent, the blobs that make up data may not be stored on all devices with different storage resources. If a read access requires blobs that it doesn't have, it can simply request them from a local neighbor that does, or from the origin replica itself.
 
 \section{Proposed Work}
 
@@ -352,8 +342,6 @@ The relationship between the anti-entropy delay and the size of the network rela
 
 \subsubsection{Strong Core Consensus Group}
 
-% \pjk{You've gone from laying out a research plan to describing details of a system. Need to start higher level, and put forward details as ``approaches'' etc.}
-
 We implement sequentially consistent replicated logs via the Raft consensus algorithm~\cite{ongaro_search_2014}. However, consensus alone does not ensure that sequentially consistent file system accesses are guaranteed and a number of policy decisions about how Raft followers read, write and interact with the leader must be discussed. In order to present the possibilities for policies in our system, we must understand the background of the Raft protocol's implementation of sequential consistency.
 
 The Raft leader has the primary responsibility of coordinating all other Raft replicas and therefore is also primarily responsible for ensuring a sequentially consistent system that maintains file system consistency invariants. A write access that originates at a follower must be sent as a \texttt{RemoteWrite} to the leader. The leader accepts writes in the order that they are received, and if the leader detects a fork -- that is that a write has a parent version who already has a child version in the log -- Raft will simply reject (drop) the write. In order to minimize the number of messages that Raft sends, Raft will aggregate all writes into the next \texttt{AppendEntries} message and send them together.
@@ -379,6 +367,38 @@ In order to federated multiple consistency models, there are two integration poi
 Our approach to integrate consistency is to extend each version number with an additional monotonically increasing counter called the \textit{forte} (strong) version that can only be incremented by the leader of the Raft quorum. Because the Raft leader dropped forks or any version that was not more recent than the latest version, incrementing the forte number on commit ensures that only consistent versions are marked. In order to determine the latest version, the forte number is compared first, then the version number, allowing Raft to ``bump'' the consistent version to a more recent version. In order to prevent that version's children from becoming less recent, on receipt of a version with a higher forte than the local, eventual nodes must search for the forte entry in their local log, find all children of the update, and set the child version's forte equal to that of the parent.
 
 Our preliminary investigations show that this integration works well to curb inconsistencies due to anti-entropy delays as well as those introduced by communication integration. There are, however, quite a few knobs to turn in the system described above. Further investigation into smoothing integration points between consistency protocols and the policies that each define may lead to smoother messaging with fewer resource constraints. We have identified a current bottleneck in the system however: the leadership of the central quorum, through which every single write must pass, no matter the size of the cloud. In order to address this, we propose an adaptation to the central consensus group such that it can provide Hierarchical Consensus.
+
+\subsubsection{Preliminary Results}
+
+
+\begin{figure*}
+    \centering
+    \minipage{0.48\textwidth}
+      \includegraphics[width=\linewidth]{figures/federated/percent_forked_writes_latency}
+      \caption{Federated forks as latency and variability increase.}
+      \label{fig:latency_forked_writes}
+    \endminipage\hfill
+    \minipage{0.48\textwidth}
+      \includegraphics[width=\linewidth]{figures/federated/percent_stale_reads_latency}
+      \caption{Federated stale reads as latency and variability increase.}
+      \label{fig:latency_stale_reads}
+    \endminipage
+\end{figure*}
+
+\begin{figure*}
+    \centering
+    \minipage{0.48\textwidth}
+      \includegraphics[width=\linewidth]{figures/federated/forked_writes_conflict}
+      \caption{Federated forks as conflict on object accesses increases.}
+      \label{fig:conflict_forked_writes}
+    \endminipage\hfill
+    \minipage{0.48\textwidth}
+      \includegraphics[width=\linewidth]{figures/federated/stale_reads_conflict}
+      \caption{Federated stale reads as conflict on object accesses increases.}
+      \label{fig:conflict_stale_reads}
+    \endminipage
+\end{figure*}
+
 
 \subsection{Hierarchical Consensus}
 
@@ -453,6 +473,23 @@ Our proposed solution is similar to the epoch solution: each tag quorum maintain
 This mechanism also leads us to suspect that generalizing the consensus hierarchy to arbitrarily deep levels is possible; particularly since the notion of sub-epoch numbers already exists. Clearly some coordination is required to ensure that tag space changes filter down to all leaf nodes, and that is the primary subject of our future work related to this proposal.
 
 In addition to correctness, we also propose to show failure tolerance by utilize Raft-style quorum mechanics. There are two distinct kinds of failure in a hierarchical system: replica failures (a single node crashes and dies) and partitions, where parts of the network are cut off from receiving messages. We believe that we can model failure tolerance from both of these perspectives through a formulation of quorum size, minimal intersection set between quorums, and the depth/breadth of the hierarchy. We propose to show correctness in the face of failure in the least and will stretch to show inherent robustness due to the structure of the hierarchy.
+
+\subsection{System Description}
+
+FlowFS aggregates individual accesses into \textit{Close-To-Open} (CTO) consistency where read and write accesses are ``whole file'' \cite{muthitacharoen_low-bandwidth_2001}. Furthermore, with respect to local accesses we guarantee that a read returns the last write (given no remote updates, \textit{Read Your Writes Consistency}) and that writes are atomic with respect to each other (\textit{Monotonic Write Consistency}) \cite{bermbach_consistency_2013}.
+
+\begin{figure}
+    \centering
+        \includegraphics[width=0.9\textwidth]{figures/architecture}
+        \caption{Component architecture of FlowFS, our proposed file system.}
+        \label{fig:architecture}
+\end{figure}
+
+Each replica's log is composed of a series of write accesses to multiple objects. Each object has a unique name that identifies it to the system and a monotonically increasing version number which can be implemented either as a vector clock \cite{parker_detection_1983} (or a simple Lamport scaler) in the case of a fixed topology or as a vector stamp \cite{almeida_version_2002} in the case of dynamic topologies. Therefore a write access encapsulate the following information: the name of the object being written to, the parent version of the object to which the write is being applied, the versions and object names of any other dependencies, the replica id where the write occurred, and an array of blob ids that compose the file at the conclusion of the write.
+
+A read access to a particular object simply looks up the latest local version of that object. Because dependency information can be embedded into a write, it is not necessary to include read accesses in the log. For example, in order to create a transaction that reads from objects $X$ and $Y$, performs a computation then updates objects $Y$ and then $Z$: the write to $Y$ would include as a dependency the earlier version of $Y$ and the read version of $X$ and the write to $Z$ would include the updated version of $Y$ and the read version of $X$. Other notions of dependencies include implicit session dependencies, e.g. all writes are dependent on any access that occur within a minimum time threshold of each other, or explicit dependencies that are added by the application.
+
+Because our system model accounts for heterogenous devices and each write in the log is simply metadata about the version of a file we consider version replication as a separate issue from object or blob replication. Furthermore, system consistency depends only on the replication of version information since a version defines what is visible on each replica to be read (and writes follow an implicit read). While a version must become visible (replicated to) all devices in order for the system to be consistent, the blobs that make up data may not be stored on all devices with different storage resources. If a read access requires blobs that it doesn't have, it can simply request them from a local neighbor that does, or from the origin replica itself.
 
 \subsection{Adaptive Consistency}
 
@@ -598,17 +635,6 @@ We propose to show through simulation and through a file system implementation t
 9) \bibentry{li_secure_2004}
 
 10) \bibentry{keleher1999decentralized}
-
-\newpage
-\section{FlowFS Architecture}
-\label{app:architecture}
-
-\begin{figure}[h!]
-    \centering
-        \includegraphics[width=\textwidth]{figures/architecture}
-        \caption{Component architecture of FlowFS, our proposed file system.}
-        \label{fig:architecture}
-\end{figure}
 
 % \newpage
 
