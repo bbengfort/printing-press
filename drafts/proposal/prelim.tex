@@ -480,6 +480,10 @@ Hierarchical consensus starts with a root quorum whose responsibility is to gove
 
 The fundamental relationship between accesses in epochs is as follows: any access that happens in epoch $i$ happened before every access in epoch $i-1$; accesses in different tags but in the same epoch happen concurrently from the global perspective, but are ordered locally in the quorum that governs that tag. As a result, every log has a determined, sequentially consistent and correct ordering, though the logs of two individual replicas may differ. Hierarchical consensus cannot provide linearizability, but does provide sequential consistency.
 
+The root consensus group must coordinate all tagspace changes. Let's consider the example where we want to exchange part of a tag between two subquorums, e.g. we want to transform a tagset $\{ABC\} \rightarrowtail \{ABGH\}$ and $\{DEFGH\} \rightarrowtail \{CDEF\}$. Both subquorums have a portion of the tag that the want to give up and a portion they want to receive. We propose, initially, that this is a two phase process. Both subquorums make their requests to the leader, who may aggregate several namespace changes into a single one. While the root quorum gets consensus to make the epoch change, subquorums can continue operating on their own tags. Once the root quorum updates the epoch, it communicates the change to the subquorums. The subquorum then increments its epoch and acknowledges its change to the root quorum. At this point, the subquorum can operate on the portion of the tag it owned before, \emph{but not the portion of the tag that is being modified}. Once the root quorum gets confirmations of epoch update from all subquorums, it notifies the subquorums that it can begin operating on the complete tag from the new epoch.
+
+Only the subquorums that are involved in the tagspace changes need be notified and involved in the two phase epoch change coordinated by the root epoch. Other subquorums can update their epoch number at no cost when they see the new epoch number from remote requests from other subquorums or when they are notified by the root epoch. In this way, non-responding subquorums do not block tagspace changes for other quorums. Because the tag is left behind in the previous epoch, all writes in that tag will be ordered before writes in the next epoch. However, because no writes in the next epoch depend on these writes safety is still guaranteed. This means that subquorums can have ``fuzzy epochs'', wherein subquorums are behind others; this property gives hierarchical consensus fault tolerance. It does, however, also present a challenge: what if the subquorum with a tag never comes back online and another subquorum wishes to access that part of the tagspace? We propose to investigate mechanisms of restricting long running accesses to a single tagspace that may involve conflict, such as periodic tag renewals.
+
 \subsubsection{Operation}
 \label{sec:hierarchical_operation}
 
@@ -642,17 +646,17 @@ We propose to show through simulation and through a file system implementation t
 
 4) \bibentry{lamport_fast_2006}
 
-5) \bibentry{camargos_multicoordinated_2007}
+5) \bibentry{lamport_generalized_2005}
 
-6) \bibentry{ongaro_search_2014}
+6) \bibentry{moraru_there_2013}
 
-7) \bibentry{howard_raft_2015}
+7) \bibentry{2016arXiv160806696H}
 
-8) \bibentry{lampson_how_1996}
+8) \bibentry{ongaro_search_2014}
 
-9) \bibentry{li_hierarchical_2014}
+9) \bibentry{howard_raft_2015}
 
-10) \bibentry{zhang_hierarchical_2007}
+10) \bibentry{lampson_how_1996}
 
 \subsection{Replication}
 
