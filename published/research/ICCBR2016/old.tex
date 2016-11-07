@@ -1,0 +1,8 @@
+\subsection{Neighbor-Based Guidance}
+
+To provide guidance to the users, during a dialogue the current working knowledge goal was mapped to goal space, then a $k$-Nearest Neighbors algorithm was applied to filter the goals to potential candidates. The $k$ goals were suggested to the user, but were not ranked on distance alone but also the trajectory or initial of the goal in goal space from the proceeding goal. E.g. if a goal was in the ``same'' direction as the current path of the goal trajectory, then it would be prioritized even if it was a bit more far distant.
+
+\subsection{Example Knowledge-Goal Retrievals}
+
+
+To test the results we replay observed dialogues and goal trajectories that were added to our system, but augmented with guidance. The augmentation creates a branching linear data structure of the goal trajectory, and we compute the minimum path distance from the initial goal to the final goal. Normalized by the percent of the minimum path that are guidance goals, we compute the short circuit or acceleration that guidance provides. Guidance is said to provide an improved goal trajectory if the ratio of the length and magnitude become closer to 1 for the case of short circuiting and in the case of acceleration, if the total number of nodes in the trajectory is fewer. 
