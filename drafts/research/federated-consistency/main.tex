@@ -8,6 +8,10 @@
 \newcommand{\blue}[1]{{\textcolor{blue}{#1}}}
 \newcommand{\pjk}[1]{[\todo{PJK: #1}]}
 
+\newcommand{\pjkst}[2]{[\todo{PJK: #1}]\st{#2}}
+\newcommand{\note}[1]{\textcolor{blue}{[#1]}}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+
 \begin{document}
 \title{Federated Consistency in Geographically Distributed Systems}
 \author{\IEEEauthorblockN{Benjamin Bengfort and Pete Keleher}
@@ -190,7 +194,7 @@ Moreover, $T$ can be adapted at runtime. For eventual nodes, $T$ can be continua
 
 \subsection{Protocol Federation}
 
-Write a description of how federation is implemented and the "silver bullet" to coordinate between eventual and Raft. The following section is excerpted from the proposal.
+\note{Write a description of how federation is implemented and the "silver bullet" to coordinate between eventual and Raft. The following section is excerpted from the proposal.}
 
 A key requirement of Federated Consistency is the opportunity to create heterogeneous systems with no performance cost, e.g. a homogenous eventual cloud and a homogenous Raft cloud will continue to perform equivalently whether or not they participate in a federated cloud. However, we posit that an eventual cloud should benefit in lowered data staleness and in fork frequency from being connected to a strong, central consensus group. Similarly, Raft nodes should be able to use anti-entropy mechanisms to replicate data and continue writing even if the leader is unavailable and no consensus can be reached to elect a leader. The question is therefore how to integrate the eventual consistency via gossip and sequential consistency via consensus in a non-invasive way.
 
@@ -236,7 +240,7 @@ Examples of topologies and accesses are shown in Figures \ref{fig:federated_sync
 
 We conducted two primary experiments to test the behavior of a federated consistency system against homogenous Raft and homogenous Eventual systems. The first was to test the behavior of increasing conflict, $P_c$ and the second was to explore the effect of the network environment in terms of the mean latency, $\lambda{\mu}$ of the wide area. The input to the system was a fixed topology of 20 nodes in 5 wide areas, along with an access trace that contained approximately 29,000 accesses (depending on the experiment), with an average ratio of 54\% of the accesses being reads \pjk{Why 54\%? More generally you need to motivate our choices for trace and topology.}.
 
-\pjk{Our primary metrics are....}\st{Each simulation measured the performance of accesses by measuring} \textit{forked writes} and \textit{stale reads}. We define forked writes as the number of writes that had more than one child, whereas a read is stale if it returns anything other than the globally latest version. A further metric of \textit{inconsistent writes} measured the number of writes whose parent was forked allowed into the log of a replica, as balanced by the number of \textit{dropped writes} -- writes that the sequential ordering Raft nodes would reject as being invalid.\pjk{Motivate all.}
+\pjkst{Our primary metrics are....}{Each simulation measured the performance of accesses by measuring} \textit{forked writes} and \textit{stale reads}. We define forked writes as the number of writes that had more than one child, whereas a read is stale if it returns anything other than the globally latest version. A further metric of \textit{inconsistent writes} measured the number of writes whose parent was forked allowed into the log of a replica, as balanced by the number of \textit{dropped writes} -- writes that the sequential ordering Raft nodes would reject as being invalid.\pjk{Motivate all.}
 
 Furthermore the cost of each replication protocol was measured in terms of the number of \textit{sent messages} as well as latencies of various RPC calls. Some latencies were dependent if the protocol specified \textit{cached} or \textit{remote} accesses: the \textit{read latency} and \textit{write latency} measured the amount of time an access took until a response was returned to the client. In the case of Eventual nodes, this latency was zero, since an eventual node always responds with cached information; however Raft required remote accesses to the leader in order to respond. Other latencies were global \st{latencies}, e.g. the \textit{visibility latency} specified\pjk{present tense} the average amount of time it took a write to become fully visible, that is replicated to all nodes in the network. Any writes that \st{did}\blue{do} not become fully visible (stomped on through the eventually consistent policy of latest writer wins) \st{were}\blue{are} ignored.\st{ but} This metric is closely related to \st{in line with} the \textit{percent visible} metric -- the average number of replicas a write is propagated to. Finally the \textit{commit latency} specified how much time was required for a write to be committed, e.g. confirmed as accepted by a quorum of nodes.
 
