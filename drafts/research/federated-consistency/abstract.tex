@@ -1,19 +1,13 @@
 Groups of strongly consistent devices can efficiently replicate data under
 ideal (data center) conditions, but become less effective in dynamic and
-heterogeneous environments.
-Eventually consistent devices efficiently tolerate both faults and dynamic
-conditions but are slow to converge on a single ordering of system events.
+heterogeneous environments.  Eventually consistent devices efficiently
+tolerate both faults and dynamic conditions but are slow to converge on a
+single ordering of system events.
 
 We propose ``federated consistency'', an approach that combines the strengths
-of both approaches into a single protocol, Federated groups use a strongly
+of both approaches into a single protocol. Federated groups use a strongly
 consistent inner core of devices to maintain a totally ordered, fault-tolerant
-sequence of events.
-A cloud of eventually-consistent devices disseminates orderings and enables
-progress despite varying connectivity and partitions.
-
-We use a detailed event simulation to show the key advantages of 
-Events
-can be s with a 
-eventually consistent devices.
-A group of federated devices uses provide the majority of benefits
-obtained from both approaches. 
+sequence of events.  A cloud of eventually-consistent devices disseminates
+orderings and enables progress despite varying connectivity and partitions.
+We use a detailed event simulation to show that a group of federated devices
+can obtain the key advantages of both approaches. 
