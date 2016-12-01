@@ -316,9 +316,9 @@ Our simulation implementation gave us the benefit of being able to manipulate ma
 
 In truly resource constrained environments, allowing both Raft and Eventual (either in a homogenous or Federated context) to maintain an equal or semi-equal message budget by modifying the $T$ parameter and allocating timing similarly means that congestion is reduced or optimized. Moreover, this system also allows for adaptive behavior by providing a single place of modification and optimization; $T$ could be optimized according to a cost function (e.g. the message budget or other real time estimates of performance) or could be boosted for a node that has to do a lot of work. This type of flexibility is important to being able to understand how minor changes in both the environment and protocols effect overall consistency in the system as a whole.
 
-\pjk{Given bilateral anti-entropy and a large communication budge, nothing beats eventual. In some situations Raft might be ``better'' because it's consensus, but even w/ it we can't implement sequential consistency. So where is raft better?  Everyone sees the current version at the end of an epoch. Note that raft doesn't prevent stale reads, but it does bound the staleness (to the length of an epoch). Eventual doesn't.   W/ federated, we lose the ability to bound staleness tightly, so we need to make sure that we implement out epoch-backpressure. I'm hopeful the resulting numbers will look much better.}
+% \pjk{Given bilateral anti-entropy and a large communication budge, nothing beats eventual. In some situations Raft might be ``better'' because it's consensus, but even w/ it we can't implement sequential consistency. So where is raft better?  Everyone sees the current version at the end of an epoch. Note that raft doesn't prevent stale reads, but it does bound the staleness (to the length of an epoch). Eventual doesn't.   W/ federated, we lose the ability to bound staleness tightly, so we need to make sure that we implement out epoch-backpressure. I'm hopeful the resulting numbers will look much better.}
 
-\note{Since the note above, we've implemented the forte number (backpressure)}
+% \note{Since the note above, we've implemented the forte number (backpressure)}
 
 \subsection{Fork Minimization}
 
