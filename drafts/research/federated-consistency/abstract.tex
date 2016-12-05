@@ -4,8 +4,9 @@ heterogeneous environments.  Eventually consistent devices efficiently
 tolerate both faults and dynamic conditions but are slow to converge on a
 single ordering of system events.
 
-We propose ``federated consistency'', an approach that combines the strengths
-of both approaches into a single protocol.  Federated groups use a strongly
+We propose "federated consistency", which combines the strengths
+of both approaches into a single protocol, and show how to map a distributed
+file system onto a federated system.  Federated groups use a strongly
 consistent inner core of devices to maintain a totally ordered, fault-tolerant
 sequence of events.  A cloud of eventually-consistent devices disseminates
 orderings and enables progress despite varying connectivity and partitions.
