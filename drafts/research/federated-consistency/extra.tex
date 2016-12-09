@@ -1,10 +1,8 @@
 \section{Latency}
 
-Discuss ICMP vs. GRPC and latencies in data center environments.
+Latency ranges for wide area networks can be extremely variable and are primarily determined by the last mile connection. While data centers often use backbone links to connect across the wide area, LTE networks, satellite networks, and the cable or fiber networks that connect users introduce extra round trip latency. Using ICMP to measure latency across the continental United States from the Princeton University network, Katz-Bassett et. al report local round trip latencies in the 10-50ms range and cross-country latencies in the 100ms range \cite{katz-bassett_towards_2006}. However, we believe that ICMP often gets preferential routing and that the simplicity of the echo protocol does not inform true message delays that would be experienced by a distributed system. We compared ICMP to a simple echo protocol implemented with GRPC and discovered that the ICMP latency distribution is significantly smaller than GRPC in many environments.
 
 \section{Conclusions}
-
-
 
 What changes if we shift the topology?
 
