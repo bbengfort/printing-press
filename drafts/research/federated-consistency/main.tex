@@ -227,6 +227,8 @@ However, the goals of strict ordering and minimal staleness can be in conflict. 
 example, a strict ordering criteria may require a new object version to be delayed until
 dependencies are satisfied, causing reads to become more stale.
 
+\subsection{Forks}
+
 In addition to tracking staleness directly, we also use as a metric the primary symptom of stale
 reads and writes, forks:
 \begin{description}
@@ -255,6 +257,8 @@ A delay in replicas $R_i$ and $R_j$ synchronizing could lead to one of them cont
 further down one of the fork paths, e.g. $W_i(a_2 \rightarrow a_4)$.
 The fork between $a_2$ and $a_3$ occurs because of concurrent accesses by multiple
 replicas, but stale reads can also cause forks. \bjb{I can change the figure so that the bottom has the same time ordering as the top -- note that the fork in the figure is a stale read, if the synchronization line was pushed back, it would eliminate the fork}
+
+\subsection{Consistency}
 
 A broader discussion of consistency levels should include at least eventual consistency~\cite{terry_managing_1995},
 causal consistency~\cite{causal} (the highest level allowing high availability~\cite{bailis_bolt-causal_2013}),
@@ -305,7 +309,7 @@ Raft implementation below).
 Write rejection requires the application to deal with dropped writes by either retrying or
 resolving conflicts and writing a new version.
 
-\section{Federated Consistency}
+\section{Replication}
 
 A federated consistency model allows individual replicas to
 engage in replication according to locally-specified consistency policies.
@@ -316,7 +320,7 @@ Therefore every replica can be seen as an event handler that responds to local a
 events, as well as remote messages, and generates more events (sent messages) in return.
 So long as every federated replica has an event handler for all types of RPC
 messages, federation only has to be defined at the \textit{consistency boundaries}, that
-is when replicas of one consistency type send messages to that of another. \bjb{Do we want to include the notions of communication and consistency integration here?}
+is when replicas of one consistency type send messages to that of another.
 
 % Given the consistency models discussed in the previous section, we will omit weak
 % consistency as being too simplistic and linearizability as being too performance
@@ -423,7 +427,6 @@ version from the leader.
 This introduces the potential for additional latency, but may be faster if the expected
 message latency is less than the heartbeat interval.
 \end{enumerate}
-\bjb{removed underscore for consistency with other variables like heartbeat interval}
 
 Each of these options has critical implications for the likelihood of stale reads and
 writes in the system.
@@ -439,13 +442,12 @@ system.
 
 \subsection{Timing Parameters}
 
-Both the anti-entropy and Raft protocols are parameterized by timing \st{parameters} \blue{configurations that govern replication and therefore overall consistency}.
+Both the anti-entropy and Raft protocols are parameterized by timing constraints that govern replication and therefore overall consistency.
 In order to select an \texttt{anti-entropy delay}, \texttt{heartbeat
 interval}, and \texttt{election timeout} we must find some method of
 scaling the timing to the expected base latency of our system.
 We use a ``tick'' parameter, $T$, which is a function of
-\red{observed one-way message latency in the system specified as normally
-distributed with a mean, $\lambda_{\mu}$ and standard deviation,
+the observed one-way message latency in the system specified as a normal distribution of latency and described by its mean, $\lambda_{\mu}$ and standard deviation,
 $\lambda_{\sigma}$}.
 $T$ is used to derive all timing parameters in the federated system.
 We use a conservative formulation that is
@@ -455,12 +457,12 @@ big enough to withstand most variability:
 \end{equation}
 Ongaro and Ousterhout~\cite{ongaro_search_2014} use a more conservative
 parameter of $10\lambda_{\mu}$, which results in replication happening much
-more slowly than the access events and causes large numbers of conflicts.
+more slowly than access events and causes large numbers of conflicts.
 Howard et.
 al \cite{howard_raft_2015} use an
 optimistic $T$ parameter, $2\left(\lambda_{\mu} + 2\lambda_{\sigma}\right)$, that is too small to capture
 the variability in our target environments and leads to out of order
-\texttt{AppendEntries} messages in Raft, which can degrade performance. \bjb{Howard uses round-trip latencies, so I doubled it for our one-way message latency.}
+\texttt{AppendEntries} messages in Raft, which can degrade performance.
 
 Timing parameters are then defined in terms of $T$.
 For example, in order to ensure that eventual and sequential replicas send approximately
@@ -482,16 +484,85 @@ parameters are as follows:
 % Once joint consensus is achieved the new $T$ tick parameter can be
 % applied.
 
-\subsection{Federation}
+\section{Federated Consistency}
 
-% \note{Write a description of how federation is implemented and the "silver bullet" to coordinate between eventual and Raft. The following section is excerpted from the proposal.}
+A federated model of consistency creates heterogenous clouds of replicas that participate
+in different replication protocols.
+Global consistency and availability of the system is tuned by specifying different
+allocations of replicas of each type.
+Allocating all of one replication protocol, e.g. a homogenous eventual or Raft cloud,
+should behave equivalently to a homogenous system that does not implement federation.
+Therefore a key requirement of federated consistency is the integration of protocols with
+no performance cost to replicas participating at different, local consistency levels.
 
-A federated system must ensure that replicas can inter-operate both in terms of
-communication (message traffic), and in consistency.
-We integrate communication at Raft replicas by allowing them to participate in anti-entropy
-with the eventual cloud (but not with other Raft replicas).
-Eventual replicas therefore ``synchronize'' with a local Raft node (modified by some
-synchronization probability) by exchanging \texttt{Gossip} messages with the Raft replicas.
+We expect that a federated model will allow an eventual cloud to benefit from lower data
+staleness and fork frequency by being connected to a strongly consistent, central
+consensus group.
+Similarly, Raft replicas should be able to use anti-entropy mechanisms to replicate data
+and continue writing even if the leader is unavailable and no consensus can be reached to
+elect a leader.
+We integrate the systems by relying on the eventual replicas to disseminate orderings and
+cope with failures, but relying on the Raft replicas to choose the final operation
+ordering.
+In order to achieve this with no performance cost we must ensure that replicas can
+inter-operate both in terms of communication (message traffic) and consistency.
+
+\subsection{Communication Integration}
+
+All replication protocols are defined by their RPC messages and expected responses.
+On one level it is a simple matter to integrate the communication across protocols by
+ensuring that all replicas respond to all RPC message types and that those types are
+clearly defined.
+Integration occurs when a subset of replicas implements \textit{more than one}
+replication protocol or when rules are established for cross communication that take
+advantage of the unique characteristics of the protocol or topology.
+
+We integrate communication at Raft replicas by allowing them to participate in
+anti-entropy with the eventual cloud (but not with other Raft replicas).
+Because the Raft replicas are generally a small subset of the overall system, this type
+of integration ensures that the number of messages in the system does not scale according
+to the number of replication protocols being federated.
+Eventual replicas therefore ``synchronize'' with Raft replicas by exchanging
+\texttt{Gossip} RPC messages that can be initiated from either the Raft or the eventual
+replica.
+If an eventual replica receives an \texttt{AppendEntries} or \texttt{VoteRequest} RPC it
+must respond with an RPC failure that indicates the quorum has changed, which leads to a
+joint consensus decision among the remaining Raft nodes.
+
+\bjb{Have we mentioned the wide vs. local area topology yet? Seems important for a paper titled "Geo-Replication"}
+
+Communication integration can also take advantage of the geographic topology of the
+system to localize non-broadcast forms of communication.
+Specifically, eventual replicas can prioritize their communication with Raft replicas or
+local replicas by modifying the random selection of pairwise anti-entropy.
+Eventual replicas select a neighbor by first deciding between synchronization with Raft
+or another eventual replica with probability $P_{sync}$.
+If synchronization is selected, then anti-entropy occurs with the \textit{geographically
+nearest}, available Raft replica.
+If an eventual replica is selected then a second decision is made between selecting a
+neighbor in the local area or in the wide area with a probability $P_{local}$.
+
+In the homogenous eventual case, only $P_{local}$ has an effect on replication
+(homogenous Raft is broadcast oriented and therefore does not depend on these
+probabilities).
+By slightly favoring synchronization and local communication for anti-entropy, the
+system becomes more reliant on the Raft core group and therefore has stronger global
+consistency (fewer forks overall).
+Alternatively, lowering the likelihood of synchronization will allow the system to become
+less reliant on Raft, particularly when wide area outages are likely.
+
+Varying communication between protocols in this way introduces an important question:
+does a Raft consensus group improve the global consistency because it broadcasts across
+the wide area or because it implements a stronger consistency model?
+We investigated the relationship between broadcast replication by implementing a special
+eventually consistent replica called the ``stentor'' replica.
+Stentor replicas conduct two anti-entropy sessions per replication interval, one across the wide area and one locally.
+We compared a federation of Raft and eventual with a federation of eventual and stentor
+and found that while stentor performs slightly better than homogenous bilateral anti-entropy, the Raft consistency model has a strong effect on how inconsistencies are
+handled.
+
+\subsection{Consistency Integration}
+
 A slight increase in the synchronization probability balances the amount of
 synchronization with the amount of communication in the eventual cloud given the imbalance
 in the ratio of eventual replicas to Raft replicas.\pjk{huh?}
@@ -499,18 +570,7 @@ In order to manage the communications delay between the anti-entropy timeout and
 leadership coordination, Raft replicas must keep local caches of forked or dropped writes so
 as to not propagate them back to the eventual cloud or replay them to the leader.\pjk{huh?}
 
-A key requirement of Federated Consistency is the ability to create heterogeneous systems
-with no performance cost to the underlying protocols.
-A homogeneous eventual cloud and a homogeneous Raft cloud should continue to perform
-equivalently whether or not they participate in a federated cloud.
-However, we expect that federation will allow an eventual cloud to benefit in lowered data
-staleness and in fork frequency from being connected to a strong, central consensus group.
-Similarly, Raft replicas should be able to use anti-entropy mechanisms to replicate data
-and continue writing even if the leader is unavailable and no consensus can be reached to
-elect a leader.
-We integrate the systems by relying on the eventual replicas to disseminate orderings and
-cope with failures, but relying on the Raft replicas to choose the final operation
-ordering.
+
 The combination can waste effort when eventual replicas derive new versions based on
 choosing a fork ``winner'' that Raft replicas eventually override, but the federated
 system has the potential to improve on the performance of either protocol in isolation.
@@ -533,6 +593,8 @@ This disconnect arises from a fundamental mismatch in the protocols' approaches 
 conflict resolution.
 We could modify one or the other, but would then have a protocol that would not perform as
 well in a non-federated environment.
+
+\subsection{Forte Number}
 
 We resolve this issue by noting that if the strong central quorum can make a write
 accepted by the Raft replicas ``more recent'' than any conflicting write, even one with a
@@ -627,7 +689,7 @@ The simulation input has two parts: a topology that specifies the replicas and
 network environment, and a workload of access events to uniquely named objects
 (files).
 The simulation instantiates each replica as a process that executes read and
-write accesses to objects, generates replication messages, and 
+write accesses to objects, generates replication messages, and
 handles messages from other replicas.
 Topologies specify each device as an independent replica by uniquely identifying it
 with device-specific configurations.
