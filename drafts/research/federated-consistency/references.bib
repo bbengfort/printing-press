@@ -805,3 +805,173 @@
   year = {1988},
   pages = {51--81}
 }
+
+@InProceedings{gfs,
+  address =	"Bolton Landing, NY, USA",
+  author =	"S. Ghemawat and H. Gobioff and S. Leung",
+  booktitle =	"Proceedings of the nineteenth Symposium on Operating
+		 Systems Principles (SOSP'03)",
+  date-added =	"2006-06-26 16:57:04 +0900",
+  date-modified = "2006-06-26 17:06:52 +0900",
+  ISBN = 	"1-58113-757-5",
+  keywords =	"Google, filesystem",
+  language =	"English",
+  month =	oct,
+  organization = "ACM",
+  pages =	"29--43",
+  publisher =	"ACM Press",
+  title =	"The {G}oogle File System",
+  URL =  	"http://doi.acm.org/10.1145/945445.945450",
+  year = 	"2003",
+  abstract =	"We have designed and implemented the Google File
+		 System, a scalable distributed file system for large
+		 distributed data-intensive applications. It provides
+		 fault tolerance while running on inexpensive commodity
+		 hardware, and it delivers high aggregate performance to
+		 a large number of clients. While sharing many of the
+		 same goals as previous distributed file systems, our
+		 design has been driven by observations of our
+		 application workloads and technological environment,
+		 both current and anticipated, that reflect a marked
+		 departure from some earlier file system assumptions.
+		 This has led us to reexamine traditional choices and
+		 explore radically different design points. The file
+		 system has successfully met our storage needs. It is
+		 widely deployed within Google as the storage platform
+		 for the generation and processing of data used by our
+		 service as well as research and development efforts
+		 that require large data sets. The largest cluster to
+		 date provides hundreds of terabytes of storage across
+		 thousands of disks on over a thousand machines, and it
+		 is concurrently accessed by hundreds of clients. In
+		 this paper, we present file system interface extensions
+		 designed to support distributed applications, discuss
+		 many aspects of our design, and report measurements
+		 from both micro-benchmarks and real world use.",
+}
+
+@inproceedings{tolia:opportunistic,
+  author = "Niraj Tolia and Michael Kozuch and Mahadev Satyanarayanan and Brad
+            Karp and Adrian Perrig and Thomas Bressoud",
+  title = "Opportunistic Use of Content Addressable Storage for Distributed File Systems",
+  booktitle = "Proceedings of the USENIX 2003 Annual Technical Conference",
+  pages = "127--140",
+  year = "2003",
+  month = "June",
+  address = "San Antonio, TX",
+  url = "http://citeseer.ist.psu.edu/tolia03opportunistic.html" }
+
+@inproceedings{shvachko2010hadoop,
+  title={The hadoop distributed file system},
+  author={Shvachko, Konstantin and Kuang, Hairong and Radia, Sanjay and Chansler, Robert},
+  booktitle={2010 IEEE 26th symposium on mass storage systems and technologies (MSST)},
+  pages={1--10},
+  year={2010},
+  organization={IEEE}
+}
+
+@inproceedings{ross2000pvfs,
+  title={PVFS: A parallel file system for Linux clusters},
+  author={Ross, Robert B and Thakur, Rajeev and others},
+  booktitle={Proceedings of the 4th annual Linux Showcase and Conference},
+  pages={391--430},
+  year={2000}
+}
+
+@article{globalfs,
+  title={GlobalFS: A Strongly Consistent Multi-Site File System},
+  author={Pacheco, Leandro and Halalai, Raluca and Schiavoni, Valerio and Pedone, Fernando and Riviere, Etienne and Felber, Pascal}
+  journal = 	 {Submitted for publication}
+}
+
+@Article{lfs,
+  author =       "Mendel Rosenblum and John K. Ousterhout",
+  title =        "The Design and Implementation of a Log-Structured File
+                 System",
+  journal =      "ACM Transactions on Computer Systems",
+  year =         "1992",
+  volume =       "10",
+  number =       "1",
+  pages =        "26--52",
+  abstract =     "Gives a rather high-level description of the Sprite
+                 log-structured file system; there are too many details
+                 missing for my taste. But the discussion of cleaning
+                 and, in particular, cleaning policies is quite
+                 detailed; the paper compares a greedy heuristic that
+                 cleans segments with least utilization, with a
+                 cost/benefit heuristic that tends to clean segments
+                 with old (and rarely-changing) data with higher
+                 utilization than young segments; the cost/benefit
+                 heuristic works significantly better. The intuition is
+                 that old data is unlikely to die soon, so we might just
+                 as well reclaim the free space associated with it now
+                 and use it, instead of waiting for a long time until
+                 utilization falls below the threshold of the greedy
+                 heuristic. The file system maintains a segment usage
+                 table to have data for this heuristic. The paper also
+                 presents empirical data showing that the Sprite LFS is
+                 much faster than SunOS FFS on small files, and that the
+                 cleaning behaviour on real workloads is even better
+                 than in the simulations they presented earlier. One
+                 interesting statement was that the Sprite LFS is not
+                 more complex than FFS: it needs log handling and the
+                 cleaner, but can skip complex block allocation
+                 algorithms and fsck.",
+}
+
+@TechReport{rabin,
+  author =       "Michael O. Rabin",
+  title =        "Fingerprinting by Random Polynomials",
+  institution =  "Harvard Aiken Computation Laboratory",
+  number =       "TR-15-81",
+  year =         "1981",
+}
+
+
+@article{helland_immutability_2015,
+  title = {Immutability Changes Everything},
+  volume = {13},
+  timestamp = {2016-04-27T15:47:15Z},
+  number = {9},
+  urldate = {2016-03-07},
+  journal = {Queue},
+  author = {Helland, Pat},
+  year = {2015},
+  pages = {40},
+  annote = {Important points:~Linear versions is strong consistency, see section 6.1~LSM, LSF, and COW discussion is important in 6.3 on.Danger of namespace and separation of namespace from blob writes in section 7.4 and 7.6~Other sections basically talk about why NoSQL - normalization is for sissies.~},
+  file = {Immutability Changes Everything.pdf:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/V6KJNNEZ/V6KJNNEZ.pdf:application/pdf;Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/4ASEZGFR/citation.html:text/html}
+}
+
+@inproceedings{lbfs,
+  title = {A Low-bandwidth Network File System},
+  author = {Athicha Muthitacharoen and Benjie Chen and David Mazi{\`e}res},
+  booktitle = {Proceedings of the 18th {ACM} {S}ymposium on {O}perating
+{S}ystems {P}rinciples ({SOSP} '01)},
+  year = {2001},
+  month = {October},
+  abstract = "Users rarely consider running network file systems over
+                  slow or wide-area networks, as the performance would
+                  be unacceptable and the bandwidth consumption too
+                  high. Nonetheless, efficient remote file access
+                  would often be desirable over such
+                  networks—particularly when high latency makes remote
+                  login sessions unresponsive. Rather than run
+                  interactive programs such as editors remotely, users
+                  could run the programs locally and manipulate remote
+                  files through the file system. To do so, however,
+                  would require a network file system that consumes
+                  less bandwidth than most current file systems.  <p>
+                  This paper presents LBFS, a network file system
+                  designed for low-bandwidth networks. LBFS exploits
+                  similarities between files or versions of the same
+                  file to save bandwidth. It avoids sending data over
+                  the network when the same data can already be found
+                  in the server's file system or the client's
+                  cache. Using this technique in conjunction with
+                  conventional compression and caching, LBFS consumes
+                  over an order of magnitude less bandwidth than
+                  traditional network file systems on common
+                  workloads.",
+  pages = {174--187},
+}
+

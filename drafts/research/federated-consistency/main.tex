@@ -100,10 +100,8 @@ a system is either due to staleness in eventually consistent systems
 systems implemented with consensus \cite{howard_raft_2015}.
 The advent of distributed storage as a service has allowed systems to adapt consistency at
 runtime by taking advantage of a stable network environment
-\cite{chihoub_harmony:_2012,chihoub_consistency_2013,kraska_consistency_2009} and has
-shifted the focus away from replication in weakly-connected, dynamic, or mobile networks
-even though it is the environment that has the primary role in determining the behavior of
-replication and potential guarantees \cite{pitoura_data_1999,deno-toc}.
+\cite{chihoub_harmony:_2012,chihoub_consistency_2013,kraska_consistency_2009,pitoura_data_1999,deno-toc} and has
+shifted the focus away from replication in weakly-connected, dynamic, or mobile networks.
 We believe that local, user-oriented distributed systems should augment
 cloud services rather than be replaced by them; and in some cases, such as disaster
 recovery or search and rescue, may be the only available system.
@@ -115,7 +113,7 @@ in response to local policies and requirements.
 As a result, individual replicas in the system can respond and adapt to a changing network
 environment while providing as strong a local guarantee or minimum quality of service as
 required.
-The global state of a federated system is defined by the topology of replicas and their
+The global state of a federated system is defined by the replica topology and their
 interactions, such that if a subset of nodes implement stronger consistency models, then
 the global probability of conflict is reduced.
 Conversely, a subset of nodes
@@ -139,16 +137,15 @@ We have found that large systems with variable latency in different geographic r
 perform well by allowing most nodes to operate in an optimistic fashion, but also maintaining a
 strong central quorum to reduce the amount of global conflict.
 
-The rest of the paper is organized as follows: we present a system model that is slightly
-different from the usual client-server system model and which has many more replica
-servers participating in a variety of locations.
-Because we take a client-centric approach we will describe BLAH,
-though our model can be easily generalized to other types of data systems.
-We will then present a consistency model to describe the impact of conflict, misordering,
-and staleness and use these metrics to next describe the federated consistency protocol.
-Finally we will present the performance of our system via experimental simulation and
-conclude with a discussion of how to adapt this model to include other consistency
-protocols like causal consistency.
+The rest of the paper is organized as follows: Section~\ref{sec:background}
+describes background and defines terms. Section~\ref{sec:replication}
+describes implementation of eventually consistent and Raft clouds, focusing on
+the non-standard aspects of our implementations, which focus on supporting
+file systems in wide-area and mobile environments.
+Section~\ref{sec:federated} describes our Federated protocol with eventual and
+sequentially consistent sub-protocols. 
+Section~\ref{sec:results} explores simulated performance of the three
+protocols, and Section~\ref{sec:conclusion} concludes.
 
 \section{Background and Definitions}
 \label{sec:background}
@@ -159,7 +156,7 @@ In the context of a file system, those operations could be individual \texttt{wr
 systems calls, though this would be inefficient.
 Most wide-area file systems aggregate individual accesses through \textit{Close-To-Open}
 (CTO) consistency, where file reads and writes are ``whole file''
-\cite{afs,coda,muthitacharoen_low-bandwidth_2001}.
+\cite{afs,coda,lbfs}.
 A file read (``open'') is guaranteed to see data written by the latest write (``close'').
 This approach satisfies two of the major tenets of session consistency: \texttt{Read Your
 Writes Consistency} and \texttt{Monotonic Write Consistency}, but not \texttt{Writes
@@ -189,16 +186,22 @@ A file read simply looks up the latest local version of that file.
 % other, or explicit dependencies that are added by the application.
 % \pjk{why are we talking about transactions and embedded depencies?}
 
-System consistency depends only on the replication of file meta-data; replication of
-the underlying file data (blobs) is orthogonal.
-While versions must become visible on all devices in order for the system to be
-consistent, the blobs comprising file data are generally not fully replicated.
-For example, resource-poor devices like smartphones may not cache any blobs not in
-immediate use.
-Read accesses that require non-local blobs result in the local replica requesting them
-from either a nearby neighbor or the blob's origin.
-The rest of this paper will therefore focus on meta-data replication, limited primarily
-by latency, not bandwidth.
+Our file system, like many modern file systems,
+decouples
+metadata~\emph{recipes}~\cite{tolia:opportunistic,gfs,shvachko2010hadoop,ross2000pvfs,globalfs}
+from file
+data storage.
+Metadata includes an ordered list of \emph{blobs}, which are opaque binary chunks.
+When a file is closed after editing, the data associated with the file is \emph{chunked} into a
+series of variable-length blobs~\cite{lbfs}, identified by a hashing function applied to
+the data~\cite{rabin}.
+Since blobs are effectively immutable~\cite{helland_immutability_2015}, or tamper-evident, (blobs are named by hashes of
+their contents), we assert that consistent metadata replication can be decoupled from blob
+replication.
+Accesses to file system metadata becomes the operations or entries in replicated logs.
+Metadata is therefore replicated through the system, allowing any file
+system client to have a complete view of the file system namespace, even while
+not caching any file data.
 
 \subsection{Operation Logs}
 
@@ -310,7 +313,7 @@ Write rejection requires the application to deal with dropped writes by either r
 resolving conflicts and writing a new version.
 
 \section{Replication}
-
+\label{sec:replication}
 A federated consistency model allows individual replicas to
 engage in replication according to locally-specified consistency policies.
 Each replica maintains its own local state, modified in response to local accesses
@@ -485,6 +488,7 @@ parameters are as follows:
 % applied.
 
 \section{Federated Consistency}
+\label{sec:federated}
 
 A federated model of consistency creates heterogenous clouds of replicas that participate
 in different replication protocols.
@@ -632,6 +636,7 @@ all children of the update, and set the child version's forte equal to that of t
 % that it can provide Hierarchical Consensus.
 
 \section{Simulation Results}
+\label{sec:results}
 
 \subsection{System Model}
 
@@ -920,6 +925,7 @@ Most Federated replicas are Eventual, and Federated's average write cost
 therefore tracks Eventual's relatively closely.
 
 \section{Discussion}
+\label{sec:conclusion}
 
 A strong central core to provide support to the entire system has been suggested both in Oceanstore \cite{kubiatowicz_oceanstore:_2000} and primary copy schemes \cite{gray_dangers_1996}. We take this idea further in our experiments by Federating a strong central core composed of Replicas that perform consensus via the Raft consensus protocol and combine it with highly available eventually consistent systems. In this way Federated consistency gains the flexibility and availability of the Eventual replicas (leader re-election and no requirement for remote writes mean that the replica can continue even if it is completely partitioned from the rest of the network) while still getting guarantees from Raft, which minimizes ``fork flipping'' -- the behavior of writing to one branch then another, truly pernicious inconsistent behavior that cannot be prevented in an eventually consistent system.
 
