@@ -938,6 +938,9 @@ In simulations of 20 replicas, these figures show not only the consequences of
 replication latency, but also the impact of consistency policies on both staleness and
 forks.
 
+% Ben is hinting at an expectation that was more fig 8 (forks) than 7 (stale
+% reads). At higher system sizes we'd expect them to look more similar.
+
 Figure~\ref{fig:write_latency} shows the mean cost of synchronous write operations to
 ongoing computations.
 All Raft writes must be forwarded to the leader in order to be serialized and are
@@ -949,11 +952,49 @@ Eventual's relatively closely.
 
 \section{Related Work}
 
-One of the earliest attempts to hybridize weak and strong consistency was a model for parallel programming on shared memory systems by Agrawal et al \cite{agrawal_mixed_1994}. This model allowed programmers to relax strong consistency in certain contexts with causal memory or pipelined random access in order to improve parallel performance of applications. Per-operation consistency was extended to distributed storage by the RedBlue consistency model of Li et al \cite{li_making_2012}. Here, replication operations are broken down into small, commutative sub-operations that are classified as red (must be executed in the same order on all replicas) or blue (execution order can vary from site to site), so long as the dependencies of each sub-operation are maintained. The consistency model is therefore global, specified by the red/blue ordering and can be adapted by redefining the ratio of red to blue operations, e.g. all blue operations is an eventually consistent system and all red is sequential.
+One of the earliest attempts to hybridize weak and strong consistency was a
+model for parallel programming on shared memory systems by Agrawal et al
+\cite{agrawal_mixed_1994}.
+This model allowed programmers to relax strong consistency in certain contexts
+with causal memory or pipelined random access in order to improve parallel
+performance of applications.
+Per-operation consistency was extended to distributed storage by the RedBlue
+consistency model of Li et al \cite{li_making_2012}.
+Here, replication operations are broken down into small, commutative
+sub-operations that are classified as red (must be executed in the same order
+on all replicas) or blue (execution order can vary from site to site), so long
+as the dependencies of each sub-operation are maintained.
+The consistency model is therefore global, specified by the red/blue ordering
+and can be adapted by redefining the ratio of red to blue operations, e.g.
+all blue operations is an eventually consistent system and all red is
+sequential.
 
-The next level above per-operation consistency hybridization is called \textit{consistency rationing} wherein individual objects or groups of objects have different consistency levels applied to them to create a global quality of service guarantee. Kraska et al. \cite{kraska_consistency_2009} initially proposed consistency rationing be on a per-transaction basis by classifying objects in three tiers: eventual, adaptable, and linearizable. Objects in the first and last groups were automatically assigned transaction semantics that maintained that level of consistency; however objects assigned the adaptable categorization had their consistency policies switched at runtime based on a cost function that either minimized time or write costs depending on user preference. This allowed consistency in the adaptable tier to be flexible and responsive to usage.
+The next level above per-operation consistency hybridization is called
+\textit{consistency rationing} wherein individual objects or groups of objects
+have different consistency levels applied to them to create a global quality
+of service guarantee.
+Kraska et al.
+\cite{kraska_consistency_2009} initially proposed consistency rationing be on
+a per-transaction basis by classifying objects in three tiers: eventual,
+adaptable, and linearizable.
+Objects in the first and last groups were automatically assigned transaction
+semantics that maintained that level of consistency; however objects assigned
+the adaptable categorization had their consistency policies switched at
+runtime based on a cost function that either minimized time or write costs
+depending on user preference.
+This allowed consistency in the adaptable tier to be flexible and responsive
+to usage.
 
-Chihoub et al. extended the idea of consistency rationing and proposed limiting the number of stale reads or the automatic minimization of some consistency cost metric by using reporting and consistency levels already established in existing databases \cite{chihoub_harmony:_2012,chihoub_consistency_2013}. Here multiple consistency levels are being utilized, but only one consistency model is employed at any given time for all objects, relaxing or strengthening depending on observed costs. By utilizing all possible consistency semantics in the database, this model allows a greater spectrum of consistency guarantees that adapt at runtime.
+Chihoub et al.
+extended the idea of consistency rationing and proposed limiting the number of
+stale reads or the automatic minimization of some consistency cost metric by
+using reporting and consistency levels already established in existing
+databases \cite{chihoub_harmony:_2012,chihoub_consistency_2013}.
+Here multiple consistency levels are being utilized, but only one consistency
+model is employed at any given time for all objects, relaxing or strengthening
+depending on observed costs.
+By utilizing all possible consistency semantics in the database, this model
+allows a greater spectrum of consistency guarantees that adapt at runtime.
 
 Al-Ekram and Holt \cite{al-ekram_multi-consistency_2010} propose a middleware
 based scheme to allow multiple consistency models in a single distributed
@@ -990,13 +1031,58 @@ make it legally sequential.
 \section{Discussion \& Conclusion}
 \label{sec:conclusion}
 
-A strong central core to provide support to the entire system has been suggested both in Oceanstore \cite{kubiatowicz_oceanstore:_2000} and primary copy schemes \cite{gray_dangers_1996}. We take this idea further in our experiments by Federating a strong central core composed of Replicas that perform consensus via the Raft consensus protocol and combine it with highly available eventually consistent systems. In this way Federated consistency gains the flexibility and availability of the Eventual replicas (leader re-election and no requirement for remote writes mean that the replica can continue even if it is completely partitioned from the rest of the network) while still getting guarantees from Raft, which minimizes ``fork flipping'' -- the behavior of writing to one branch then another, truly pernicious inconsistent behavior that cannot be prevented in an eventually consistent system.
+A strong central core to provide support to the entire system has been
+suggested both in Oceanstore \cite{kubiatowicz_oceanstore:_2000} and primary
+copy schemes \cite{gray_dangers_1996}.
+We take this idea further in our experiments by Federating a strong central
+core composed of Replicas that perform consensus via the Raft consensus
+protocol and combine it with highly available eventually consistent systems.
+In this way Federated consistency gains the flexibility and availability of
+the Eventual replicas (leader re-election and no requirement for remote writes
+mean that the replica can continue even if it is completely partitioned from
+the rest of the network) while still getting guarantees from Raft, which
+minimizes ``fork flipping'' -- the behavior of writing to one branch then
+another, truly pernicious inconsistent behavior that cannot be prevented in an
+eventually consistent system.
 
-System designers can take advantage of heterogeneous replicas by implementing stronger consistency on more reliable machines that are able to handle more messages. Mobile replicas that are prone to network loss, out of order or missed messages, or other variable behavior can adapt their policy depending on the environment they're in. Our model also allows for \textit{adaptive} behavior, in that the replicas can monitor the environment for change and as the mean latency decreases, adapt their $T$ parameter accordingly. This is a no cost operation for Eventual replicas (who can also optimize pairwise gossip by implementing non-discrete random selection using Bandits or other optimization techniques), and only requires joint consensus on the part of the consensus group.
+System designers can take advantage of heterogeneous replicas by implementing
+stronger consistency on more reliable machines that are able to handle more
+messages.
+Mobile replicas that are prone to network loss, out of order or missed
+messages, or other variable behavior can adapt their policy depending on the
+environment they're in.
+Our model also allows for \textit{adaptive} behavior, in that the replicas can
+monitor the environment for change and as the mean latency decreases, adapt
+their $T$ parameter accordingly.
+This is a no cost operation for Eventual replicas (who can also optimize
+pairwise gossip by implementing non-discrete random selection using Bandits or
+other optimization techniques), and only requires joint consensus on the part
+of the consensus group.
 
-Our simulation implementation gave us the benefit of being able to manipulate many parameters to see how replication behavior changes. As a result, we only focused on the number of consistency messages sent. Potentially this overstates the differences between the protocols; Raft leaders have more processing requirements for example. Additionally bandwidth pressure and differences in messaging might be more important to the overall performance of a system. However, by focusing on the number of messages and isolating version replication from blob replication (e.g. minimizing the amount of data required for consistent behavior), we have allowed each protocol to fix some ``message budget''.
+Our simulation implementation gave us the benefit of being able to manipulate
+many parameters to see how replication behavior changes.
+As a result, we only focused on the number of consistency messages sent.
+Potentially this overstates the differences between the protocols; Raft
+leaders have more processing requirements for example.
+Additionally bandwidth pressure and differences in messaging might be more
+important to the overall performance of a system.
+However, by focusing on the number of messages and isolating version
+replication from blob replication (e.g.
+minimizing the amount of data required for consistent behavior), we have
+allowed each protocol to fix some ``message budget''.
 
-In truly resource constrained environments, allowing both Raft and Eventual (either in a homogeneous or Federated context) to maintain an equal or semi-equal message budget by modifying the $T$ parameter and allocating timing similarly means that congestion is reduced or optimized. Moreover, this system also allows for adaptive behavior by providing a single place of modification and optimization; $T$ could be optimized according to a cost function (e.g. the message budget or other real time estimates of performance) or could be boosted for a replica that has to do a lot of work. This type of flexibility is important to being able to understand how minor changes in both the environment and protocols effect overall consistency in the system as a whole.
+In truly resource constrained environments, allowing both Raft and Eventual
+(either in a homogeneous or Federated context) to maintain an equal or
+semi-equal message budget by modifying the $T$ parameter and allocating timing
+similarly means that congestion is reduced or optimized.
+Moreover, this system also allows for adaptive behavior by providing a single
+place of modification and optimization; $T$ could be optimized according to a
+cost function (e.g.
+the message budget or other real time estimates of performance) or could be
+boosted for a replica that has to do a lot of work.
+This type of flexibility is important to being able to understand how minor
+changes in both the environment and protocols effect overall consistency in
+the system as a whole.
 
 % \pjk{Given bilateral anti-entropy and a large communication budge, nothing beats Eventual. In some situations Raft might be ``better'' because it's consensus, but even w/ it we ca not implement sequential consistency. So where is raft better?  Everyone sees the current version at the end of an epoch. Note that raft does not prevent stale reads, but it does bound the staleness (to the length of an epoch). Eventual does not.   W/ Federated, we lose the ability to bound staleness tightly, so we need to make sure that we implement out epoch-backpressure. I'm hopeful the resulting numbers will look much better.}
 
