@@ -563,20 +563,21 @@ handled.
 
 \subsection{Consistency Integration}
 
-A slight increase in the synchronization probability balances the amount of
-synchronization with the amount of communication in the eventual cloud given the imbalance
-in the ratio of eventual replicas to Raft replicas.\pjk{huh?}
-In order to manage the communications delay between the anti-entropy timeout and
-leadership coordination, Raft replicas must keep local caches of forked or dropped writes so
-as to not propagate them back to the eventual cloud or replay them to the
-leader.\pjk{huh? this is about followers rejecting already seen writes. Could
-  deal with eventual going around raft. P\_local being higher than .5 tends to
-  prevents eventual from going around raft.}
-
-
-The combination can waste effort when eventual replicas derive new versions based on
-choosing a fork ``winner'' that Raft replicas eventually override, but the federated
-system has the potential to improve on the performance of either protocol in isolation.
+Consistency integration occurs when communication occurs between replicas with different
+local consistency policies.
+When an Eventual replica receives a \texttt{Gossip} message from a Raft replica it
+accepts the most recent version, however the reciprocal Raft operation applies
+consistency policies such as rejecting forks.
+If a fork is detected at a Raft follower, it can drop the inconsistency without
+the leader, which allows the Raft consensus group to be more available.
+In order to improve performance, all Raft replicas keep local caches of forked or dropped
+writes to minimize the propagation of forks and prevent duplication of remote accesses to
+the leader.
+Even though a Raft follower notes a fork and does not propagate it, it is possible for
+the fork to arrive at another Raft follower that hasn't seen it via anti-entropy
+propagation.
+In this case increasing $P_{local}$ can prevent the eventual cloud from propagating forks
+around Raft.
 
 However, straightforward integration of the eventual and Raft clouds actually performs worse
 than either cloud in isolation.
@@ -596,8 +597,6 @@ This disconnect arises from a fundamental mismatch in the protocols' approaches 
 conflict resolution.
 We could modify one or the other, but would then have a protocol that would not perform as
 well in a non-federated environment.
-
-\subsection{Forte Number}
 
 We resolve this issue by noting that if the strong central quorum can make a write
 accepted by the Raft replicas ``more recent'' than any conflicting write, even one with a
