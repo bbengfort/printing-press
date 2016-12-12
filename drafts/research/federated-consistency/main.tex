@@ -526,8 +526,8 @@ On one level it is a simple matter to integrate the communication across protoco
 ensuring that all replicas respond to all RPC message types and that those types are
 clearly defined.
 Integration occurs when a subset of replicas implements \textit{more than one}
-replication protocol or when rules are established for cross-communication that take
-advantage of the unique characteristics of the protocol or topology.
+replication protocol, or when rules are established for cross-communication to take
+advantage of the unique characteristics of a protocol or topology.
 
 We integrate communication at Raft replicas by allowing them to participate in
 anti-entropy with the eventual cloud (but not with other Raft replicas).
@@ -535,7 +535,7 @@ Because the Raft replicas are generally a small subset of the overall system, th
 of integration ensures that the number of messages in the system does not scale according
 to the number of replication protocols being federated.
 Eventual replicas therefore ``synchronize'' with Raft replicas by exchanging
-\texttt{Gossip} RPC messages that can be initiated from either the Raft or the eventual
+\texttt{Gossip} RPC messages initiated from either the Raft or the eventual
 replica.
 If an eventual replica receives an \texttt{AppendEntries} or \texttt{VoteRequest} RPC it
 must respond with an RPC failure that indicates the quorum has changed, which leads to a
@@ -963,9 +963,37 @@ The next level above per-operation consistency hybridization is called \textit{c
 
 Chihoub et al. extended the idea of consistency rationing and proposed limiting the number of stale reads or the automatic minimization of some consistency cost metric by using reporting and consistency levels already established in existing databases \cite{chihoub_harmony:_2012,chihoub_consistency_2013}. Here multiple consistency levels are being utilized, but only one consistency model is employed at any given time for all objects, relaxing or strengthening depending on observed costs. By utilizing all possible consistency semantics in the database, this model allows a greater spectrum of consistency guarantees that adapt at runtime.
 
-Al-Ekram and Holt \cite{al-ekram_multi-consistency_2010} propose a middleware based scheme to allow multiple consistency models in a single distributed storage system. They identify a similar range of consistency models, but use a middleware layer to forward client requests to an available replica that maintains consistency at the lowest required criteria by the client. However, although their work can be extended to deploying several consistency models in one system, they still expect a homogenous consistency model that can be swapped out on demand as client requirements change. Additionally their view of the ordering of updates of a system is from one versioned state to another and they apply their consistency reasoning to the divergence of a local replica's state version and the global version. Similar to SUNDR, proposed by Li et al. \cite{li_secure_2004}, an inconsistency is a fork in the global ordering of reads and writes (a ``history fork''). Our consistency model instead considers object forks, a more granular level that allows concurrent access to different objects without conflict while still ensuring that no history forks can happen.
+Al-Ekram and Holt \cite{al-ekram_multi-consistency_2010} propose a middleware
+based scheme to allow multiple consistency models in a single distributed
+storage system.
+They identify a similar range of consistency models, but use a middleware
+layer to forward client requests to an available replica that maintains
+consistency at the lowest required criteria by the client.
+However, although their work can be extended to deploying several consistency
+models in one system, they still expect a homogenous consistency model that
+can be swapped out on demand as client requirements change.
+Additionally their view of the ordering of updates of a system is from one
+versioned state to another and they apply their consistency reasoning to the
+divergence of a local replica's state version and the global version.
+Similar to SUNDR, proposed by Li et al.
+\cite{li_secure_2004}, an inconsistency is a fork in the global ordering of
+reads and writes (a ``history fork'').
+Our consistency model instead considers object forks, a more granular level
+that allows concurrent access to different objects without conflict while
+still ensuring that no history forks can happen.
 
-Hybridization and adaptation build upon previous work that strictly categorizes different consistency schemes. An alternative approach is to view consistency along a continuous scale with several axes that can be tuned precisely. Yu and Vahdat \cite{yu_design_2002} propose the \textit{conit}, a consistency unit described as a three dimensional vector that describes tolerable deviations from linearizability along staleness, order error, and numeric ordering. Similarly, Afek et al. \cite{afek_quasi-linearizability:_2010} present quasi-linearizable histories which specify a bound on the relative movement of ordered items in a log which make it legally sequential.
+Hybridization and adaptation build upon previous work that strictly
+categorizes different consistency schemes.
+An alternative approach is to view consistency along a continuous scale with
+several axes that can be tuned precisely.
+Yu and Vahdat \cite{yu_design_2002} propose the \textit{conit}, a consistency
+unit described as a three dimensional vector that describes tolerable
+deviations from linearizability along staleness, order error, and numeric
+ordering.
+Similarly, Afek et al.
+\cite{afek_quasi-linearizability:_2010} present quasi-linearizable histories
+which specify a bound on the relative movement of ordered items in a log which
+make it legally sequential.
 
 \section{Latency}
 
