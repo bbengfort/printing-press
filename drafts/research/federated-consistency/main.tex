@@ -729,7 +729,7 @@ consistency type: one of \textit{eventual}, \textit{Raft}, and
 Figure~\ref{fig:outages_stale_reads} shows the portion of system reads that return stale
 data as the probability of outages, $P_f \in [0.0,1.0]$, increases with a step of $0.1$.
 The eventual system deals with increasingly poor network conditions the best,
-as randomized anti-entropy partner selections allow writes to propogate through multiple
+as randomized anti-entropy partner selections allow writes to propagate through multiple
 paths. 
 Eventually consistent systems are wide used precisely because of their ability to remain
 highly-available despite network failures and
@@ -737,7 +737,7 @@ partitions~\cite{bailis_bolt-causal_2013,bailis_probabilistically_2012,bailis_qu
 The federated system is able to leverage the eventual subset of its replicas to route
 around failures almost as efficiently as the homogeneous eventual system.
 
-The multiple-paths ability also allows the federated system to propogate writes quickly,
+The multiple-paths ability also allows the federated system to propagate writes quickly,
 as show in Figure~\ref{fig:stale_reads}. In fact, federated actually outperforms the
 eventual system, possibly because the Raft quorum is able to quickly disseminate chosen
 writes during those periods when wide-area links are available.
@@ -819,7 +819,7 @@ in the simulation to force each protocol to handle many forks.
 % \ref{fig:latency_stale_reads} sits between both Raft and Eventual for
 % both the optimistic and conservative tick parameters.
 
-Figures~\ref{fig:visible_writes} and \ref{fig:visibility_latency} show that that write
+Figures~\ref{fig:visible_writes} and \ref{fig:visibility_latency} show that write
 propagation is much faster and more effective in Federated than it is in Eventual,
 especially as network conditions deteriorate.
 For mean replication \emph{latency} (visibility) of writes spreading across all system
