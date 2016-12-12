@@ -685,7 +685,7 @@ out of order messages are more common across the wide area than in the local are
 
 In this type of topology we expect both replica failures, where a single
 replica stops responding to messages, and network partitions, where messages
-can be exchanged only within a single geographic region.
+can be exchanged only within geographic regions.
 In both cases, accesses may continue within a partitioned replica or subnet
 even though they are not immediately replicated in the system.
 Partitioned replicas may fall behind the global state, and must be
@@ -716,7 +716,7 @@ with device-specific configurations.
 By far the most important configuration option is a replica's \textit{consistency} (or replication
 protocol), which determines the replica's behavior:
 \begin{itemize}
-    \item \emph{eventual}: Eventual replicas perform replication via anti-entropy by random
+    \item \emph{Eventual}: Eventual replicas perform replication via anti-entropy by random
       selection of a neighbor with which to gossip. Eventual  replicas can prioritize
       local vs. wide area replicas by specifying $P_{local}$ -- the likelihood
       of local, versus wide-area, neighbor selection.
@@ -768,9 +768,9 @@ probability of switching objects occurred.
 In effect, the final workload simulates multiple replicas reading and writing at a
 moderate pace for approximately one hour.
 
-One example topology can be seen in Figure~\ref{fig:topology}.
-Vertice size represents the number of
-accesses that occur at that location, and color represents the
+In the example topology of Figure~\ref{fig:topology}, 
+vertice size represents the number of
+accesses that occur at a location, and color represents the
 replica type.
 The edges are colored by RPC type and sized by the
 number of messages sent.
@@ -781,7 +781,8 @@ area cluster, primarily synchronizing across the wide area via Raft replicas.
 
 We conducted two primary experiments to test the behavior of a Federated consistency
 system against homogeneous Raft and Eventual systems.
-The first investigates behavior in the face of increasing failure rates, $P_f$ and the
+The first investigates behavior in the face of increasing failure of wide-area
+links, and the
 second explores the effect of the network environment in terms of the mean latency,
 $\lambda{\mu}$ of the wide area.
 Our simulated topology consists of twenty (20) replicas distributed across five (5)
@@ -810,20 +811,28 @@ protocols, and so have essentially zero latency.
 
 \subsection{Failure Rates}
 
-Figure~\ref{fig:outages_stale_reads} shows the portion of system reads that return stale
-data as the probability of outages, $P_f \in [0.0,1.0]$, increases with a step of $0.1$.
+Figures~\ref{fig:outages_stale_reads} and \ref{fig:outages_forked_writes}
+show the effect on stale reads and forked writes
+as the probability of wide-area link failures, $P_f \in [0.0,1.0]$, increases
+with a step of $0.1$.
+A $P_f$ of 0.5 means that all wide-area links are simultaneously down 50\% of
+the time,
+whereas a $P_f$ of 1.0 means that all wide-area links are permanently down after
+a single timestep.
+Anti-entropy within a single geographic proceeds as usual.
+
 The Eventual system deals with increasingly poor network conditions the best,
 as randomized anti-entropy partner selections allow writes to propagate through multiple
 paths.
-Eventually consistent systems are wide used precisely because of their ability to remain
+Eventually consistent systems are widely used precisely because of their ability to remain
 highly-available despite network failures and
 partitions~\cite{bailis_bolt-causal_2013,bailis_probabilistically_2012,bailis_quantifying_2014}.
 The Federated system is able to leverage the Eventual subset of its replicas to route
 around failures almost as efficiently as the homogeneous Eventual system.
 
 The multiple-paths ability also allows the Federated system to propagate writes quickly,
-as shown in Figure~\ref{fig:outages_stale_reads}. In fact, Federated actually outperforms the
-Eventual system, possibly because the Raft quorum is able to quickly disseminate chosen
+as shown in Figure~\ref{fig:outages_forked_writes}. In fact, Federated actually outperforms 
+Eventual, possibly because the Raft quorum is able to quickly disseminate chosen
 writes during those periods when wide-area links are available.
 
 \subsection{Latency Variation}
@@ -856,8 +865,8 @@ writes during those periods when wide-area links are available.
     \endminipage\hfill
 \end{figure}
 
-In the second experiment we investigate the effect of variable network
-latency on consistency protocols, as well as how the selection of the tick parameter
+Our second experiment investigates the effect of variable network latency on
+consistency protocols, as well as how the selection of the tick parameter
 model affects consistency for each system.
 % We specified 12 wide area mean latencies in three categories: low ($\lambda{\mu} \in
 % [40,500]ms$ with a low $\lambda_{\sigma}=10.0$), medium ($\lambda{\mu} \in [500,1000]ms$
@@ -866,9 +875,9 @@ model affects consistency for each system.
 In each of these environments we again evaluated three replication models:
 \textit{Eventual}, \textit{Raft}, and \textit{Federated}.
 
-Each simulation was then parameterized by a $T$ parameter, computed by the
+Each simulation is parameterized by a $T$ parameter that is a function of the
 wide area $\lambda_{\mu}$ and $\lambda_{\sigma}$.
-However the access mean, $A_{\mu}$ was fixed at approximately one access per replica every
+However, the access mean, $A_{\mu}$ was fixed at approximately one access per replica every
 3000ms.
 In effect, this meant that for approximately half the simulations (with the higher
 latencies), it was impossible for a write to become visible on another replica before a
@@ -894,9 +903,12 @@ in the simulation to force each protocol to handle many forks.
 Figures~\ref{fig:visible_writes} and \ref{fig:visibility_latency} show that
 write propagation is much faster and more effective in Raft than in Eventual,
 especially as network conditions deteriorate.
-For the mean \emph{replication latency} of writes (time to become fully visible), Federated essentially splits the difference between Raft and Eventual.
-However, Figure~\ref{fig:visible_writes} shows that Federated fully replicates many more
-writes than Eventual, closely tracking the number of writes fully replicated by Raft.
+For the mean \emph{replication latency} of writes
+(Figure~\ref{fig:visibility_latency}), Federated essentially splits the
+difference between Raft and Eventual.
+However, Figure~\ref{fig:visible_writes} shows that Federated fully replicates
+many more writes than Eventual, closely tracking the number of writes fully
+replicated by Raft.
 
 The strong inner core of Raft replicas is the key to the Federated protocol
 tracking Raft's performance.
@@ -932,12 +944,14 @@ variability is large.
 By contrast, a slow anti-entropy participant only affects direct anti-entropy
 partners.
 
-As the size the of the system increases, more time is required to fully replicate writes,
+Though not shown here, we also investigated the effect of changing the number
+of replicas in the system. 
+As system size increases, more time is required to fully replicate writes,
 increasing the likelihood of both stale reads and forks.
-As expressed in Equation~\ref{eq:propagation}, bilateral anti-entropy propagates writes
+Equation~\ref{eq:propagation} shows that bilateral anti-entropy propagates writes
 to $N$ nodes exponentially.
 Given the relationship of the \texttt{anti-entropy delay} and \texttt{heartbeat interval}
-expressed by $T$, Raft broadcast overtakes anti-entropy between 9 (2 anti-entropy
+expressed by $T$, Raft broadcasts overtake anti-entropy between 9 (2 anti-entropy
 sessions) and 27 replicas (3 anti-entropy sessions).
 In simulations of 20 replicas, these figures show not only the consequences of
 replication latency, but also the impact of consistency policies on both staleness and
