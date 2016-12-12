@@ -364,6 +364,7 @@ Forks are caused by staleness due to propagation delays.
 This \emph{visibility} latency can be modeled as:
 \begin{equation}
 t_{visibility} \approx \frac{T}{4} \log_3N + \epsilon
+\label{eq:propagation}
 \end{equation}
 $\frac{T}{4}$ is the
 \texttt{anti-entropy delay} as computed from the network environment via a \emph{tick}
@@ -506,10 +507,8 @@ should behave equivalently to a homogenous system that does not implement federa
 Therefore a key requirement of federated consistency is the integration of protocols with
 no performance cost to replicas participating at different, local consistency levels.
 
-We expect that a federated model will allow an eventual cloud to benefit from lower data
-staleness and fork frequency by being connected to a strongly consistent, central
-\pjk{not true, update}
-consensus group.
+We expect that a federated model will allow an eventual cloud to benefit from lower fork
+frequency by being connected to a strongly consistent, central consensus group.
 Similarly, Raft replicas should be able to use anti-entropy mechanisms to replicate data
 and continue writing even if the leader is unavailable and no consensus can be reached to
 elect a leader.
@@ -886,12 +885,9 @@ in the simulation to force each protocol to handle many forks.
 Figures~\ref{fig:visible_writes} and \ref{fig:visibility_latency} show that
 write propagation is much faster and more effective in Raft than in Eventual,
 especially as network conditions deteriorate.
-For mean replication \emph{latency} (visibility) of writes spreading across
-all system replicas, Federated essentially splits the difference between Raft
-and Eventual.
-However, Figure~\ref{fig:visible_writes} shows that Federated fully replicates
-many more writes than Eventual, closely tracking the number of writes fully
-replicated by Raft.
+For the mean \emph{replication latency} of writes (time to become fully visible), Federated essentially splits the difference between Raft and Eventual.
+However, Figure~\ref{fig:visible_writes} shows that Federated fully replicates many more
+writes than Eventual, closely tracking the number of writes fully replicated by Raft.
 
 The strong inner core of Raft replicas is the key to the Federated protocol
 tracking Raft's performance.
@@ -915,7 +911,6 @@ All three protocols perform similarly at smaller latencies, but Eventual and
 Federated deal with high latencies much more effectively than Raft, at least
 for this size of system.
 
-
 Higher latencies affect Raft in at least two ways.
 First, higher latency variability causes more out of order messages.
 Second, we parameterize system timeouts by $T$ which, in turn, is based on
@@ -928,12 +923,25 @@ variability is large.
 By contrast, a slow anti-entropy participant only affects direct anti-entropy
 partners.
 
+As the size the of the system increases, more time is required to fully replicate writes,
+increasing the likelihood of both stale reads and forks.
+As expressed in Equation~\ref{eq:propagation}, bilateral anti-entropy propagates writes
+to $N$ nodes exponentially.
+Given the relationship of the \texttt{anti-entropy delay} and \texttt{heartbeat interval}
+expressed by $T$, Raft broadcast overtakes anti-entropy between 9 (2 anti-entropy
+sessions) and 27 replicas (3 anti-entropy sessions).
+In simulations of 20 replicas, these figures show not only the consequences of
+replication latency, but also the impact of consistency policies on both staleness and
+forks.
+
 Figure~\ref{fig:write_latency} shows the mean cost of synchronous write operations to
-ongoing computations. Raft writes are not considered ``done'' until BLAH BLAH,
-whereas Eventual writes are considered done immediately, even before being
-replicated to other replicas.
-Most Federated replicas are Eventual, and Federated's average write cost
-therefore tracks Eventual's relatively closely.
+ongoing computations.
+All Raft writes must be forwarded to the leader in order to be serialized and are
+completed after a round trip communication.
+Eventual writes are local and are completed immediately, even before being replicated,
+and therefore have zero write cost.
+Most Federated replicas are Eventual and therefore Federated's average write cost tracks
+Eventual's relatively closely.
 
 \section{Related Work}
 
