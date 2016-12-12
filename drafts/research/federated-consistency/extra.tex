@@ -9,3 +9,114 @@ Our experiments utilized a very specific topology, and a natural question arises
 The failure mode that we considered took down wide area connections, if instead the failure mode was random node failure, the system would respond differently. In a quorum size of 5, Raft can handle 2 failures before an extended outage. Leader failure would cause temporary outages until the election timeout occurs, but at least one append entries message will be missed. The central Raft group is therefore the most susceptible part of the system to random node failure. If the Raft node that fails is a follower, then the eventually consistent nodes in that area can still make progress without a connection to the central quorum. Wide-area anti-entropy will allow updates to be propagated to the entire network without the central broadcast mechanism. However, the outage would probably lead to an increase in the number of forks as reads become increasingly stale with missed pairwise anti-entropy sessions reducing propagation speed.
 
 In order to scale the topology and to increase the amount of failure tolerated, the central Raft quorum must also scale. However, increased quorum sizes often lead to decreased performance because the leader becomes a bottleneck as the number of messages increases. Additionally, the Raft quorum in our topology does not benefit from any localization like the eventually consistent nodes do. It is possible that placing all of the Raft nodes in a single location, giving Raft RPC messages the benefit of the local area connections and penalizing the synchronization of wide area eventual nodes, would have increased the overall performance of the system. Because of the centrality of the Raft quorum in providing stronger consistency guarantees in a federated environment, we propose future work into optimizing coordination for user-centric dynamic networks. In particular, we propose hierarchical consensus that will allow Raft to maintain smaller quorum sizes but scale to increasingly larger systems as well as localize decision making. 
+//=====================================================================
+Consistency in a distributed storage system is usually thought of as one of a few discrete categories: eventual, causal, sequential, or linearizable and distributed systems are designed with homogenous replica types to fit one of those categories. In this paper we present Federated Consistency, a heterogenous system model that allows individual replica servers to select their own consistency level, specifying a quality of service at a particular location while still providing global guarantees. This model, applied to variable latency geographic systems that are partition prone allow for flexibility in consistency that can adapt in response to the local network environment.
+//=====================================================================
+
+\subsection{Weak Consistency}
+
+A weakly consistent system makes no guarantees whatsoever about the relationship of local vs. remote writes and whether or not any given update will become visible \cite{vogels_eventually_2009}. Weak consistency is often described as ``replicas might get lucky and become consistent'' and in fact a weakly consistent implementation may not have a synchronization protocol whatsoever \cite{bermbach_consistency_2013}.
+
+Weakly consistent systems may have a role in a Federated environment, however. Consider a simple weak consistency synchronization protocol where any remote updates are accepted so long as they do not conflict with any local updates. This model may be used in the case of a replica that expects to be intermittently offline or unable to perform any conflict resolution. By accepting non-conflicting updates the replica can keep up as much as possible with the rest of the system while protecting a core set of objects that the device will routinely access. For example, in mobile mesh sensor networks, each sensor will be frequently writing to its own objects, updating their state and generally not conflicting with the measurements recorded by other sensors. A weakly consistent system may assists in propagating updates from remote sensors back to a core replica system that implements stronger consistency.
+
+\subsection{Causal Consistency}
+
+Causal consistency provides the strictest ordering guarantee without requiring coordination or consensus \cite{ladin_providing_1992}. In causal consistency all writes that have causal relationships must have those dependencies satisfied, e.g. inserted into the log before that write can become visible. Therefore, even though a write might have been propagated to another replica server it cannot be read until all of its dependencies have also been propagated. Causal consistency can increase staleness particularly when implicit or potential causality creates large dependency graphs that must be resolved before writes can be applied \cite{lloyd_dont_2011}. This can be managed by allowing the application to explicitly specify the dependencies for each write \cite{bailis_potential_2012}.
+
+Our consistency model provides for causality by ensuring that dependencies are tracked along with specific writes to specific versions of objects; in fact every write has at least one dependency, the parent version of the write. Eventual consistency however does not require that the parent version be appended to the log before the write can be made visible, a requirement for causal. Moreover, parent versions only track causality for a single object and do not consider potential causality or ordering of writes to all objects in the namespace. As a result, in order to maintain inter-object causality each write must explicitly specify its dependencies.
+
+\subsection{Linearizability}
+
+Linearizability is the strongest form of consistency; not only must all write operations occur in sequence, but all operations including reads must be ordered chronologically \cite{herlihy_linearizability:_1990}. A consensus algorithm alone cannot implement linearizability and instead some distributed locking mechanism is required. For example a consensus algorithm can be adapted to instead of making decisions about the total ordering of conflicting writes, granting or releasing locks from requestors, however this opens up the potential for deadlock and extremely poor performance, defeating the purposes of replication in the first place! Data center environments that don't have to deal with issues of clock skew by using super precise atomic and GPS clocks can use precise time measurements to enable a distributed two phase commit protocol \cite{corbett_spanner:_2013}, however every replica is required to have such a time piece, which is not practical for heterogenous topologies.
+
+//=====================================================================
+
+\item \textbf{Stentor}: A ``Stentor'' node is an eventual node that performs \textit{two} anti-entropy sessions per interval, always choosing one local and one remote node. We have implemented Stentor nodes to show that Raft isn't simply acting as a minimum spanning tree in the network, but is also preserving consistency guarantees.
+
+  //=====================================================================
+  
+The rise of virtualized, on-demand computing resources and cloud
+computing has dramatically shifted the focus of research on
+consistency in distributed storage systems away from networked file
+systems toward geographically distributed database management systems,
+particularly key-value storage.
+These types of data systems benefit from low-latency, high-bandwidth
+connections where failure is common due to the magnitude of resources
+rather than inherent instability.
+In a low latency environment, ``eventually consistent'' (EC)
+\cite{vogels_eventually_2009} systems are said to be consistent enough
+for most workloads given some probabilistic bounding of staleness
+\cite{bailis_quantifying_2014,bermbach_metastorage:_2011,pbft}.
+This has led consistency
+research~\cite{bailis2013highly,bailis2014coordination,mahajan2011consistency,alvaro2013consistency,zawirski2015write}
+towards investigating stronger forms of eventual consistency,
+primarily building upon Dynamo \cite{decandia_dynamo:_2007} and
+Cassandra \cite{lakshman_cassandra:_2010} as reference
+implementations.
+Alternatively, research into ensuring strong, sequential consistency
+(SC)~\cite{sequential-consistency} or linearizability
+(LIN)~\cite{herlihy_linearizability:_1990} in this environment has led
+to systems like Spanner \cite{spanner}, which uses atomic and GPS
+clocks to ensure ``TrueTime'' for sequential ordering, or a few master
+nodes that implement consensus algorithms \cite{paxos} for locking or
+ordering \cite{kraska_mdcc:_2013}.
+
+The focus on data center consistency has led to a centralized approach to data storage,
+forcing a modality where devices must connect to the cloud for file replication even when
+files exist in the local area \cite{drago_inside_2012}.
+Although this allows systems to ignore annoyances such as local network configuration and
+decentralized protocols it does present unnecessary cost and latency.
+More pernicious, perhaps, is that users must now buy-in and store their data with a single
+provider that could go out of business or be hacked, which has lead to research in
+replicating local data with multiple untrusted cloud stores
+\cite{zhang_viewbox:_2014,sporc}.
+There are more devices than ever before connecting to storage applications, partially
+because users have multiple, heterogeneous devices from wearables to workstations and
+partially because of the advent of the Internet of Things \cite{miorandi_internet_2012}.
+Cloud storage tends to be application specific, but with more devices and more users,
+generalized distributed storage is required for collaboration and sharing that is
+not siloed and can be easily accessed by a variety of new platforms.
+Therefore we see a strong motivation to turn attention back to user-oriented networks of
+mobile heterogeneous devices that do not have the benefit of data center level
+connectivity.
+
+We propose to explore strong consistency mechanisms in \textit{user-centric dynamic clouds}: a
+multi-user tapestry of mobile, heterogeneous devices connected via dynamic, variable-latency and
+partition-prone networks.
+These types of clouds are interesting because they describe a much wider range of use
+cases than a data center environment, for example search and rescue clouds, mobile sensor
+clouds, or even transportation clouds.
+We believe that the unique challenges of this network environment require specialized
+consistency models to be effective.
+Because of the user-centric nature of this research, the requirement for collaboration and
+sharing, and to generalize distributed storage in this type of cloud we further propose
+the study of a file system as the primary data storage application.
+File systems must be highly available such that a user does not notice any delay due to
+coordination but must also have strong consistency such that any conflicts are presented
+to the user as soon as possible.
+Further, the system must be responsive when the network is unavailable or laggy, and provide strong
+consistency guarantees when stable connections exist.
+
+//=====================================================================
+
+In the previous section, we fixed the client-centric definition of consistency by
+guaranteeing that accesses should provide at least \textit{Monotonic Writes Consistency}
+(MTO), which states that two updates by the same client will be serialized in the order
+they arrive. Because every write maintains its parent version there is an explicit
+ordering to how writes must be applied. Additionally clients are guaranteed the less
+strict \textit{Read Your Writes Consistency} (RYWC) such that any accesses after a write
+to version $n$ will return a version $\geq n$. These client-centric views of consistency
+ensure that standard file system semantics apply at a local level, though not necessarily
+globally \cite{bermbach_consistency_2013}.
+
+//=====================================================================
+
+reads.
+The former is distinguished from the latter only if the possibility of synchronization
+could have occurred.
+From the point of view of the system, they are identical causes.
+Forks can branch to arbitrary lengths as replicas continue to write to their latest local
+copies, however when synchronization occurs a decision as to which ordering of writes is
+correct must occur.
+
+With this context and consistency model in mind, we can now identify several consistency models in order of increasing ordering strictness and define how each model's correctness criteria responds in the face of forks.
