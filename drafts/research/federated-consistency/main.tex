@@ -142,7 +142,7 @@ describes implementation of eventually consistent and Raft clouds, focusing on
 the non-standard aspects of our implementations, which focus on supporting
 file systems in wide-area and mobile environments.
 Section~\ref{sec:federated} describes our Federated protocol with eventual and
-sequentially consistent sub-protocols. 
+sequentially consistent sub-protocols.
 Section~\ref{sec:results} explores simulated performance of the three
 protocols, and Section~\ref{sec:conclusion} concludes.
 
@@ -150,7 +150,7 @@ protocols, and Section~\ref{sec:conclusion} concludes.
 \label{sec:background}
 
 Our targeted environment is wide-area: we assume
-replicas are distributed across 
+replicas are distributed across
 multiple geographical regions, where communication within a region is fast and
 cheap and inter-region communication is expensive.
 We define consistency in terms of the ordering of operations that change the
@@ -935,31 +935,6 @@ replicated to other replicas.
 Most Federated replicas are Eventual, and Federated's average write cost
 therefore tracks Eventual's relatively closely.
 
-\section{Discussion}
-\label{sec:conclusion}
-
-A strong central core to provide support to the entire system has been suggested both in Oceanstore \cite{kubiatowicz_oceanstore:_2000} and primary copy schemes \cite{gray_dangers_1996}. We take this idea further in our experiments by Federating a strong central core composed of Replicas that perform consensus via the Raft consensus protocol and combine it with highly available eventually consistent systems. In this way Federated consistency gains the flexibility and availability of the Eventual replicas (leader re-election and no requirement for remote writes mean that the replica can continue even if it is completely partitioned from the rest of the network) while still getting guarantees from Raft, which minimizes ``fork flipping'' -- the behavior of writing to one branch then another, truly pernicious inconsistent behavior that cannot be prevented in an eventually consistent system.
-
-System designers can take advantage of heterogeneous replicas by implementing stronger consistency on more reliable machines that are able to handle more messages. Mobile replicas that are prone to network loss, out of order or missed messages, or other variable behavior can adapt their policy depending on the environment they're in. Our model also allows for \textit{adaptive} behavior, in that the replicas can monitor the environment for change and as the mean latency decreases, adapt their $T$ parameter accordingly. This is a no cost operation for Eventual replicas (who can also optimize pairwise gossip by implementing non-discrete random selection using Bandits or other optimization techniques), and only requires joint consensus on the part of the consensus group.
-
-Our simulation implementation gave us the benefit of being able to manipulate many parameters to see how replication behavior changes. As a result, we only focused on the number of consistency messages sent. Potentially this overstates the differences between the protocols; Raft leaders have more processing requirements for example. Additionally bandwidth pressure and differences in messaging might be more important to the overall performance of a system. However, by focusing on the number of messages and isolating version replication from blob replication (e.g. minimizing the amount of data required for consistent behavior), we have allowed each protocol to fix some ``message budget''.
-
-In truly resource constrained environments, allowing both Raft and Eventual (either in a homogenous or Federated context) to maintain an equal or semi-equal message budget by modifying the $T$ parameter and allocating timing similarly means that congestion is reduced or optimized. Moreover, this system also allows for adaptive behavior by providing a single place of modification and optimization; $T$ could be optimized according to a cost function (e.g. the message budget or other real time estimates of performance) or could be boosted for a replica that has to do a lot of work. This type of flexibility is important to being able to understand how minor changes in both the environment and protocols effect overall consistency in the system as a whole.
-
-% \pjk{Given bilateral anti-entropy and a large communication budge, nothing beats Eventual. In some situations Raft might be ``better'' because it's consensus, but even w/ it we ca not implement sequential consistency. So where is raft better?  Everyone sees the current version at the end of an epoch. Note that raft does not prevent stale reads, but it does bound the staleness (to the length of an epoch). Eventual does not.   W/ Federated, we lose the ability to bound staleness tightly, so we need to make sure that we implement out epoch-backpressure. I'm hopeful the resulting numbers will look much better.}
-
-% \note{Since the note above, we've implemented the forte number (backpressure)}
-
-\subsection{Fork Minimization}
-
-The primary form of inconsistency that we are concerned with is a fork, that is two separate, conflicting writes to the same parent version. In a homogenous eventually consistent system implemented with anti-entropy, the only way to minimize the number of forks is by increasing the speed of propagation. We have presented the best case for Eventual by implementing \textit{bilateral} anti-entropy as well as neighbor selection likelihoods that lead to exponential convergence of a write. However, with a \textit{latest-writer wins} policy, the possibility of ``branch-flopping'' exists; that is after a fork occurs, the latest version is updated on either side of the branch, and though the system will converge to a final write, branches may be arbitrarily long and represent significantly inconsistent states to the user.
-
-A homogenous Raft system on the other hand simply does not allow forks to occur by requiring that the leader determines which write is accepted and which is not. Because we are aggregating writes in the \texttt{AppendEntries} messages every heartbeat interval, at most $n-1$ forks, where $n$ is the number of replicas, are possible within the heartbeat interval. Whichever remote write arrives at the leader first will be accepted as the canonical branch. Here, the branch length is bounded to the number of writes possible by a single replica in the heartbeat interval, which is small -- and the branch is eliminated at the heartbeat interval anyway.
-
-The Federated system must at its core resolve how fork elimination is communicated to the Eventual system. A fork, by definition, is later than the earlier version. If the Federated system simply ignores or drops forks, the Eventual cloud might still propagate the fork around Raft. Worse, if the Eventual portion simply drops forks without deciding on a write to propagate, the system is no longer eventually consistent since it is possible that given no more writes half of the replicas make one fork visible while the other half make the other visible.
-
-\textbf{Note: right now we have Federated simply dropping the fork, which is creating bushier version trees and therefore more dropped writes.}
-
 \section{Related Work}
 
 One of the earliest attempts to hybridize weak and strong consistency was a model for parallel programming on shared memory systems by Agrawal et al \cite{agrawal_mixed_1994}. This model allowed programmers to relax strong consistency in certain contexts with causal memory or pipelined random access in order to improve parallel performance of applications. Per-operation consistency was extended to distributed storage by the RedBlue consistency model of Li et al \cite{li_making_2012}. Here, replication operations are broken down into small, commutative sub-operations that are classified as red (must be executed in the same order on all replicas) or blue (execution order can vary from site to site), so long as the dependencies of each sub-operation are maintained. The consistency model is therefore global, specified by the red/blue ordering and can be adapted by redefining the ratio of red to blue operations, e.g. all blue operations is an eventually consistent system and all red is sequential.
@@ -1000,7 +975,30 @@ Similarly, Afek et al.
 which specify a bound on the relative movement of ordered items in a log which
 make it legally sequential.
 
-\section{Latency}
+\section{Discussion \& Conclusion}
+\label{sec:conclusion}
+
+A strong central core to provide support to the entire system has been suggested both in Oceanstore \cite{kubiatowicz_oceanstore:_2000} and primary copy schemes \cite{gray_dangers_1996}. We take this idea further in our experiments by Federating a strong central core composed of Replicas that perform consensus via the Raft consensus protocol and combine it with highly available eventually consistent systems. In this way Federated consistency gains the flexibility and availability of the Eventual replicas (leader re-election and no requirement for remote writes mean that the replica can continue even if it is completely partitioned from the rest of the network) while still getting guarantees from Raft, which minimizes ``fork flipping'' -- the behavior of writing to one branch then another, truly pernicious inconsistent behavior that cannot be prevented in an eventually consistent system.
+
+System designers can take advantage of heterogeneous replicas by implementing stronger consistency on more reliable machines that are able to handle more messages. Mobile replicas that are prone to network loss, out of order or missed messages, or other variable behavior can adapt their policy depending on the environment they're in. Our model also allows for \textit{adaptive} behavior, in that the replicas can monitor the environment for change and as the mean latency decreases, adapt their $T$ parameter accordingly. This is a no cost operation for Eventual replicas (who can also optimize pairwise gossip by implementing non-discrete random selection using Bandits or other optimization techniques), and only requires joint consensus on the part of the consensus group.
+
+Our simulation implementation gave us the benefit of being able to manipulate many parameters to see how replication behavior changes. As a result, we only focused on the number of consistency messages sent. Potentially this overstates the differences between the protocols; Raft leaders have more processing requirements for example. Additionally bandwidth pressure and differences in messaging might be more important to the overall performance of a system. However, by focusing on the number of messages and isolating version replication from blob replication (e.g. minimizing the amount of data required for consistent behavior), we have allowed each protocol to fix some ``message budget''.
+
+In truly resource constrained environments, allowing both Raft and Eventual (either in a homogenous or Federated context) to maintain an equal or semi-equal message budget by modifying the $T$ parameter and allocating timing similarly means that congestion is reduced or optimized. Moreover, this system also allows for adaptive behavior by providing a single place of modification and optimization; $T$ could be optimized according to a cost function (e.g. the message budget or other real time estimates of performance) or could be boosted for a replica that has to do a lot of work. This type of flexibility is important to being able to understand how minor changes in both the environment and protocols effect overall consistency in the system as a whole.
+
+% \pjk{Given bilateral anti-entropy and a large communication budge, nothing beats Eventual. In some situations Raft might be ``better'' because it's consensus, but even w/ it we ca not implement sequential consistency. So where is raft better?  Everyone sees the current version at the end of an epoch. Note that raft does not prevent stale reads, but it does bound the staleness (to the length of an epoch). Eventual does not.   W/ Federated, we lose the ability to bound staleness tightly, so we need to make sure that we implement out epoch-backpressure. I'm hopeful the resulting numbers will look much better.}
+
+% \note{Since the note above, we've implemented the forte number (backpressure)}
+
+\subsection{Fork Minimization}
+
+The primary form of inconsistency that we are concerned with is a fork, that is two separate, conflicting writes to the same parent version. In a homogenous eventually consistent system implemented with anti-entropy, the only way to minimize the number of forks is by increasing the speed of propagation. We have presented the best case for Eventual by implementing \textit{bilateral} anti-entropy as well as neighbor selection likelihoods that lead to exponential convergence of a write. However, with a \textit{latest-writer wins} policy, the possibility of ``branch-flopping'' exists; that is after a fork occurs, the latest version is updated on either side of the branch, and though the system will converge to a final write, branches may be arbitrarily long and represent significantly inconsistent states to the user.
+
+A homogenous Raft system on the other hand simply does not allow forks to occur by requiring that the leader determines which write is accepted and which is not. Because we are aggregating writes in the \texttt{AppendEntries} messages every heartbeat interval, at most $n-1$ forks, where $n$ is the number of replicas, are possible within the heartbeat interval. Whichever remote write arrives at the leader first will be accepted as the canonical branch. Here, the branch length is bounded to the number of writes possible by a single replica in the heartbeat interval, which is small -- and the branch is eliminated at the heartbeat interval anyway.
+
+The Federated system must at its core resolve how fork elimination is communicated to the Eventual system. A fork, by definition, is later than the earlier version. If the Federated system simply ignores or drops forks, the Eventual cloud might still propagate the fork around Raft. Worse, if the Eventual portion simply drops forks without deciding on a write to propagate, the system is no longer eventually consistent since it is possible that given no more writes half of the replicas make one fork visible while the other half make the other visible.
+
+\textbf{Note: right now we have Federated simply dropping the fork, which is creating bushier version trees and therefore more dropped writes.}
 
 Latency ranges for wide area networks can be extremely variable and are primarily
 determined by the last mile connection.
@@ -1017,15 +1015,11 @@ distributed system.
 We compared ICMP to a simple echo protocol implemented with GRPC~\cite{grpc} and discovered that the
 ICMP latency distribution is significantly smaller than GRPC in many environments.
 
-\section{Conclusions}
-
 Our experiments utilized a very specific topology, and a natural question arises: what are the effects of different topologies on the performance of the system? Consider the case where we scale the number of eventually consistent replicas in each local area. More eventually consistent replicas would increase the anti-entropy propagation delay, increasing the likelihood of forks and stale reads and decreasing the number of writes that are fully replicated. The Raft core group could minimize the effect of this scaling to, however if the core Raft group remained fixed, it would also increase the load on the quorum for handling remote writes from the Eventual cloud and there would be increasingly more drops, particularly as forks are propagated around Raft followers. However, the increase in the size of the Eventual cloud would also give the system more fault tolerance as there are more paths to propagate updates when the Raft quorum is down, particularly across the wide area. Local outages may bring down Raft (partitioning the leader) but anti-entropy is resilient.
 
 The failure mode that we considered took down wide area connections, if instead the failure mode was random replica failure, the system would respond differently. In a quorum size of 5, Raft can handle 2 failures before an extended outage. Leader failure would cause temporary outages until the election timeout occurs, but at least one append entries message will be missed. The central Raft group is therefore the most susceptible part of the system to random replica failure. If the Raft replica that fails is a follower, then the eventually consistent replicas in that area can still make progress without a connection to the central quorum. Wide-area anti-entropy will allow updates to be propagated to the entire network without the central broadcast mechanism. However, the outage would probably lead to an increase in the number of forks as reads become increasingly stale with missed pairwise anti-entropy sessions reducing propagation speed.
 
 In order to scale the topology and to increase the amount of failure tolerated, the central Raft quorum must also scale. However, increased quorum sizes often lead to decreased performance because the leader becomes a bottleneck as the number of messages increases. Additionally, the Raft quorum in our topology does not benefit from any localization like the eventually consistent replicas do. It is possible that placing all of the Raft replicas in a single location, giving Raft RPC messages the benefit of the local area connections and penalizing the synchronization of wide area Eventual replicas, would have increased the overall performance of the system. Because of the centrality of the Raft quorum in providing stronger consistency guarantees in a Federated environment, we propose future work into optimizing coordination for user-centric dynamic networks. In particular, we propose hierarchical consensus that will allow Raft to maintain smaller quorum sizes but scale to increasingly larger systems as well as localize decision making.
-
-\section{Conclusion}
 
 \pjk{Need to include a discussion of raft for every write}.
 
