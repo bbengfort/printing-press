@@ -730,6 +730,19 @@ simulation, latencies are given as worst case, wide-area latencies.
 Each topology could also set simulation-specific device-specific configurations, though we
 do not use that ability here.
 
+
+\begin{figure*}[t]
+    \centering
+    \minipage{0.5\textwidth}%
+      \includegraphics[width=\linewidth]{figures/outages/stale_reads}
+      \caption{Stale reads as outages increase.}\label{fig:outages_stale_reads}
+    \endminipage
+    \minipage{0.5\textwidth}
+      \includegraphics[width=\linewidth]{figures/outages/forked_writes}
+      \caption{Forked writes as outages increase.}\label{fig:outages_forked_writes}
+    \endminipage\hfill
+\end{figure*}
+
 The workload was specified as access trace files -- time ordered access events (reads and
 writes) between a specific device and a specific object name.
 Each trace was constructed via a random workload generator, where a collection of
@@ -757,18 +770,6 @@ Replicas have a preference for anti-entropy in the local
 area cluster, primarily synchronizing across the wide area via Raft replicas.
 
 \subsection{Experiments and Metrics}
-
-\begin{figure*}[t]
-    \centering
-    \minipage{0.5\textwidth}%
-      \includegraphics[width=\linewidth]{figures/outages/stale_reads}
-      \caption{Stale reads as outages increase.}\label{fig:outages_stale_reads}
-    \endminipage
-    \minipage{0.5\textwidth}
-      \includegraphics[width=\linewidth]{figures/outages/forked_writes}
-      \caption{Forked writes as outages increase.}\label{fig:outages_forked_writes}
-    \endminipage\hfill
-\end{figure*}
 
 We conducted two primary experiments to test the behavior of a Federated consistency
 system against homogeneous Raft and Eventual systems.
