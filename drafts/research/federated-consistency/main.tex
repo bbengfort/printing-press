@@ -908,20 +908,25 @@ Eventual write starting up concurrently.
 Additionally, the Forte number prevents new forked writes from stomping on a
 conflicting write disseminated via Raft replicas.
 
-Figure \ref{fig:latency_stale_reads} shows the average number of stale reads, and the
-number of forked writes across different mean latencies.
+Figures~\ref{fig:latency_stale_reads} and \ref{fig:latency_forked_writes} show
+the average number of stale reads and forked writes across different mean
+latencies.
 All three protocols perform similarly at smaller latencies, but Eventual and
-Federated deal with high latencies much more effectively than Raft.
+Federated deal with high latencies much more effectively than Raft, at least
+for this size of system.
 
-Higher latencies affect Raft in at least two ways. First, higher latencies
-variability cause more out of order message. Second, we parameterize system
-timeouts by $T$ which, in turn, is based on mean latencies.
+
+Higher latencies affect Raft in at least two ways.
+First, higher latency variability causes more out of order messages.
+Second, we parameterize system timeouts by $T$ which, in turn, is based on
+mean latencies.
 The result is that Raft's \texttt{AppendEntries} delay is longer for
 simulations with higher mean latencies, resulting in more conflicts.
 The same is true for anti-entropy delays, but the speed of Raft decisions is
 determined by the slowest quorum member, which can be quite slow when message
-variability is large. By contrast, a slow anti-entropy participant only
-affects direct anti-entropy partners.
+variability is large.
+By contrast, a slow anti-entropy participant only affects direct anti-entropy
+partners.
 
 Figure~\ref{fig:write_latency} shows the mean cost of synchronous write operations to
 ongoing computations. Raft writes are not considered ``done'' until BLAH BLAH,
