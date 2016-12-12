@@ -268,6 +268,10 @@ further down one of the fork paths, e.g. $W_i(a_2 \rightarrow a_4)$.
 Forks can be caused by concurrent reads, but the fork between $a_2$ and $a_3$
 actually occurs because $R_j$'s read is stale.
 
+Note that if the \texttt{sync} line were moved back \emph{before} $R_j$'s read,
+the read would no longer be stale and $a_2/a_3$ would not constitute a
+fork. However,  $a_3/a_4$ would then be a fork.
+
 \subsection{Consistency}
 
 A broader discussion of consistency levels should include at least eventual consistency~\cite{terry_managing_1995},
