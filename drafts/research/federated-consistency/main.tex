@@ -8,29 +8,30 @@
 \newcommand{\todo}[1]{{\textcolor{red}{#1}}}
 \newcommand{\blue}[1]{{\textcolor{blue}{#1}}}
 \newcommand{\pjk}[1]{[\todo{PJK: #1}]}
+\newcommand{\bjb}[1]{[\blue{BJB: #1}]}
 
 \newcommand{\pjkst}[2]{[\todo{PJK: #1}]\st{#2}}
 \newcommand{\note}[1]{\textcolor{blue}{[#1]}}
 \newcommand{\red}[1]{\textcolor{red}{#1}}
 
 \begin{document}
-\title{Federated Consistency in Geographically Distributed Systems}
+\title{Geo-Replicating Federated File Systems}
 \author{\IEEEauthorblockN{Benjamin Bengfort and Pete Keleher}
 \IEEEauthorblockA{Department of Computer Science\\
 University of Maryland, College Park, MD, USA\\
 \{bengfort,keleher\}@cs.umd.edu}}
 
 % - novel wide area distributed FS
-% - introduce user-centric dynamic networks 
-% - implementation of a geographically distributed FS with Raft and anti-entropy 
+% - introduce user-centric dynamic networks
+% - implementation of a geographically distributed FS with Raft and anti-entropy
 % - flexible consistency model (could expand this)
 % - file system consistency model (forks etc)
-% - forte number 
-% - evidence that a centralized quorum provides benefits a la Oceanstore/Gray 
-% 
+% - forte number
+% - evidence that a centralized quorum provides benefits a la Oceanstore/Gray
+%
 % Maybe we can sell this as a simple idea that may have off-handedly been mentioned but
 % that we've explored in detail and discovered that there are  tricky bits that have to be
-% resolved?   
+% resolved?
 
 \date{December 12, 2016}
 
@@ -141,8 +142,8 @@ strong central quorum to reduce the amount of global conflict.
 The rest of the paper is organized as follows: we present a system model that is slightly
 different from the usual client-server system model and which has many more replica
 servers participating in a variety of locations.
-Because we take a client-centric approach we will describe ,
-though our model can be easily generalized to other types of data systems.
+\red{Because we take a client-centric approach we will describe ,
+though our model can be easily generalized to other types of data systems.}
 We will then present a consistency model to describe the impact of conflict, misordering,
 and staleness and use these metrics to next describe the federated consistency protocol.
 Finally we will present the performance of our system via experimental simulation and
@@ -208,7 +209,7 @@ If all logs are identical, the same file writes are applied in the same
 order at each replica, and the file system will appear the same on all replicas.
 As such, we use a {data-centric} model of
 correctness that concentrates primarily on two metrics: log operation ordering and
-read staleness:
+read staleness: \bjb{Do we need the Bermbach/Tanenbaum citation here?}
 \begin{enumerate}
 \item \emph{Ordering} refers to how closely individual logs adhere to the abstract
   global ordering. A strict ordering requires every single log to be exactly the
@@ -229,10 +230,10 @@ dependencies are satisfied, causing reads to become more stale.
 In addition to tracking staleness directly, we also use as a metric the primary symptom of stale
 reads and writes, forks:
 \begin{description}
-    \item[\textit{Fork}:] A fork occurs when two replicas concurrently write a new version to the same parent object. 
+    \item[\textit{Fork}:] A fork occurs when two replicas concurrently write a new version to the same parent object.
 \end{description}
 Forks introduce inconsistency because they allow multiple potential orderings of operation
-logs. 
+logs.
 Forks are primarily a symptom of staleness; e.g. the second writer wrote to
 a stale version of the object.
 
@@ -249,11 +250,11 @@ because they allow stale reads to occur.
 Object \emph{coherence} requires an object's version history to be a linear sequence.
 Object forks violate coherence and occur, for example, when replicas $i$ and $j$ read object version $a_1$
 and then concurrently attempt to write new versions: $W_i(a_1 \rightarrow a_2)$ and
-$W_j(a_1 \rightarrow a_3)$ (Figure ~\ref{fig:forks}). 
+$W_j(a_1 \rightarrow a_3)$ (Figure ~\ref{fig:forks}).
 A delay in replicas $R_i$ and $R_j$ synchronizing could lead to one of them continuing
 further down one of the fork paths, e.g. $W_i(a_2 \rightarrow a_4)$.
 The fork between $a_2$ and $a_3$ occurs because of concurrent accesses by multiple
-replicas, but stale reads can also cause forks. 
+replicas, but stale reads can also cause forks. \bjb{I can change the figure so that the bottom has the same time ordering as the top -- note that the fork in the figure is a stale read, if the synchronization line was pushed back, it would eliminate the fork}
 
 A broader discussion of consistency levels should include at least eventual consistency~\cite{terry_managing_1995},
 causal consistency~\cite{causal} (the highest level allowing high availability~\cite{bailis_bolt-causal_2013}),
@@ -270,8 +271,8 @@ services \cite{decandia_dynamo:_2007,lakshman_cassandra:_2010} because it allows
 optimistic implementations.
 Conflict resolution is often left to the application layer, but
 in practice most applications can handle some inconsistency.
-The low latencies in cloud data centers often make windows of 
-inconsistency rare and 
+The low latencies in cloud data centers often make windows of
+inconsistency rare and
 short-lived enough to be tolerable~\cite{bailis_quantifying_2014}.
 
 Eventual consistency convergence implemented by a \textit{last writer wins} policy simply accepts all
@@ -306,7 +307,7 @@ resolving conflicts and writing a new version.
 
 \section{Federated Consistency}
 
-Federated Consistency model allows individual replicas to
+A federated consistency model allows individual replicas to
 engage in replication according to locally-specified consistency policies.
 Each replica maintains its own local state, modified in response to local accesses
 and receipt of messages from remote replicas.
@@ -315,7 +316,7 @@ Therefore every replica can be seen as an event handler that responds to local a
 events, as well as remote messages, and generates more events (sent messages) in return.
 So long as every federated replica has an event handler for all types of RPC
 messages, federation only has to be defined at the \textit{consistency boundaries}, that
-is when replicas of one consistency type send messages to that of another.
+is when replicas of one consistency type send messages to that of another. \bjb{Do we want to include the notions of communication and consistency integration here?}
 
 % Given the consistency models discussed in the previous section, we will omit weak
 % consistency as being too simplistic and linearizability as being too performance
@@ -360,14 +361,14 @@ each node perfectly selected another replica that had not seen the write being p
 
 We implement sequential consistency by replicating the operation log through the Raft
 consensus algorithm~\cite{ongaro_search_2014}.
-However, there are many possible ways to use consensus in log replication. 
+However, there are many possible ways to use consensus in log replication. \bjb{should we mention them?}
 
 As background, each Raft replica must always be in one of three states: \texttt{FOLLOWER},
 \texttt{CANDIDATE}, or \texttt{LEADER}.
 All replicas start in the \texttt{FOLLOWER} state.
 Raft is governed by two primary timing parameters: the \texttt{heartbeat interval}, which
 specifies how often the leader sends \texttt{AppendEntries} messages that disseminate new
-operations and double as 
+operations and double as
 keep-alive messages, and the \texttt{election timeout}, an interval after which a follower
 may conclude that the leader is dead and attempt to become leader itself.
 Replicas will vote for a candidate if and only if the prospective leader's term is greater
@@ -389,7 +390,7 @@ If a majority of followers append entries to their logs, the leader will mark th
 entries as committed and inform the followers the write has been committed on the next
 \texttt{AppendEntries}.
 
-Our implementation differs from a generic implementation of Raft in that 
+Our implementation differs from a generic implementation of Raft in that
 a leader that detects a
 fork -- a write having a parent version that is already listed as a parent version in the
 log -- rejects (drops) the later write.
@@ -407,59 +408,60 @@ message.
 Although all writes are sequentially ordered, the aggregation delay raises the possibility
 of several distinct read policies, including:
 \begin{enumerate}
-    \item \texttt{read\_committed} - Raft replicas only read the latest committed version
+    \item \texttt{read committed} - Raft replicas only read the latest committed version
 of an object, which occurs at best on the \emph{second} \texttt{AppendEntries} message
 after the \texttt{RemoteWrite} is sent to the leader. Committed writes are guaranteed not
 to be rolled back, but introduces significant delay and the possibility of staleness and
-version forks. 
-    \item \texttt{read\_latest} - Replicas read the latest version of the object
+version forks.
+    \item \texttt{read latest} - Replicas read the latest version of the object
 in their log, even if it has yet to be committed.
 Moreover, replicas will read their own local writes (\texttt{Read Your Writes}) rather than waiting for an
 \texttt{AppendEntries} to return their write. Reads are fast, but may return values that
 are never committed.
-    \item \texttt{read\_remote} - Rather than read locally, simply request the latest
+    \item \texttt{read remote} - Rather than read locally, simply request the latest
 version from the leader.
 This introduces the potential for additional latency, but may be faster if the expected
 message latency is less than the heartbeat interval.
 \end{enumerate}
+\bjb{removed underscore for consistency with other variables like heartbeat interval}
 
 Each of these options has critical implications for the likelihood of stale reads and
 writes in the system.
 Replicas would choose read committed if the network was highly partition prone and
 messages from the leader were unstable and prone to being rolled back.
-Read remote servers replicas well when the average message latency is far lower than the
+Read remote serves replicas well when the average message latency is far lower than the
 heartbeat interval, though this could be improved by making the heartbeat interval similar
 to the network latency.
-For this reason, we have chosen \textbf{read\_latest} as the most appropriate implementation for a file
+For this reason, we have chosen \textbf{read latest} as the most appropriate implementation for a file
 system.
 \pjk{I'm thinking we should have done more experimentation here, tried remote read, for
   example. Final version.}
 
 \subsection{Timing Parameters}
 
-Both the anti-entropy and Raft protocols are parameterized by timing parameters.
+Both the anti-entropy and Raft protocols are parameterized by timing \st{parameters} \blue{configurations that govern replication and therefore overall consistency}.
 In order to select an \texttt{anti-entropy delay}, \texttt{heartbeat
 interval}, and \texttt{election timeout} we must find some method of
 scaling the timing to the expected base latency of our system.
 We use a ``tick'' parameter, $T$, which is a function of
-observed message latency in the system specified as normally
+\red{observed one-way message latency in the system specified as normally
 distributed with a mean, $\lambda_{\mu}$ and standard deviation,
-$\lambda_{\sigma}$.
+$\lambda_{\sigma}$}.
 $T$ is used to derive all timing parameters in the federated system.
 We use a conservative formulation that is
 big enough to withstand most variability:
 \begin{equation}
     T = 6(\lambda_{\mu} + 4\lambda_{\sigma})
-\end{equation} 
-\pjk{6 x mean + 24 x deviation?} 
+\end{equation}
+\pjk{6 x mean + 24 x deviation?}
 Ongaro and Ousterhout~\cite{ongaro_search_2014} use a more conservative
 parameter of $10\lambda_{\mu}$, which while correct performs poorly \pjk{relative to the
 access stream ???}.
 Howard et.
 al \cite{howard_raft_2015} use an
-optimistic $T$ parameter, $\lambda_{\mu} + 2\lambda_{\sigma}$, that is too small to capture
+optimistic $T$ parameter, $2\left(\lambda_{\mu} + 2\lambda_{\sigma}\right)$, that is too small to capture
 the variability in our target environments and leads to out of order
-\texttt{AppendEntries} messages in Raft, which can degrade performance.
+\texttt{AppendEntries} messages in Raft, which can degrade performance. \bjb{Howard uses round-trip latencies, so I doubled it for our one-way message latency.}
 
 Timing parameters are then defined in terms of $T$.
 For example, in order to ensure that eventual and sequential replicas send approximately
@@ -581,7 +583,7 @@ all children of the update, and set the child version's forte equal to that of t
 % locally, which it expects to be both as recent and as correct as possible.
 % To that end we posit a file system as the natural use case of local, client-oriented
 % systems, though we could easily generalize the model to any distributed storage system.
-% 
+%
 % \subsection{Topology}
 
 \begin{figure}
@@ -592,23 +594,23 @@ all children of the update, and set the child version's forte equal to that of t
 \end{figure}
 
 We investigate the effect of variable latency and the network environment on consistency by
-constructing a fully connected topology of replicas distributed among several 
+constructing a fully connected topology of replicas distributed among several
 geographic regions, as shown in Figure \ref{fig:topology}.
 Within each region, replica nodes enjoy stable, low-latency connections with their
 neighbors.
 However, across regions the latency is higher and the connections variable, meaning that
 out of order messages are more common across the wide area than in the local area.
 
-In this type of topology there are two types of failure. 
+In this type of topology there are two types of failure.
 A \textit{node failure} occurs when a single node is shut off or stops responding to
 messages.
 A \textit{network partition} occurs when it is not possible for messages to be sent or
 received from a single geographic region.
-In both cases, 
+In both cases,
 accesses may continue at a partitioned
 node or subnet, though they are not immediately replicated in the system, and
 partitioned nodes may fall behind the global state. Correctness requires the system to re-integrate the nodes
-when they re-join the network. 
+when they re-join the network.
 
 % \begin{figure}
 %     \centering
@@ -635,7 +637,7 @@ protocol) which determines the replica's behavior in the environment:
     \item \textbf{Raft}: Raft nodes implement the Raft consensus protocol, electing a
       leader and forwarding writes to the leader to maintain a sequential  ordering. If a
       write is forked, the leader will drop it in order to maintain our consistency
-      guarantee. 
+      guarantee.
 \end{itemize}
 
 The topology further specifies the \textit{location} of each device, the
@@ -730,10 +732,10 @@ Figure~\ref{fig:outages_stale_reads} shows the portion of system reads that retu
 data as the probability of outages, $P_f \in [0.0,1.0]$, increases with a step of $0.1$.
 The eventual system deals with increasingly poor network conditions the best,
 as randomized anti-entropy partner selections allow writes to propagate through multiple
-paths. 
+paths.
 Eventually consistent systems are wide used precisely because of their ability to remain
 highly-available despite network failures and
-partitions~\cite{bailis_bolt-causal_2013,bailis_probabilistically_2012,bailis_quantifying_2014}. 
+partitions~\cite{bailis_bolt-causal_2013,bailis_probabilistically_2012,bailis_quantifying_2014}.
 The federated system is able to leverage the eventual subset of its replicas to route
 around failures almost as efficiently as the homogeneous eventual system.
 
@@ -841,7 +843,7 @@ high-latency-and-variability links, at least one of which is likely to be quite
 slow.\pjk{actually, this makes no sense}
 
 Figure \ref{fig:stale_reads} shows the average number of stale reads during the system
-run. In this eventual is much faster than 
+run. In this eventual is much faster than
 latency, that is the time in milliseconds it takes a version to fully
 replicate, that is become visible on every node in the network.
 Raft benefits from a broadcast mechanism, while Eventual must wait for
@@ -914,7 +916,7 @@ Our experiments utilized a very specific topology, and a natural question arises
 
 The failure mode that we considered took down wide area connections, if instead the failure mode was random node failure, the system would respond differently. In a quorum size of 5, Raft can handle 2 failures before an extended outage. Leader failure would cause temporary outages until the election timeout occurs, but at least one append entries message will be missed. The central Raft group is therefore the most susceptible part of the system to random node failure. If the Raft node that fails is a follower, then the eventually consistent nodes in that area can still make progress without a connection to the central quorum. Wide-area anti-entropy will allow updates to be propagated to the entire network without the central broadcast mechanism. However, the outage would probably lead to an increase in the number of forks as reads become increasingly stale with missed pairwise anti-entropy sessions reducing propagation speed.
 
-In order to scale the topology and to increase the amount of failure tolerated, the central Raft quorum must also scale. However, increased quorum sizes often lead to decreased performance because the leader becomes a bottleneck as the number of messages increases. Additionally, the Raft quorum in our topology does not benefit from any localization like the eventually consistent nodes do. It is possible that placing all of the Raft nodes in a single location, giving Raft RPC messages the benefit of the local area connections and penalizing the synchronization of wide area eventual nodes, would have increased the overall performance of the system. Because of the centrality of the Raft quorum in providing stronger consistency guarantees in a federated environment, we propose future work into optimizing coordination for user-centric dynamic networks. In particular, we propose hierarchical consensus that will allow Raft to maintain smaller quorum sizes but scale to increasingly larger systems as well as localize decision making. 
+In order to scale the topology and to increase the amount of failure tolerated, the central Raft quorum must also scale. However, increased quorum sizes often lead to decreased performance because the leader becomes a bottleneck as the number of messages increases. Additionally, the Raft quorum in our topology does not benefit from any localization like the eventually consistent nodes do. It is possible that placing all of the Raft nodes in a single location, giving Raft RPC messages the benefit of the local area connections and penalizing the synchronization of wide area eventual nodes, would have increased the overall performance of the system. Because of the centrality of the Raft quorum in providing stronger consistency guarantees in a federated environment, we propose future work into optimizing coordination for user-centric dynamic networks. In particular, we propose hierarchical consensus that will allow Raft to maintain smaller quorum sizes but scale to increasingly larger systems as well as localize decision making.
 
 \section{Conclusion}
 
@@ -923,7 +925,7 @@ In order to scale the topology and to increase the amount of failure tolerated, 
 In this paper we have presented a model for federated consistency that allows individual replicas to expose local policies to users while still allowing for global guarantees given a heterogeneous system of replicas where at least a core group enforces sequential consistency. By designing a federated system where only the interactions between replicas of varying consistency types are defined, systems can scale beyond the handful of devices usually described to dozens or hundreds of replicas in variable latency, partition-prone geographic networks. As each replica monitors its local environment and the throughput of its communication with other replicas it can adapt as necessary to the timeliness vs. correctness constraints required by the local user.
 
 % \section*{Acknowledgments}
-% 
+%
 % Thank you Bluejacket, for tirelessly running simulations as soon as we spun you up.
 
 \bibliographystyle{plain}
