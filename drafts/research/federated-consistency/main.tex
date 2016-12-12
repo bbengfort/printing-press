@@ -622,12 +622,12 @@ be incremented by the leader of the Raft quorum.
 Because the Raft leader drops forks, or any version that was not more recent
 than the latest commit version, incrementing the forte number on commit
 ensures that only consistent versions have their forte numbers incremented.
-The system then compares version recency is determined by comparing the forte
-number first and then the timestamp, allowing Raft to ``bump'' its chosen
+The system then compares version recency by comparing the forte
+number first, and then the timestamp, allowing Raft to ``bump'' its chosen
 version to a later timestamp than any conflicting writes.
 This bump in forte number must be propagated to derived writes as well, as
-otherwise the increment of a write's forte number results in a timestamp later
-than that of writes derived it.
+otherwise the increment of a write's forte number would result in writes
+derived from this write being erroneously identified as conflicting.
 On receipt of a version with a higher forte than the local, eventual replicas
 search for the forte entry in their local log, find all children of the
 update, and set the child version's forte equal to that of the parent.
@@ -676,15 +676,14 @@ constructing a fully connected topology of replicas distributed among several
 geographic regions, as shown in Figure \ref{fig:topology}.
 Within each region, replicas enjoy stable, low-latency connections with their
 neighbors.
-However, across regions the latency is higher and the connections variable, meaning that
+The latency is higher and the connections more variable across regions, meaning that
 out of order messages are more common across the wide area than in the local area.
 
-In this type of topology we experience both
-replica failures, where a single replica stops responding to
-messages, and network partitions, where messages can not be exchanged
-with a single geographic region.
+In this type of topology we expect both replica failures, where a single
+replica stops responding to messages, and network partitions, where messages
+can not be exchanged with a single geographic region.
 In both cases, accesses may continue within a partitioned replica or subnet
-though they are not immediately replicated in the system.
+even though they are not immediately replicated in the system.
 Partitioned replicas may fall behind the global state, and must be
 re-integrated into the network when the network interruption ceases.
 
