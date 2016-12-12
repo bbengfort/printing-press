@@ -573,60 +573,64 @@ handled.
 
 \subsection{Consistency Integration}
 
-Consistency integration occurs when communication occurs between replicas with different
-local consistency policies.
-When an Eventual replica receives a \texttt{Gossip} message from a Raft replica it
-accepts the most recent version, however the reciprocal Raft operation applies
-consistency policies such as rejecting forks.
-If a fork is detected at a Raft follower, it can drop the inconsistency without
-the leader, which allows the Raft consensus group to be more available.
-In order to improve performance, all Raft replicas keep local caches of forked or dropped
-writes to minimize the propagation of forks and prevent duplication of remote accesses to
-the leader.
-Even though a Raft follower notes a fork and does not propagate it, it is possible for
-the fork to arrive at another Raft follower that has yet to see it via anti-entropy
-propagation.
-In this case increasing $P_{local}$ can prevent the eventual cloud from propagating forks
-around Raft.
+Consistency integration occurs when communication occurs between replicas with
+different local consistency policies.
+When an Eventual replica receives a \texttt{Gossip} message from a Raft
+replica it accepts the most recent version, however the reciprocal Raft
+operation applies consistency policies such as rejecting forks.
+Forks detected by Raft followers can be dropped without bothering the leader,
+which allows the Raft consensus group to be more available.
+Our version of Raft further improves performance by using per-replica caches
+of forked and dropped writes to detect and prevent duplicate presentations of
+remote accesses to the leader.
+Even though a Raft follower notes a fork and does not propagate it, it is
+possible for the fork to arrive at another Raft follower that has yet to see
+it via anti-entropy propagation.
+Increasing $P_{local}$ can help prevent the eventual cloud from
+propagating forks ``around Raft'' by performing anti-entropy with a Raft replica
+in another region.
 
-However, straightforward integration of the eventual and Raft clouds actually performs worse
-than either cloud in isolation.
-The problem is that eventual and Raft replicas resolve fork conflicts in exactly opposite
-ways.
-Eventual replicas choose the last of a set of conflicting writes through a latest-writer
-wins policy, whereas Raft replicas effectively choose the first by dropping any write that
-conflicts with previously seen writes.
-Given conflicting writes $w_i$ with timestamp $t$ and $w_j$ with timestamp $t+1$, the
-eventual replicas will converge to $w_j$ because its timestamp is later; whether or not
-the timestamps reflect real time is not relevant.
-However, the Raft nodes will converge to whichever write first reaches the leader; there
-is no mechanism by which to override a write that has already been committed.
-The end result is that the eventual replicas might all converge on $w_i$ and the Raft
-replicas on $w_j$, with neither write ever being replicated across the entire system.
-This disconnect arises from a fundamental mismatch in the protocols' approaches to
-conflict resolution.
-We could modify one or the other, but would then have a protocol that would not perform as
-well in a non-federated environment.
+However, straightforward integration of the eventual and Raft clouds still
+performs worse than either cloud in isolation.
+The problem is that eventual and Raft replicas resolve fork conflicts in
+exactly opposite ways.
+Eventual replicas choose the last of a set of conflicting writes through a
+latest-writer-wins policy, whereas Raft replicas effectively choose the first
+by dropping any write that conflicts with previously seen writes.
 
-We resolve this issue by noting that if the strong central quorum can make a write
-accepted by the Raft replicas ``more recent'' than any conflicting write, even one with a
-later timestamp, then the eventual replicas will converge to the write chosen by the Raft
+Given conflicting writes $w_i$ with timestamp $t$ and $w_j$ with timestamp
+$t+1$, the eventual replicas will converge to $w_j$ because its timestamp is
+later\footnote{The timestamps need not reflect real time.}.
+However, the Raft nodes will converge to whichever write first reaches the
+leader; there is no mechanism by which to override a write that has already
+been committed.
+The end result is that the eventual replicas might all converge on $w_i$ and
+the Raft replicas on $w_j$, with neither write ever being replicated across
+the entire system.
+This disconnect arises from a fundamental mismatch in the protocols'
+approaches to conflict resolution.
+We could modify one or the other, but would then have a protocol that would
+not perform as well in a non-federated environment.
+We resolve this issue by noting that if the strong central quorum can make a
+write accepted by the Raft replicas ``more recent'' than any conflicting
+write, all eventual replicas will converge to the write chosen by the Raft
 replicas.
-We therefore extend each version number with an additional monotonically increasing
-counter called the \textit{forte} (strong) version, which can only be incremented by the
-leader of the Raft quorum.
-Because the Raft leader drops forks, or any version that was not more recent than the
-latest commit version, incrementing the forte number on commit ensures that only
-consistent versions have their forte numbers incremented.
-The system then compares version recency is determined by comparing the forte number first
-and then the timestamp, allowing Raft to ``bump'' its chosen version to a later timestamp
-than any conflicting writes.
-This bump in forte number must be propagated to derived writes as well, as otherwise the
-increment of a write's forte number results in a timestamp later than that of writes
-derived it.
-On receipt of a version with a higher forte
-than the local, eventual replicas search for the forte entry in their local log, find
-all children of the update, and set the child version's forte equal to that of the parent.
+
+We therefore extend each version number with an additional monotonically
+increasing counter called the \textit{forte} (strong) version, which can only
+be incremented by the leader of the Raft quorum.
+Because the Raft leader drops forks, or any version that was not more recent
+than the latest commit version, incrementing the forte number on commit
+ensures that only consistent versions have their forte numbers incremented.
+The system then compares version recency is determined by comparing the forte
+number first and then the timestamp, allowing Raft to ``bump'' its chosen
+version to a later timestamp than any conflicting writes.
+This bump in forte number must be propagated to derived writes as well, as
+otherwise the increment of a write's forte number results in a timestamp later
+than that of writes derived it.
+On receipt of a version with a higher forte than the local, eventual replicas
+search for the forte entry in their local log, find all children of the
+update, and set the child version's forte equal to that of the parent.
 
 % Our preliminary investigations show that this integration works well to curb
 % inconsistencies due to anti-entropy delays as well as those introduced by communication
