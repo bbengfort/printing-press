@@ -453,10 +453,9 @@ big enough to withstand most variability:
 \begin{equation}
     T = 6(\lambda_{\mu} + 4\lambda_{\sigma})
 \end{equation}
-\pjk{6 x mean + 24 x deviation?}
 Ongaro and Ousterhout~\cite{ongaro_search_2014} use a more conservative
-parameter of $10\lambda_{\mu}$, which while correct performs poorly \pjk{relative to the
-access stream ???}.
+parameter of $10\lambda_{\mu}$, which results in replication happening much
+more slowly than the access events and causes large numbers of conflicts.
 Howard et.
 al \cite{howard_raft_2015} use an
 optimistic $T$ parameter, $2\left(\lambda_{\mu} + 2\lambda_{\sigma}\right)$, that is too small to capture
