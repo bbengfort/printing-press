@@ -548,7 +548,7 @@ local replicas by modifying the random selection of pairwise anti-entropy.
 Eventual replicas select a neighbor by first deciding between synchronization with Raft
 or another eventual replica with probability $P_{sync}$.
 If synchronization is selected, then anti-entropy occurs with the \textit{geographically
-nearest}, available Raft replica.
+nearest} available Raft replica.
 If an eventual replica is selected then a second decision is made between selecting a
 neighbor in the local area or in the wide area with a probability $P_{local}$.
 
