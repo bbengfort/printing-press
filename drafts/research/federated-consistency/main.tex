@@ -824,41 +824,52 @@ in the simulation to force each protocol to handle many forks.
 % \ref{fig:latency_stale_reads} sits between both Raft and Eventual for
 % both the optimistic and conservative tick parameters.
 
-Figures~\ref{fig:visible_writes} and \ref{fig:visibility_latency} show that write
-propagation is much faster and more effective in Federated than it is in Eventual,
+Figures~\ref{fig:visible_writes} and \ref{fig:visibility_latency} show that
+write propagation is much faster and more effective in Raft than in Eventual,
 especially as network conditions deteriorate.
-For mean replication \emph{latency} (visibility) of writes spreading across all system
-replicas, Federated essentially split the difference between Raft and eventual.
-However, Figures~\ref{fig:visible_writes} shows that many more writes become \emph{fully}
-replicated in both federated and Raft, with the former's percent visible closely tracking
-the latter's.
-The strong inner core of Raft nodes is the key to replicating writes fully, as any
-committed write is broadcast to all other Raft nodes.
-We speculate that federated is able to so closely track Raft in the number of visible
-writes because our federated topology's inner core of Raft nodes is distributed across all
-geographical regions.
-This inner core quickly disseminates new writes whenever the wide-area links are
-available.
-By contrast, eventual replicas prefer local anti-entropy partners, and spread across
-regions slowly because the wide-area links are chosen less often than local links, and
-disseminating a write across the entire system means traversing at least three
-high-latency-and-variability links, at least one of which is likely to be quite
-slow.\pjk{actually, this makes no sense}
+For mean replication \emph{latency} (visibility) of writes spreading across
+all system replicas, Federated essentially splits the difference between Raft
+and eventual.
+However, Figure~\ref{fig:visible_writes} shows that Federated fully replicates
+many more writes than Eventual, closely tracking the number of writes fully
+replicated by Raft.
 
-Figure \ref{fig:stale_reads} shows the average number of stale reads during the system
-run. In this eventual is much faster than
-latency, that is the time in milliseconds it takes a version to fully
-replicate, that is become visible on every node in the network.
-Raft benefits from a broadcast mechanism, while Eventual must wait for
-exponential propagation.
-Federated is somewhat slower than Raft, but outperforms Eventual while
-still being fault tolerant and highly available.
-As a result, as shown in Figure~\ref{fig:visible_writes}, the number
-of fully visible writes is higher for Federated than Eventual, since
-there is less stomping on versions (maintained by Raft) and because of
-the decrease in the visibility latency.
-Together these two properties give Federated better consistency than
-Eventual, while still maintaining availability in Raft.
+The strong inner core of Raft nodes is the key to the Federated protocol
+tracking Raft's performance.
+Eventual replicas are biased in favor of performing anti-entropy with local
+replicas, allowing most anti-entropy sessions to perform quickly and without
+delay.
+By contrast, the Raft replicas in our Federated topology are intentionally
+spread across geographic regions.
+A new write originating at an Eventual replica is quickly spread to the local
+Raft replica, and is then broadcast to the rest of the regions via the Raft
+\texttt{AppendEntries} message.
+Disseminating writes quickly minimizes the possibility of another, later
+eventual write starting up concurrently.
+Additionally, the Forte number prevents new forked writes from stomping on a
+conflicting write disseminated via Raft replicas.
+
+Figure \ref{fig:stale_reads} shows the average number of stale reads, and the
+number of forked writes across different mean latencies.
+All three protocols perform similarly at smaller latencies, but Eventual and
+Federated deal with high latencies much more effectively than Raft.
+
+Higher latencies affect Raft in at least two ways. First, higher latencies
+variability cause more out of order message. Second, we parameterize system
+timeouts by $T$ which, in turn, is based on mean latencies.
+The result is that Raft's \texttt{AppendEntries} delay is longer for
+simulations with higher mean latencies, resulting in more conflicts.
+The same is true for anti-entropy delays, but the speed of Raft decisions is
+determined by the slowest quorum member, which can be quite slow when message
+variability is large. By contrast, a slow anti-entropy participant only
+affects direct anti-entropy partners.
+
+Figure~\ref{fig:write_latency} shows the mean cost of synchronous write operations to
+ongoing computations. Raft writes are not considered ``done'' until BLAH BLAH,
+whereas Eventual writes are considered done immediately, even before being
+replicated to other nodes.
+Most Federated nodes are Eventual, and Federated's average write cost
+therefore tracks Eventual's relatively closely.
 
 \section{Discussion}
 
