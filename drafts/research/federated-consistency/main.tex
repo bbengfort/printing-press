@@ -753,7 +753,7 @@ area cluster, primarily synchronizing across the wide area via Raft replicas.
     \endminipage
     \minipage{0.5\textwidth}
       \includegraphics[width=\linewidth]{figures/outages/forked_writes}
-      \caption{Forked writes caused as outages increase.}\label{fig:outages_forked_writes}
+      \caption{Forked writes as outages increase.}\label{fig:outages_forked_writes}
     \endminipage\hfill
 \end{figure*}
 
@@ -822,14 +822,6 @@ writes during those periods when wide-area links are available.
       \includegraphics[width=\linewidth]{figures/latency/visibility_latency}
       \caption{The average full visibility latency.}\label{fig:visibility_latency}
     \endminipage\hfill
-\end{figure*}
-
-\begin{figure*}[t]
-    \centering
-%     \minipage{0.32\textwidth}
-%       \includegraphics[width=\linewidth]{figures/latency/inconsistent_writes}
-%       \caption{The number of inconsistent writes written to the log of a replica.}\label{fig:latency_inconsistent_writes}
-%     \endminipage\hfill
     \minipage{0.5\textwidth}%
       \includegraphics[width=\linewidth]{figures/latency/stale_reads}
       \caption{The percent of reads that are stale in the system.}\label{fig:latency_stale_reads}
@@ -842,10 +834,6 @@ writes during those periods when wide-area links are available.
 
 \begin{figure}[t]
     \centering
-%     \minipage{0.32\textwidth}
-%       \includegraphics[width=\linewidth]{figures/latency/inconsistent_writes}
-%       \caption{The number of inconsistent writes written to the log of a replica.}\label{fig:latency_inconsistent_writes}
-%     \endminipage\hfill
     \minipage{0.5\textwidth}
       \includegraphics[width=\linewidth]{figures/latency/write_latency}
       \caption{Average local write cost.}\label{fig:write_latency}
