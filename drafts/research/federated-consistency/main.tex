@@ -62,7 +62,7 @@ approaches.
 \section{Introduction}
 
 
-The rise of on-demand computing resources and the Cloud have made distributed systems the
+The rise of on-demand computing resources and the Cloud has made distributed systems the
 default approach to scaling applications for many users in a variety of geographic
 locations.
 In particular, data replication is used to increase availability, throughput, durability,
@@ -141,7 +141,7 @@ strong central quorum to reduce the amount of global conflict.
 The rest of the paper is organized as follows: we present a system model that is slightly
 different from the usual client-server system model and which has many more replica
 servers participating in a variety of locations.
-Because we take a client-centric approach we will describe ,
+Because we take a client-centric approach we will describe BLAH,
 though our model can be easily generalized to other types of data systems.
 We will then present a consistency model to describe the impact of conflict, misordering,
 and staleness and use these metrics to next describe the federated consistency protocol.
@@ -310,7 +310,7 @@ Federated Consistency model allows individual replicas to
 engage in replication according to locally-specified consistency policies.
 Each replica maintains its own local state, modified in response to local accesses
 and receipt of messages from remote replicas.
-Each replica sends messages to other nodes in order to propagate new writes.
+Each replica sends messages to other replicas in order to propagate new writes.
 Therefore every replica can be seen as an event handler that responds to local access
 events, as well as remote messages, and generates more events (sent messages) in return.
 So long as every federated replica has an event handler for all types of RPC
@@ -341,7 +341,7 @@ versions with those in its local log.
 If the RPC versions are later, it will append the later versions of the object to the log
 (\textit{last-writer wins}).
 Any object versions later on the remote replica are returned to the
-originating node in a \texttt{GossipResponse} message.
+originating replica in a \texttt{GossipResponse} message.
 As a result, our anti-entropy implementation is \textit{bilateral}.
 
 Forks are caused by staleness due to propagation delays.
@@ -351,7 +351,7 @@ t_{visibility} \approx \frac{T}{4} \log_3N + \epsilon
 \end{equation}
 $\frac{T}{4}$ is the
 \texttt{anti-entropy delay} as computed from the network environment via a \emph{tick}
-parameter, $T$ (discussed below), and $N$ is the number of nodes in the system.
+parameter, $T$ (discussed below), and $N$ is the number of replicas in the system.
 The epsilon parameter specifies the amount of added latency injected by imperfect gossip
 neighbor selections; $\epsilon = 0$ would mean that on every anti-entropy session
 each node perfectly selected another replica that had not seen the write being propagated.
@@ -599,16 +599,14 @@ neighbors.
 However, across regions the latency is higher and the connections variable, meaning that
 out of order messages are more common across the wide area than in the local area.
 
-In this type of topology there are two types of failure. 
-A \textit{node failure} occurs when a single node is shut off or stops responding to
-messages.
-A \textit{network partition} occurs when it is not possible for messages to be sent or
-received from a single geographic region.
-In both cases, 
-accesses may continue at a partitioned
-node or subnet, though they are not immediately replicated in the system, and
-partitioned nodes may fall behind the global state. Correctness requires the system to re-integrate the nodes
-when they re-join the network. 
+In this type of topology we experience both
+node failures, where a single node stops responding to
+messages, and network partitions, where messages can not be exchanged
+with a single geographic region.
+In both cases, accesses may continue within a partitioned replica or subnet
+though they are not immediately replicated in the system.
+Partitioned replicas may fall behind the global state, and must be
+re-integrated into the network when the network interruption ceases.
 
 % \begin{figure}
 %     \centering
@@ -622,17 +620,23 @@ when they re-join the network.
 %     \endminipage\hfill
 % \end{figure}
 
-In order to evaluate a federated model of replication and consistency, we have created a discrete event network simulation that allows us to flexibly configure a variety of parameters and more closely investigate the behavior of replication. The input to the simulation has two parts: a topology that specifies the replicas and network environment; and a workload of access events to named objects. The simulation instantiates each replica as a process that executes read and write accesses to objects and generates replication messages as well as listens for and handles messages from other replica servers.
-
-Topologies specify each device as an independent replica server by uniquely identifying it
+We evaluate a \emph{federated} model of replication and consistency by creating a
+discrete event network simulation that allows us to flexibly configure several parameters.
+The simulation input has two parts: a topology that specifies the replicas and
+network environment, and a workload of access events to uniquely named objects
+(files).
+The simulation instantiates each replica as a process that executes read and
+write accesses to objects, generates replication messages, and 
+handles messages from other replicas.
+Topologies specify each device as an independent replica by uniquely identifying it
 with device-specific configurations.
-By far the most important configuration is the \textit{replica consistency} (or replica
-protocol) which determines the replica's behavior in the environment:
+By far the most important configuration option is a replica's \textit{consistency} (or replication
+protocol), which determines the replica's behavior:
 \begin{itemize}
-    \item \textbf{Eventual}: Eventual nodes perform replication via anti-entropy by random
+    \item \emph{eventual}: Eventual nodes perform replication via anti-entropy by random
       selection of a neighbor to do pairwise gossip with. Eventual  nodes can prioritize
       local vs. wide area nodes by specifying $P_{local}$ -- the likelihood of local neighbor selection.
-    \item \textbf{Raft}: Raft nodes implement the Raft consensus protocol, electing a
+    \item \emph{Raft}: Raft nodes implement the Raft consensus protocol, electing a
       leader and forwarding writes to the leader to maintain a sequential  ordering. If a
       write is forked, the leader will drop it in order to maintain our consistency
       guarantee. 
@@ -889,7 +893,7 @@ Chihoub et al. extended the idea of consistency rationing and proposed limiting 
 
 Al-Ekram and Holt \cite{al-ekram_multi-consistency_2010} propose a middleware based scheme to allow multiple consistency models in a single distributed storage system. They identify a similar range of consistency models, but use a middleware layer to forward client requests to an available replica that maintains consistency at the lowest required criteria by the client. However, although their work can be extended to deploying several consistency models in one system, they still expect a homogenous consistency model that can be swapped out on demand as client requirements change. Additionally their view of the ordering of updates of a system is from one versioned state to another and they apply their consistency reasoning to the divergence of a local replica's state version and the global version. Similar to SUNDR, proposed by Li et al. \cite{li_secure_2004}, an inconsistency is a fork in the global ordering of reads and writes (a ``history fork''). Our consistency model instead considers object forks, a more granular level that allows concurrent access to different objects without conflict while still ensuring that no history forks can happen.
 
-Hybridization and adaptation build upon previous work that strictly categorizes different consistency schemes. An alternative approach is to view consistency along a continuous scale with a variety of axes that can be tuned precisely. Yu and Vahdat \cite{yu_design_2002} propose the \textit{conit}, a consistency unit described as a three dimensional vector that describes tolerable deviations from linearizability along staleness, order error, and numeric ordering. Similarly, Afek et al. \cite{afek_quasi-linearizability:_2010} present quasi-linearizable histories which specify a bound on the relative movement of ordered items in a log which make it legally sequential.
+Hybridization and adaptation build upon previous work that strictly categorizes different consistency schemes. An alternative approach is to view consistency along a continuous scale with several axes that can be tuned precisely. Yu and Vahdat \cite{yu_design_2002} propose the \textit{conit}, a consistency unit described as a three dimensional vector that describes tolerable deviations from linearizability along staleness, order error, and numeric ordering. Similarly, Afek et al. \cite{afek_quasi-linearizability:_2010} present quasi-linearizable histories which specify a bound on the relative movement of ordered items in a log which make it legally sequential.
 
 \section{Latency}
 
