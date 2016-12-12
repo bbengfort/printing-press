@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+rt = String.new(ARGV[0] || 'text')
+rt.sub!(/\..*$/, '')
+puts "X #{rt.to_s} X #{ARGV.class} X #{ARGV[0].class} X"
+system("pdflatex #{rt}; bibtex #{rt}; pdflatex #{rt}; pdflatex #{rt}; open #{rt}.pdf")

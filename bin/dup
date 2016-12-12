@@ -1,0 +1,11 @@
+#!/usr/bin/perl
+
+while (<>) {
+  @flds = split(/[\s\?,\.-]/);
+  for ($i = 0; $i < scalar(@flds); $i++) {
+    if (!($flds[$i] =~ /\\/) && ($flds[$i] =~ /\w/) && ($flds[$i] eq
+$flds[$i+1])) {
+      printf("DUP ($ARGV) \'$flds[$i]\': $_", join(",", @ARGV));
+    }
+  }
+}
