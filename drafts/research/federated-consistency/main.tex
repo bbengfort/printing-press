@@ -436,8 +436,7 @@ in their log, even if it has yet to be committed.
 Moreover, replicas will read their own local writes (\texttt{read-your-writes}) rather than waiting for an
 \texttt{AppendEntries} to return their write. Reads are fast, but may return values that
 are never committed.
-    \item \texttt{read\_remote} - Rather than read locally, simply request the latest
-version from the leader.
+    \item \texttt{read\_remote} - All reads become synchronous requests to the leader.
 This introduces the potential for additional latency, but may be faster if the expected
 message latency is less than the heartbeat interval.
 \end{enumerate}
@@ -526,7 +525,7 @@ inter-operate both in terms of communication (message traffic) and consistency.
 
 All replication protocols are defined by their RPC messages and expected responses.
 On one level it is a simple matter to integrate the communication across protocols by
-ensuring that all replicas respond to all RPC message types and that those types are
+ensuring that all replicas respond to all RPC message types, and that those types are
 clearly defined.
 Integration occurs when a subset of replicas implements \textit{more than one}
 replication protocol, or when rules are established for cross-communication to take
@@ -555,43 +554,45 @@ nearest} available Raft replica.
 If an eventual replica is selected then a second decision is made between selecting a
 neighbor in the local area or in the wide area with a probability $P_{local}$.
 
-In the homogeneous eventual case, only $P_{local}$ has an effect on replication
-(homogeneous Raft is broadcast oriented and therefore does not depend on these
-probabilities).
+In the homogeneous eventual case, only $P_{local}$ is relevant.
 By slightly favoring synchronization and local communication for anti-entropy, the
 system becomes more reliant on the Raft core group and therefore has stronger global
 consistency (fewer forks overall).
 Alternatively, lowering the likelihood of synchronization will allow the system to become
 less reliant on Raft, particularly when wide area outages are likely.
 
-Varying communication between protocols in this way introduces an important question:
-does a Raft consensus group improve the global consistency because it broadcasts across
-the wide area or because it implements a stronger consistency model?
-We investigated the relationship between broadcast replication by implementing a special
-eventually consistent replica called the ``stentor'' replica.
-Stentor replicas conduct two anti-entropy sessions per replication interval, one across the wide area and one locally.
-We compared a federation of Raft and eventual with a federation of eventual and stentor
-and found that while stentor performs slightly better than homogeneous bilateral anti-entropy, the Raft consistency model has a strong effect on how inconsistencies are
-handled.
+Varying communication between protocols in this way introduces an important
+question: does a Raft consensus group improve global consistency because
+it broadcasts across the wide area, or because it implements a stronger
+consistency model?
+We investigated this question by implementing
+a special eventually consistent replica called the ``stentor'' replica.
+Stentor replicas conduct two anti-entropy sessions per replication interval,
+one across the wide area and one locally.
+We compared a federation of Raft and eventual with a federation of eventual
+and stentor and found that while stentor performs slightly better than
+homogeneous bilateral anti-entropy, the Raft consistency model has a strong
+effect on how inconsistencies are handled.
 
 \subsection{Consistency Integration}
 
 Consistency integration occurs when communication occurs between replicas with
 different local consistency policies.
 When an Eventual replica receives a \texttt{Gossip} message from a Raft
-replica it accepts the most recent version, however the reciprocal Raft
-operation applies consistency policies such as rejecting forks.
-Forks detected by Raft followers can be dropped without bothering the leader,
-which allows the Raft consensus group to be more available.
-Our version of Raft further improves performance by using per-replica caches
-of forked and dropped writes to detect and prevent duplicate presentations of
-remote accesses to the leader.
-Even though a Raft follower notes a fork and does not propagate it, it is
-possible for the fork to arrive at another Raft follower that has yet to see
-it via anti-entropy propagation.
-Increasing $P_{local}$ can help prevent the eventual cloud from
-propagating forks ``around Raft'' by performing anti-entropy with a Raft replica
-in another region.
+replica it accepts the most recent version.
+However, the reciprocal Raft operation applies consistency policies such as
+rejecting forks.
+Forks detected by our version of Raft followers can be dropped without
+bothering the leader, which allows the Raft consensus group to be more
+available.
+Per-replica caches of forked and dropped writes are used to detect and prevent
+duplicate presentations of remote accesses to the leader.
+Even though a Raft follower notes a fork and does not propagate it, a fork may
+arrive at another Raft follower that has yet to see it via anti-entropy
+propagation.
+Increasing $P_{local}$ can help prevent the eventual cloud from propagating
+forks ``around Raft'' by performing anti-entropy with a Raft replica in
+another region.
 
 However, straightforward integration of the eventual and Raft clouds still
 performs worse than either cloud in isolation.
@@ -602,35 +603,35 @@ latest-writer-wins policy, whereas Raft replicas effectively choose the first
 by dropping any write that conflicts with previously seen writes.
 
 Given conflicting writes $w_i$ with timestamp $t$ and $w_j$ with timestamp
-$t+1$, the eventual replicas will converge to $w_j$ because its timestamp is
+$t+1$, eventual replicas will converge to $w_j$ because its timestamp is
 later\footnote{The timestamps need not reflect real time.}.
 However, the Raft nodes will converge to whichever write first reaches the
-leader; there is no mechanism by which to override a write that has already
+leader, and there is no mechanism by which to override a write that has already
 been committed.
-The end result is that the eventual replicas might all converge on $w_i$ and
-the Raft replicas on $w_j$, with neither write ever being replicated across
+The end result is that eventual replicas might all converge on $w_i$ and
+Raft replicas on $w_j$, with neither write ever being replicated across
 the entire system.
 This disconnect arises from a fundamental mismatch in the protocols'
 approaches to conflict resolution.
-We could modify one or the other, but would then have a protocol that would
-not perform as well in a non-federated environment.
+We could modify one or the other, but might then have a protocol that performs
+less well in a non-federated environment.
 We resolve this issue by noting that if the strong central quorum can make a
 write accepted by the Raft replicas ``more recent'' than any conflicting
 write, all eventual replicas will converge to the write chosen by the Raft
 replicas.
 
 We therefore extend each version number with an additional monotonically
-increasing counter called the \textit{forte} (strong) version, which can only
+increasing counter called the \textit{forte} (strong) number, which can only
 be incremented by the leader of the Raft quorum.
 Because the Raft leader drops forks, or any version that was not more recent
 than the latest commit version, incrementing the forte number on commit
 ensures that only consistent versions have their forte numbers incremented.
-The system then compares version recency by comparing the forte
-number first, and then the timestamp, allowing Raft to ``bump'' its chosen
+Version comparison are performed by comparing forte
+numbers first, and then the timestamp, allowing Raft to ``bump'' its chosen
 version to a later timestamp than any conflicting writes.
-This bump in forte number must be propagated to derived writes as well, as
-otherwise the increment of a write's forte number would result in writes
-derived from this write being erroneously identified as conflicting.
+This forte bump must be propagated to derived writes as well.
+Otherwise, the increment of a write's forte number would result in writes
+derived from the write being erroneously identified as conflicting.
 On receipt of a version with a higher forte than the local, eventual replicas
 search for the forte entry in their local log, find all children of the
 update, and set the child version's forte equal to that of the parent.
@@ -684,7 +685,7 @@ out of order messages are more common across the wide area than in the local are
 
 In this type of topology we expect both replica failures, where a single
 replica stops responding to messages, and network partitions, where messages
-can not be exchanged with a single geographic region.
+can be exchanged only within a single geographic region.
 In both cases, accesses may continue within a partitioned replica or subnet
 even though they are not immediately replicated in the system.
 Partitioned replicas may fall behind the global state, and must be
