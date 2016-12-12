@@ -568,7 +568,10 @@ synchronization with the amount of communication in the eventual cloud given the
 in the ratio of eventual replicas to Raft replicas.\pjk{huh?}
 In order to manage the communications delay between the anti-entropy timeout and
 leadership coordination, Raft replicas must keep local caches of forked or dropped writes so
-as to not propagate them back to the eventual cloud or replay them to the leader.\pjk{huh?}
+as to not propagate them back to the eventual cloud or replay them to the
+leader.\pjk{huh? this is about followers rejecting already seen writes. Could
+  deal with eventual going around raft. P\_local being higher than .5 tends to
+  prevents eventual from going around raft.}
 
 
 The combination can waste effort when eventual replicas derive new versions based on
@@ -789,13 +792,8 @@ protocols, and so have essentially zero latency.
 
 \subsection{Failure Rates}
 
-In this experiment we ran 44 simulations \pjk{?}, each of which specified a combination of
-consistency type: one of \textit{Eventual}, \textit{Raft}, and
-\textit{Federated with an inner core of 5 raft replicas}.
-% , and \textit{Federated Eventual with 5 stentor replicas}
 Figure~\ref{fig:outages_stale_reads} shows the portion of system reads that return stale
 data as the probability of outages, $P_f \in [0.0,1.0]$, increases with a step of $0.1$.
-
 The Eventual system deals with increasingly poor network conditions the best,
 as randomized anti-entropy partner selections allow writes to propagate through multiple
 paths.
@@ -840,13 +838,13 @@ writes during those periods when wide-area links are available.
     \endminipage\hfill
 \end{figure}
 
-In the second experiment we ran 216 simulation to test the effect of variable network
-latency on consistency protocols, as well as on how the selection of the tick parameter
+In the second experiment we investigate the effect of variable network
+latency on consistency protocols, as well as how the selection of the tick parameter
 model affects consistency for each system.
-We specified 12 wide area mean latencies in three categories: low ($\lambda{\mu} \in
-[40,500]ms$ with a low $\lambda_{\sigma}=10.0$), medium ($\lambda{\mu} \in [500,1000]ms$
-with a moderate $\lambda_{\sigma}=20.0$), and high ($\lambda{\mu} \in [1000,1500]ms$ with
-a high $\lambda_{\sigma}=30.0$).
+% We specified 12 wide area mean latencies in three categories: low ($\lambda{\mu} \in
+% [40,500]ms$ with a low $\lambda_{\sigma}=10.0$), medium ($\lambda{\mu} \in [500,1000]ms$
+% with a moderate $\lambda_{\sigma}=20.0$), and high ($\lambda{\mu} \in [1000,1500]ms$ with
+% a high $\lambda_{\sigma}=30.0$).
 In each of these environments we again evaluated three replication models:
 \textit{Eventual}, \textit{Raft}, and \textit{Federated}.
 
