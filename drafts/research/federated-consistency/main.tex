@@ -105,7 +105,6 @@ shifted the focus away from replication in weakly-connected, dynamic, or mobile 
 We believe that local, user-oriented distributed systems should augment
 cloud services rather than be replaced by them; and in some cases, such as disaster
 recovery or search and rescue, may be the only available system.
-\pjk{Important, but currently a muddle...}
 
 In this paper we present a novel approach to flexible consistency via the federation of a
 heterogeneous system of replica servers that implement a variety of consistency protocols
@@ -150,17 +149,23 @@ protocols, and Section~\ref{sec:conclusion} concludes.
 \section{Background and Definitions}
 \label{sec:background}
 
-We define consistency in terms of the ordering of operations that change the state of a
-replica.
-In the context of a file system, those operations could be individual \texttt{write()}
-systems calls, though this would be inefficient.
-Most wide-area file systems aggregate individual accesses through \textit{Close-To-Open}
-(CTO) consistency, where file reads and writes are ``whole file''
-\cite{afs,coda,lbfs}.
-A file read (``open'') is guaranteed to see data written by the latest write (``close'').
-This approach satisfies two of the major tenets of session consistency: \texttt{Read Your
-Writes Consistency} and \texttt{Monotonic Write Consistency}, but not \texttt{Writes
-Follow Reads}~\cite{bermbach_consistency_2013,terry_session_1994,vogels_eventually_2009}.
+Our targeted environment is wide-area: we assume
+replicas are distributed across 
+multiple geographical regions, where communication within a region is fast and
+cheap and inter-region communication is expensive.
+We define consistency in terms of the ordering of operations that change the
+state of a replica.
+In the context of a wide-area file system, those operations could be individual
+\texttt{write()} systems calls, though this would be inefficient.
+Most wide-area file systems aggregate individual accesses through
+\textit{Close-To-Open} (CTO) consistency, where file reads and writes are
+``whole file'' \cite{afs,coda,lbfs}.
+A file read (``open'') is guaranteed to see data written by the latest write
+(``close'').
+This approach satisfies two of the major tenets of session consistency:
+\texttt{read-your-writes} and
+\texttt{monotonic-writes}, but not
+\texttt{writes-follow-reads}~\cite{bermbach_consistency_2013,terry_session_1994,vogels_eventually_2009}.
 
 The system operations to be replicated are therefore a series of file writes.
 Each file has meta-information that includes a unique name and a monotonically
@@ -206,13 +211,15 @@ not caching any file data.
 \subsection{Operation Logs}
 
 Meta-data writes are replicated through per-replica \emph{logs}.
-Consistency can therefore be expressed in terms of a sequential operation log replicated across all
-system replicas, where operations consist solely of file writes.
-If all logs are identical, the same file writes are applied in the same
-order at each replica, and the file system will appear the same on all replicas.
-As such, we use a {data-centric} model of
-correctness that concentrates primarily on two metrics: log operation ordering and
-read staleness: \bjb{Do we need the Bermbach/Tanenbaum citation here?}
+Consistency is therefore expressed in terms of an ordered operation log,
+replicated across all system replicas, where operations consist solely of file
+writes.
+If all logs are identical, the same file writes are applied in the same order
+at each replica, and the file system will appear the same on all replicas.
+As such,
+we use a {data-centric} model of correctness that concentrates primarily on
+two metrics: log operation ordering and read
+staleness~\cite{bermbach_consistency_2013}:
 \begin{enumerate}
 \item \emph{Ordering} refers to how closely individual logs adhere to the abstract
   global ordering. A strict ordering requires every single log to be exactly the
@@ -234,9 +241,9 @@ dependencies are satisfied, causing reads to become more stale.
 
 In addition to tracking staleness directly, we also use as a metric the primary symptom of stale
 reads and writes, forks:
-\begin{description}
-    \item[\textit{Fork}:] A fork occurs when two replicas concurrently write a new version to the same parent object.
-\end{description}
+\begin{quote}
+    A \emph{fork} occurs when two replicas concurrently write a new version to the same parent object.
+\end{quote}
 Forks introduce inconsistency because they allow multiple potential orderings of operation
 logs.
 Forks are primarily a symptom of staleness; e.g. the second writer wrote to
@@ -258,15 +265,16 @@ and then concurrently attempt to write new versions: $W_i(a_1 \rightarrow a_2)$ 
 $W_j(a_1 \rightarrow a_3)$ (Figure ~\ref{fig:forks}).
 A delay in replicas $R_i$ and $R_j$ synchronizing could lead to one of them continuing
 further down one of the fork paths, e.g. $W_i(a_2 \rightarrow a_4)$.
-The fork between $a_2$ and $a_3$ occurs because of concurrent accesses by multiple
-replicas, but stale reads can also cause forks. \bjb{I can change the figure so that the bottom has the same time ordering as the top -- note that the fork in the figure is a stale read, if the synchronization line was pushed back, it would eliminate the fork}
+Forks can be caused by concurrent reads, but the fork between $a_2$ and $a_3$
+actually occurs because $R_j$'s read is stale.
 
 \subsection{Consistency}
 
 A broader discussion of consistency levels should include at least eventual consistency~\cite{terry_managing_1995},
 causal consistency~\cite{causal} (the highest level allowing high availability~\cite{bailis_bolt-causal_2013}),
 sequential consistency~\cite{sequential-consistency}, and linearizability~\cite{herlihy_linearizability:_1990}.
-For reasons of space, however, we limit this discussion to the most generally useful models:
+For reasons of space, however, we limit this discussion to the models most
+useful for our purposes:
 eventual and sequential consistency.
 
 \emph{Eventually consistent} logs, no matter their ordering, must eventually have identical final
@@ -368,11 +376,9 @@ each node perfectly selected another replica that had not seen the write being p
 
 We implement sequential consistency by replicating the operation log through the Raft
 consensus algorithm~\cite{ongaro_search_2014}.
-However, there are many possible ways to use consensus in log replication. \bjb{should we mention them?}
-
-As background, each Raft replica must always be in one of three states: \texttt{FOLLOWER},
-\texttt{CANDIDATE}, or \texttt{LEADER}.
-All replicas start in the \texttt{FOLLOWER} state.
+As background, each Raft replica must always be in one of three states: \texttt{follower},
+\texttt{candidate}, or \texttt{leader}.
+All replicas start in the \texttt{follower} state.
 Raft is governed by two primary timing parameters: the \texttt{heartbeat interval}, which
 specifies how often the leader sends \texttt{AppendEntries} messages that disseminate new
 operations and double as
@@ -415,17 +421,17 @@ message.
 Although all writes are sequentially ordered, the aggregation delay raises the possibility
 of several distinct read policies, including:
 \begin{enumerate}
-    \item \texttt{read committed} - Raft replicas only read the latest committed version
+    \item \texttt{read\_committed} - Raft replicas only read the latest committed version
 of an object, which occurs at best on the \emph{second} \texttt{AppendEntries} message
 after the \texttt{RemoteWrite} is sent to the leader. Committed writes are guaranteed not
 to be rolled back, but introduces significant delay and the possibility of staleness and
 version forks.
-    \item \texttt{read latest} - Replicas read the latest version of the object
+    \item \texttt{read\_latest} - Replicas read the latest version of the object
 in their log, even if it has yet to be committed.
-Moreover, replicas will read their own local writes (\texttt{Read Your Writes}) rather than waiting for an
+Moreover, replicas will read their own local writes (\texttt{read-your-writes}) rather than waiting for an
 \texttt{AppendEntries} to return their write. Reads are fast, but may return values that
 are never committed.
-    \item \texttt{read remote} - Rather than read locally, simply request the latest
+    \item \texttt{read\_remote} - Rather than read locally, simply request the latest
 version from the leader.
 This introduces the potential for additional latency, but may be faster if the expected
 message latency is less than the heartbeat interval.
@@ -433,21 +439,22 @@ message latency is less than the heartbeat interval.
 
 Each of these options has critical implications for the likelihood of stale reads and
 writes in the system.
-Replicas would choose read committed if the network was highly partition prone and
+Replicas would choose \texttt{read\_committed} if the network was highly partition prone and
 messages from the leader were unstable and prone to being rolled back.
-Read remote serves replicas well when the average message latency is far lower than the
+\texttt{Read\_remote} serves replicas well when the average message latency is far lower than the
 heartbeat interval, though this could be improved by making the heartbeat interval similar
 to the network latency.
-For this reason, we have chosen \textbf{read latest} as the most appropriate implementation for a file
-system.
-\pjk{I'm thinking we should have done more experimentation here, tried remote read, for
-  example. Final version.}
+Intuition suggested and experimentation confirmed that \texttt{read\_latest}
+is the most appropriate approach for a file
+system in our environment.
+% \pjk{I'm thinking we should have done more experimentation here, tried remote read, for
+%   example. Final version.}
 
 \subsection{Timing Parameters}
 
 Both the anti-entropy and Raft protocols are parameterized by timing constraints that govern replication and therefore overall consistency.
 In order to select an \texttt{anti-entropy delay}, \texttt{heartbeat
-interval}, and \texttt{election timeout} we must find some method of
+interval}, and \texttt{election timeout}, we must find some method of
 scaling the timing to the expected base latency of our system.
 We use a ``tick'' parameter, $T$, which is a function of
 the observed one-way message latency in the system specified as a normal distribution of latency and described by its mean, $\lambda_{\mu}$ and standard deviation,
@@ -463,8 +470,8 @@ parameter of $10\lambda_{\mu}$, which results in replication happening much
 more slowly than access events and causes large numbers of conflicts.
 Howard et.
 al \cite{howard_raft_2015} use an
-optimistic $T$ parameter, $2\left(\lambda_{\mu} + 2\lambda_{\sigma}\right)$, that is too small to capture
-the variability in our target environments and leads to out of order
+optimistic $T$ parameter, $2\left(\lambda_{\mu} + 2\lambda_{\sigma}\right)$, which is too small to capture
+the variability in our target environments and leads to out-of-order
 \texttt{AppendEntries} messages in Raft, which can degrade performance.
 
 Timing parameters are then defined in terms of $T$.
@@ -532,8 +539,6 @@ replica.
 If an eventual replica receives an \texttt{AppendEntries} or \texttt{VoteRequest} RPC it
 must respond with an RPC failure that indicates the quorum has changed, which leads to a
 joint consensus decision among the remaining Raft nodes.
-
-\bjb{Have we mentioned the wide vs. local area topology yet? Seems important for a paper titled "Geo-Replication"}
 
 Communication integration can also take advantage of the geographic topology of the
 system to localize non-broadcast forms of communication.
