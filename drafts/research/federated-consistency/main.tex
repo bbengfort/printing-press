@@ -574,7 +574,7 @@ In order to improve performance, all Raft replicas keep local caches of forked o
 writes to minimize the propagation of forks and prevent duplication of remote accesses to
 the leader.
 Even though a Raft follower notes a fork and does not propagate it, it is possible for
-the fork to arrive at another Raft follower that hasn't seen it via anti-entropy
+the fork to arrive at another Raft follower that has yet to see it via anti-entropy
 propagation.
 In this case increasing $P_{local}$ can prevent the eventual cloud from propagating forks
 around Raft.
