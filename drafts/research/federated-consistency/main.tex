@@ -769,8 +769,8 @@ Vertice size represents the number of
 accesses that occur at that location, and color represents the
 replica type.
 The edges are colored by RPC type and sized by the
-number of messages.
-Replicas have a preference for anti-entropy in the local
+number of messages sent.
+Eventual replicas in Federated have a preference for anti-entropy in the local
 area cluster, primarily synchronizing across the wide area via Raft replicas.
 
 \subsection{Experiments and Metrics}
