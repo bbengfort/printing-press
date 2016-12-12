@@ -727,7 +727,7 @@ protocols, and so have essentially zero latency.
 
 \subsection{Failure Rates}
 
-In this experiment we ran 44 simulations, each of which specified a combination of
+In this experiment we ran 44 simulations \pjk{?}, each of which specified a combination of
 consistency type: one of \textit{Eventual}, \textit{Raft}, and
 \textit{Federated with an inner core of 5 raft replicas}.
 % , and \textit{Federated Eventual with 5 stentor replicas}
@@ -744,7 +744,7 @@ The Federated system is able to leverage the Eventual subset of its replicas to 
 around failures almost as efficiently as the homogeneous Eventual system.
 
 The multiple-paths ability also allows the Federated system to propagate writes quickly,
-as show in Figure~\ref{fig:stale_reads}. In fact, Federated actually outperforms the
+as shown in Figure~\ref{fig:outages_stale_reads}. In fact, Federated actually outperforms the
 Eventual system, possibly because the Raft quorum is able to quickly disseminate chosen
 writes during those periods when wide-area links are available.
 
@@ -850,7 +850,7 @@ Eventual write starting up concurrently.
 Additionally, the Forte number prevents new forked writes from stomping on a
 conflicting write disseminated via Raft replicas.
 
-Figure \ref{fig:stale_reads} shows the average number of stale reads, and the
+Figure \ref{fig:latency_stale_reads} shows the average number of stale reads, and the
 number of forked writes across different mean latencies.
 All three protocols perform similarly at smaller latencies, but Eventual and
 Federated deal with high latencies much more effectively than Raft.
