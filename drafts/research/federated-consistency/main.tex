@@ -699,9 +699,9 @@ re-integrated into the network when the network interruption ceases.
 %     \endminipage\hfill
 % \end{figure}
 
-We evaluate a \emph{Federated} model of replication and consistency by creating a
+We evaluated the \emph{Federated} model of replication and consistency by creating a
 discrete event network simulation that allows us to flexibly configure several parameters.
-The simulation input has two parts: a topology that specifies the replicas and
+Simulation input has two parts: a topology that specifies the replicas and
 network environment, and a workload of access events to uniquely named objects
 (files).
 The simulation instantiates each replica as a process that executes read and
@@ -713,12 +713,14 @@ By far the most important configuration option is a replica's \textit{consistenc
 protocol), which determines the replica's behavior:
 \begin{itemize}
     \item \emph{eventual}: Eventual replicas perform replication via anti-entropy by random
-      selection of a neighbor to do pairwise gossip with. Eventual  replicas can prioritize
-      local vs. wide area replicas by specifying $P_{local}$ -- the likelihood of local neighbor selection.
+      selection of a neighbor with which to gossip. Eventual  replicas can prioritize
+      local vs. wide area replicas by specifying $P_{local}$ -- the likelihood
+      of local, versus wide-area, neighbor selection.
     \item \emph{Raft}: Raft replicas implement the Raft consensus protocol, electing a
-      leader and forwarding writes to the leader to maintain a sequential  ordering. If a
-      write is forked, the leader will drop it in order to maintain our consistency
-      guarantee.
+      leader and forwarding writes to the leader to maintain a sequential
+      operation ordering. 
+      Writes identified as forks of prior committed writes are dropped by
+      whichever replica makes the identification.
 \end{itemize}
 
 The topology further specifies the \textit{location} of each device, the
@@ -727,12 +729,11 @@ a per-connection basis.
 Topologies were parameterized with two primary latencies specified as normal distributions ($\lambda_{\mu}$,
 $\lambda_{\sigma}$): the \textit{local area} latency, usually with a lower $\lambda_{\mu}$
 and $\lambda_{\sigma}$ than the \textit{wide area} latency -- e.g.
-the latency between devices in different locations.
+the latency between devices in different regions.
 In order to compute the tick parameter, $T$, and specify the average latency in the
 simulation, latencies are given as worst case, wide-area latencies.
-Each topology could also set simulation-specific device-specific configurations, though we
+Each topology could also set run- and device-specific configurations, though we
 do not use that ability here.
-
 
 \begin{figure*}[t]
     \centering
@@ -746,7 +747,7 @@ do not use that ability here.
     \endminipage\hfill
 \end{figure*}
 
-The workload was specified as access trace files -- time ordered access events (reads and
+Workloads are specified as access trace files -- time-ordered access events (reads and
 writes) between a specific device and a specific object name.
 Each trace was constructed via a random workload generator, where a collection of
 available devices was specified along with a normal distribution of the delay between
@@ -756,7 +757,7 @@ To generate the workload, object names were assigned to each replica as follows:
 round-robin fashion, an object name was selected and assigned to a replica with
 probability $P_c$ until each replica was accessing $o$ objects.
 If $P_c = 1.0$ then every single replica would be accessing the same batch of objects,
-where as if $P_c = 0.0$ then each replica would access their own unique set of objects.
+whereas if $P_c = 0.0$ then each replica would access their own unique set of objects.
 From there, the $A_{\mu}$, $A_{\sigma}$ was used to generate accesses to objects in
 sequence, by selecting an object and reading and writing to it over time until some
 probability of switching objects occurred.
@@ -786,8 +787,7 @@ anti-entropy.
 Our Federated topology consists of an inner core of Raft replicas distributed one per region,
 each co-located with several eventual replicas.
 Our experiments were driven by synthetic access traces containing approximately 29,000
-accesses (depending on the experiment), with an average ratio of 54\% of the accesses
-being reads to model the ratio of file reads to writebacks.
+accesses (depending on the experiment), approximately two thirds of which are reads.
 
 Our primary metrics are \textit{stale reads}, \textit{forked writes}, which can produce
 application-visible effects.
