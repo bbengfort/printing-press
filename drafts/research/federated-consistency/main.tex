@@ -1,7 +1,7 @@
 \documentclass[10pt,conference,letterpaper]{IEEEtran}
 \usepackage{graphicx}
 \usepackage{soul}
-\usepackage{flushend}
+\usepackage{balance}
 
 % pete's adds
 \usepackage{color}
@@ -13,7 +13,7 @@
 \newcommand{\pjkst}[2]{[\todo{PJK: #1}]\st{#2}}
 \newcommand{\note}[1]{\textcolor{blue}{[#1]}}
 \newcommand{\red}[1]{\textcolor{red}{#1}}
-\newcommand{\dspace}{\renewcommand{\baselinestretch}{1.0485}\Large\normalsize}
+\newcommand{\dspace}{\renewcommand{\baselinestretch}{1.04805}\Large\normalsize}
 
 \begin{document}
 \dspace
@@ -687,6 +687,18 @@ neighbors.
 The latency is higher and the connections more variable across regions, meaning that
 out of order messages are more common across the wide area than in the local area.
 
+\begin{figure*}[t]
+    \centering
+    \minipage{0.5\textwidth}%
+      \includegraphics[width=\linewidth]{figures/outages/stale_reads}
+      \caption{Stale reads as outages increase.}\label{fig:outages_stale_reads}
+    \endminipage
+    \minipage{0.5\textwidth}
+      \includegraphics[width=\linewidth]{figures/outages/forked_writes}
+      \caption{Forked writes as outages increase.}\label{fig:outages_forked_writes}
+    \endminipage\hfill
+\end{figure*}
+
 In this type of topology we expect both replica failures, where a single
 replica stops responding to messages, and network partitions, where messages
 can be exchanged only within geographic regions.
@@ -731,18 +743,6 @@ protocol), which determines the replica's behavior:
       whichever replica makes the identification.
 \end{itemize}
 
-\begin{figure*}[t]
-    \centering
-    \minipage{0.5\textwidth}%
-      \includegraphics[width=\linewidth]{figures/outages/stale_reads}
-      \caption{Stale reads as outages increase.}\label{fig:outages_stale_reads}
-    \endminipage
-    \minipage{0.5\textwidth}
-      \includegraphics[width=\linewidth]{figures/outages/forked_writes}
-      \caption{Forked writes as outages increase.}\label{fig:outages_forked_writes}
-    \endminipage\hfill
-\end{figure*}
-
 The topology further specifies the \textit{location} of each device, the
 \textit{connections} between devices, and the \textit{distribution} of message latency on
 a per-connection basis.
@@ -781,6 +781,34 @@ number of messages sent.
 Eventual replicas in Federated have a preference for anti-entropy in the local
 area cluster, primarily synchronizing across the wide area via Raft replicas.
 
+\begin{figure*}[t]
+    \centering
+    \minipage{0.5\textwidth}
+      \includegraphics[width=\linewidth]{figures/latency/percent_visible_writes}
+      \caption{The percentage of fully visible writes.}\label{fig:visible_writes}
+    \endminipage\hfill
+    \minipage{0.5\textwidth}
+      \includegraphics[width=\linewidth]{figures/latency/visibility_latency}
+      \caption{The average full visibility latency.}\label{fig:visibility_latency}
+    \endminipage\hfill
+    \minipage{0.5\textwidth}%
+      \includegraphics[width=\linewidth]{figures/latency/stale_reads}
+      \caption{The percent of reads that are stale in the system.}\label{fig:latency_stale_reads}
+    \endminipage
+    \minipage{0.5\textwidth}
+      \includegraphics[width=\linewidth]{figures/latency/forked_writes}
+      \caption{The total number of conflicts (possible forks).}\label{fig:latency_forked_writes}
+    \endminipage\hfill
+\end{figure*}
+
+\begin{figure}[t]
+    \centering
+    \minipage{0.5\textwidth}
+      \includegraphics[width=\linewidth]{figures/latency/write_latency}
+      \caption{Average local write cost.}\label{fig:write_latency}
+    \endminipage\hfill
+\end{figure}
+
 \subsection{Experiments and Metrics}
 
 We conducted two primary experiments to test the behavior of a Federated consistency
@@ -815,33 +843,6 @@ protocols, and so have essentially zero latency.
 
 \subsection{Failure Rates}
 
-\begin{figure*}[t]
-    \centering
-    \minipage{0.5\textwidth}
-      \includegraphics[width=\linewidth]{figures/latency/percent_visible_writes}
-      \caption{The percentage of fully visible writes.}\label{fig:visible_writes}
-    \endminipage\hfill
-    \minipage{0.5\textwidth}
-      \includegraphics[width=\linewidth]{figures/latency/visibility_latency}
-      \caption{The average full visibility latency.}\label{fig:visibility_latency}
-    \endminipage\hfill
-    \minipage{0.5\textwidth}%
-      \includegraphics[width=\linewidth]{figures/latency/stale_reads}
-      \caption{The percent of reads that are stale in the system.}\label{fig:latency_stale_reads}
-    \endminipage
-    \minipage{0.5\textwidth}
-      \includegraphics[width=\linewidth]{figures/latency/forked_writes}
-      \caption{The total number of conflicts (possible forks).}\label{fig:latency_forked_writes}
-    \endminipage\hfill
-\end{figure*}
-
-\begin{figure}[t]
-    \centering
-    \minipage{0.5\textwidth}
-      \includegraphics[width=\linewidth]{figures/latency/write_latency}
-      \caption{Average local write cost.}\label{fig:write_latency}
-    \endminipage\hfill
-\end{figure}
 Figures~\ref{fig:outages_stale_reads} and \ref{fig:outages_forked_writes}
 show the effect on stale reads and forked writes
 as the probability of wide-area link failures, $P_f \in [0.0,1.0]$, increases
@@ -1057,6 +1058,8 @@ Our consistency model instead considers object forks, a more granular level
 that allows concurrent access to different objects without conflict while
 still ensuring that no history forks can happen.
 
+\balance
+
 Hybridization and adaptation build upon previous work that strictly
 categorizes different consistency schemes.
 An alternative approach is to view consistency along a continuous scale with
@@ -1098,20 +1101,22 @@ pairwise gossip by implementing non-discrete random selection using Bandits or
 other optimization techniques), and only requires joint consensus on the part
 of the consensus group.
 
+\vspace{.5em}
 \section{Discussion \& Conclusion}
 \label{sec:conclusion}
 
-This paper has presented a model for Federated consistency that allows
-individual replicas to expose local policies to users, while still allowing
-for global guarantees.
+This paper has presented a model for Federated consistency, which allows individual
+replicas to expose local policies to users, while still allowing for global guarantees.
+We evaluate Federated consistency in the context of a geographically dispersed wide-area
+file system.
 Our results show that a key to the global guarantees is in using a core
 strongly-consistent group to serialize and broadcast system writes.
-By designing a Federated system where only the interactions between replicas
-of varying consistency types are defined, systems can scale beyond the handful
-of devices usually described to dozens or hundreds of replicas in
-variable-latency, partition-prone geographic networks.
-Replicas can monitor their local environment and adapt as necessary to meet
-timeliness and correctness constraints required by the local user.
+By designing a Federated system where only the interactions between replicas of varying
+consistency types are defined, systems can scale beyond the handful of devices usually
+described to dozens or hundreds of replicas in variable-latency, partition-prone
+geographic networks.
+Replicas can monitor their local environment and adapt as necessary to meet timeliness and
+correctness constraints required by the local user.
 
 We were only able to investigate a limited number of system configurations,
 and this paper has space for even fewer.
@@ -1123,13 +1128,12 @@ Our simulation environment is extremely flexible, and we intend to continue
 evaluating possible system configurations as we move towards building a
 wide-area file system in this environment.
 
-One particularly intriguing option we are evaluating is scaling Federated
-system
-size upwards.
+One particularly intriguing option we are evaluating is scaling Federated system size
+upwards.
 The central Raft quorum must also scale, but increased quorum sizes often degrade
 performance as the leader becomes a bottleneck.
-Additionally, the Raft quorum in our topology does not benefit from
-localization, as do the eventually consistent replicas.
+Additionally, the Raft quorum in our topology does not benefit from localization, as do
+the eventually consistent replicas.
 % It is possible that placing all of the Raft replicas in a single location,
 % giving Raft RPC messages the benefit of the local area connections and
 % penalizing the synchronization of wide area Eventual replicas, would have
@@ -1137,15 +1141,15 @@ localization, as do the eventually consistent replicas.
 % Because of the centrality of the Raft quorum in providing stronger consistency
 % guarantees in a Federated environment, we propose future work into optimizing
 % coordination for user-centric dynamic networks.
-We are therefore investigating
-approaches to \emph{hierarchical consensus}, which will allow Raft to maintain
-smaller quorum sizes and localize decision making while scaling to
-increasingly larger systems.
+We are therefore investigating approaches to \emph{hierarchical consensus}, which will
+allow Raft to maintain smaller quorum sizes and localize decision making while scaling to
+larger systems.
 
 % \section*{Acknowledgments}
 %
 % Thank you Bluejacket, for tirelessly running simulations as soon as we spun you up.
 
+\newpage
 \bibliographystyle{plain}
 \bibliography{references}
 
