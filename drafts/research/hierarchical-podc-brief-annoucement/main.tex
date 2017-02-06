@@ -1,0 +1,121 @@
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage{graphicx}
+\usepackage[margin=1in]{geometry}
+\usepackage{authblk}
+
+\title{Brief Announcement: Hierarchical Consensus for Scalable Strong Consistency}
+\author[ ]{Benjamin Bengfort}
+\author[ ]{Pete Keleher}
+\affil[ ]{University of Maryland}
+\affil[ ]{\textit{\{bengfort,keleher\}@cs.umd.edu}}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Distributed consensus algorithms are the primary mechanism of implementing strong
+consistency in geo-replicated data stores.
+Consistency is guaranteed by the explicit sequential ordering of accesses or locks and
+leader based consensus protocols minimize the number of messages required to apply a
+command without conflict detection in a fault-tolerant manner.
+However, distributed consensus algorithms must reject inconsistent updates to the system
+and as a result do not provide high availability or throughput.
+In this paper we describe \textit{Hierarchical Consensus}, a new decentralized consensus
+protocol which distributes consensus decisions to multiple tiers of consensus groups
+according to shared accesses so as to maintain implicit dependencies.
+Hierarchical Consensus is unique in that it can efficiently guarantee the strict total
+ordering on replicated logs in the wider area even in the presence of partitions and
+varying connectivity. We will show its correctness and describe an experimental
+methodology that we will use to demonstrate durable, highly-available, and strongly
+consistent accesses in systems that scale from small to large networks.
+\end{abstract}
+
+\section{Introduction}
+
+Strong consistency in a geo-replicated distributed data store requires a fault-tolerant
+mechanism that maintains consistency during node failure and communication partitions.
+Distributed consensus protocols inspired by Paxos \cite{lamport_paxos_2001} have been
+widely adopted to coordinate consistency, however, because of increased communication
+they cannot scale to arbitrary system sizes\cite{2016arXiv160806696H}.
+Several recent algorithms have attempted to address the scaling limitations of consensus
+and take two general forms --- leader election and conflict detection.
+
+Leader-oriented consensus such as MultiPaxos \cite{lamport_paxos_2001} and Raft
+\cite{ongaro_search_2014} minimize the number of required communication phases by
+nominating a dedicated proposer.
+Less communication means better throughput, and fault-tolerance is achieved through node
+failure detection such as a heartbeat and a new leader is elected to minimize downtime.
+Leader-oriented approaches introduce two new problems, however: \textit{load} and
+\textit{distance}.
+Because the leader will necessarily do more work and handle more communication than other
+nodes, it must have sufficient resources to handle the workload; moreover, since any node
+can be elected leader, all nodes must have sufficient resources to handle the workload.
+This introduces scaling problems in two dimensions: adding nodes means more communication,
+increasing the minimum resource requirements for all nodes in the system.
+In geo-replicated systems, bandwidth and latency are highly variable therefore the
+election of a leader in a specific location means that consensus is bound by the slowest
+connection, making the consensus algorithm sensitive to distance.
+Although recent approaches such as S-Paxos \cite{biely_s-paxos:_2012} and Mencius
+\cite{mao_mencius:_2008} add load balancing to leader-oriented mechanisms, they cannot
+solve the distance problem.
+
+Conflict detection approaches such as EPaxos \cite{moraru_there_2013} and MDCC
+\cite{kraska_mdcc:_2013} are optimistic that most consensus decisions are consistent.
+They propose ``fast'' and ``slow'' consensus paths, such that a subset of close nodes can
+quickly reach consensus but add dependency information to detect conflicts when commands
+are applied.
+If a conflict is detected, then decision must traverse the ``slow'' path to ensure
+correctness.
+Conflict detection does not have a distance problem, as nodes can select close neighbors,
+however this method does not guarantee dissemination of the command, which can require
+large amounts of dependency resolution.
+As the network scales, dependency graphs tend to increase in both size and complexity,
+increasing the load on the system.
+
+In practice systems do not implement global consensus, but instead apply multiple
+consensus groups to coordinate specific objects or tablets.
+This keeps quorum sizes small, allocating just enough nodes to a quorum to maintain a
+minimum level of fault tolerance.
+However, in so doing, an object can only be consistent with respect to its own updates
+and the system loses information about dependencies.
+Moreover, there is no coordination between consensus groups, a single node can
+participate in multiple per-object consensus groups, which does not eliminate node and
+distance problems.
+
+In this paper we introduce \textit{Hierarchical Consensus}, an approach to generalize
+consensus that allows us to scale groups beyond a handful of nodes, across wide areas.
+Hierarchical Consensus (HC) increases the availability of consensus groups by
+partitioning the decision space and nominating a leader for each partition.
+Partitions eliminate distance by allowing decisions to be co-located with replicas that
+are responding to accesses. Hierarchical consensus is flexible locally, but provides
+strong global system guarantees.
+
+\section{Hierarchical Consensus}
+
+Give concrete details and definitions.
+
+\subsection{Operation}
+
+\subsection{Epochs and ordering}
+
+\subsection{Correctness}
+
+\section{Experimental Design}
+
+Discuss implementation of a file system. decoupling blob from version replication.
+
+Three modes of operation
+
+Forks, mapping hierarchical onto a file system.
+
+\section{Ongoing and Future Work}
+
+Current and future work.
+
+\bibliographystyle{plain}
+\bibliography{paper}
+
+\end{document}
