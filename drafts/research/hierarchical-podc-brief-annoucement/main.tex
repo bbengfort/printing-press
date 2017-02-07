@@ -60,8 +60,6 @@
 
 \begin{document}
 
-\maketitle
-
 \begin{abstract}
 Distributed consensus algorithms are the primary mechanism of implementing strong
 consistency in geo-replicated data stores.
@@ -79,6 +77,8 @@ varying connectivity. We will show its correctness and describe an experimental
 methodology that we will use to demonstrate durable, highly-available, and strongly
 consistent accesses in systems that scale from small to large networks.
 \end{abstract}
+
+\maketitle
 
 \section{Introduction}
 
@@ -178,29 +178,47 @@ perspective, though accesses in a specific subquorm are totally ordered locally.
 \subsection{Operation}
 
 The parent consensus group must coordinate all decision space changes.
-Consider the simple example of the transfer of some objects from one subquorum to another:
+Consider the simple example of the transfer of object responsibility from one subquorum
+to another:
 
 \begin{quote}
 \small
-   $Q_1: \{ABC\} \rightarrowtail \{ABGH\}$\\
-   $Q_2: \{DEFGH\} \rightarrowtail \{CDEF\}$
+   $Q_1: \{o_a,o_b,o_c\} \rightarrowtail \{o_a,o_b,o_g,o_h\}$\\
+   $Q_2: \{o_d,o_e,o_f,o_g,o_h\} \rightarrowtail \{o_c,o_d,o_e,o_f\}$
 \end{quote}
 
 Each of the two subquorums, $Q_1$ and $Q_2$, wants to give up a portion of its
-existing tag, and to add a portion of a tag currently mapped to another subquorum.
-We propose, initially, that this is a two phase process.
-Both subquorums make their requests to the leader, who may aggregate several namespace
-changes into a single one.
-While the root quorum gets consensus to make the epoch change, subquorums can continue
-operating on their own tags.
-Once the root quorum updates the epoch, it communicates the change to all affected subquorums.
-Each such subquorum then increments its epoch and acknowledges its change to the root quorum.
-At this point, the subquorum can operate on the portion of the tag it owned before,
-\emph{but not the portion of the tag that is being modified}.
-Once the root quorum gets confirmations of epoch update from all subquorums, it notifies
-the subquorums that they can begin operating on the complete tag from the new epoch.
+existing decision space, and to add objects currently mapped to another subquorum.
+In order to reallocate the subquorums, a two phase consensus decision is required.
+Both subquorum leaders make change requests to the leader of the parent quorum, who may
+aggregate several namespace changes into a single one.
+While the parent quorum gets consensus to make the epoch change, subquorums can continue
+operating on their own decision space.
+Once the parent quorum updates the epoch, it communicates the change to all affected
+subquorums.
+Each such subquorum then increments its epoch and acknowledges its change to the parent
+quorum.
+At this point, the subquorum can operate on the portion of the decision space it owned
+before, \emph{but not the objects that are being added}.
+Once the parent quorum gets confirmations of epoch update from all subquorums, it notifies
+the subquorums that they can begin operating on the complete subset of objects from the
+new epoch.
+
+All accesses to an object must be forwarded to the leader of the subquorum that contains
+the object.
+Objects that are accessed together or who have application-specific, explicit
+dependencies (such as the set of objects included in a transaction) must be part of the
+same subquorum so that local accesses are totally ordered.
+Dependent objects that are not part of the same subquorum require either a change in
+epoch or a mechanism to facilitate \textit{remote accesses}, which we will discuss in a
+following section.
 
 \subsection{Epochs and Ordering}
+
+Hierarchical consensus requires all accesses in all subquorums to be at least
+sequentially consistent.
+Local sequential consistency is guaranteed by serializing all accesses through a leader.
+Global sequential consistency is guaranteed by serializing epochs at the parent quorum.
 
 Let \emph{interval} $i_n$ be the ordered set of accesses of the replicas in subquorum
 $Q_i$ during epoch $E_n$.
@@ -209,35 +227,58 @@ ensuring that there must exist a total ordering of the intervals that produces t
 access results.
 Access results should be equivalent to any interval ordering
 such that all intervals in $E_n$ occur before intervals in $E_{n+1}$ (our ``interval
-ordering'' invariant). This is because there is no
-cross-traffic between any $Q_i$ and $Q_j$, and therefore ordering interval $i_n$ before $j_n$ is exactly
-the same as ordering interval $j_n$ before $i_n$, for any $i$, $j$,
-and $n$.
+ordering'' invariant).
+This is because there is no cross-traffic between any $Q_i$ and $Q_j$, and therefore
+ordering interval $i_n$ before $j_n$ is exactly the same as ordering interval $j_n$
+before $i_n$, for any $i$, $j$, and $n$.
 
-\subsection{Correctness}
+\begin{definition}
+  The internal invariant requires:
+  \begin{displaymath}
+  \forall Q_{x,y} \in E_i : Q_{x,i} \rightarrow Q_{y,i+1}
+  \end{displaymath}
+\end{definition}
 
-Only the subquorums that are involved in the tagspace changes need be notified and
-involved in the epoch change coordinated by the root epoch.
+\subsubsection{Remote Accesses}
+
+By default we assume that the set of replicas \textit{assigned} to subquorums are also
+disjoint, and that all accesses through a replica of a given subquorum are mapped to the
+local decision space.
+This is often reasonable.
+However, if an object is assigned to a decision space and another subquorum wishes to
+access it, the system must either disallow the access (our default approach) or take
+explicit notice that a dependency has been created between the subquorums.
+
+The latter approach requires a serialization ... 
+
+\subsubsection{Fuzzy Epochs}
+
+Only the subquorums that are involved in the  decision space changes need be notified and
+involved in the epoch change coordinated by parent epochs.
 Other subquorums can update their epoch number at no cost when they see the new epoch
-number from remote requests from other subquorums, or when they are notified by the root
-epoch.
-In this way, non-responding subquorums do not block tagspace changes for other quorums.
-Because the tag is left behind in the previous epoch, all writes in that tag will be
-ordered before writes in the next epoch.
+number from remote requests from other subquorums, or when they are notified by their
+parent quorum.
+In this way, non-responding subquorums do not block decision space changes for other
+quorums.
+Because the subquorum is left behind in the previous epoch, all writes in that subquorum
+will be ordered before writes in the next epoch.
 However, because no writes in the next epoch depend on these writes safety is still
 guaranteed.
 
 This means that subquorums can have ``fuzzy epochs'', wherein some subquorums are behind
 others.
-Fuzzy epochs provide the flexibility needed to accommodate subquorums that may not be ready
+Fuzzy epochs provide the flexibility needed to accommodate subquorums that may not be
+ready
 to move to a new epoch eliminate because application semantics (still accessing the same
-objects), or network conditions (in a tunnel).
+objects), or network conditions (communication failure).
+
+\subsection{Correctness}
 
 We are investigating approaches to providing \emph{eventual quiescence}: i.e.
-all tags eventually return to the root quorum if activity ceases.
+subquorums disband and return object ownership to the parent quorum if activity ceases.
 If implemented through either implicit or explicit leases,
-the root quorum would be empowered to pull a tag back when a lease expired.
-The ability for a tag to be pulled back could represent a loss of work performed by a
+the parent quorum would be empowered to pull objects back when a lease expired.
+The ability for a objects to be pulled back could represent a loss of work performed by a
 partitioned subquorum, but is essential to the integrity of the system.
 
 \section{Experimental Design}
