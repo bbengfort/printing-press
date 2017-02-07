@@ -1,82 +1,82 @@
 % acm paper format
-\documentclass[sigconf]{acmart}
-
-\usepackage{booktabs}
-
-\setcopyright{rightsretained}
-
+% \documentclass[sigconf]{acmart}
+% 
+% \usepackage{booktabs}
+% 
+% \setcopyright{rightsretained}
+% 
 % DOI
-\acmDOI{10.475/123_4}
-
+% \acmDOI{10.475/123_4}
+% 
 % ISBN
-\acmISBN{123-4567-24-567/08/06}
-
+% \acmISBN{123-4567-24-567/08/06}
+% 
 %Conference
-\acmConference[PODC'17]{ACM Symposium on Principles of Distributed Computing}{July 2017}{Washington, D.C., USA}
-\acmYear{2017}
-\copyrightyear{2017}
+% \acmConference[PODC'17]{ACM Symposium on Principles of Distributed Computing}{July 2017}{Washington, D.C., USA}
+% \acmYear{2017}
+% \copyrightyear{2017}
 % end acm paper format
 
 % article paper format
-% \documentclass[11pt,letterpaper]{article}
-%
-% \usepackage{graphicx}
-% \usepackage[margin=1in]{geometry}
-% \usepackage{authblk}
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage{graphicx}
+\usepackage[margin=1in]{geometry}
+\usepackage{authblk}
 % end article paper format
 
 \title{Brief Announcement: Hierarchical Consensus for Scalable Strong Consistency}
 \date{}
 
 % acm author format
-\author{Benjamin Bengfort}
-\affiliation{%
-  \institution{University of Maryland}
-  \streetaddress{}
-  \city{College Park}
-  \state{Maryland}
-  \postcode{20742}
-}
-\email{bengfort@cs.umd.edu}
-
-\author{Pete Keleher}
-\affiliation{%
-  \institution{University of Maryland}
-  \streetaddress{}
-  \city{College Park}
-  \state{Maryland}
-  \postcode{20742}
-}
-\email{keleher@cs.umd.edu}
+% \author{Benjamin Bengfort}
+% \affiliation{%
+%   \institution{University of Maryland}
+%   \streetaddress{}
+%   \city{College Park}
+%   \state{Maryland}
+%   \postcode{20742}
+% }
+% \email{bengfort@cs.umd.edu}
+% 
+% \author{Pete Keleher}
+% \affiliation{%
+%   \institution{University of Maryland}
+%   \streetaddress{}
+%   \city{College Park}
+%   \state{Maryland}
+%   \postcode{20742}
+% }
+% \email{keleher@cs.umd.edu}
 % end acm author format
 
 % regular author format
-% \author[ ]{Benjamin Bengfort}
-% \author[ ]{Pete Keleher}
-% \affil[ ]{University of Maryland}
-% \affil[ ]{\textit{\{bengfort,keleher\}@cs.umd.edu}}
+\author[ ]{Benjamin Bengfort}
+\author[ ]{Pete Keleher}
+\affil[ ]{University of Maryland}
+\affil[ ]{\textit{\{bengfort,keleher\}@cs.umd.edu}}
 % end regular author format
 
 
 \begin{document}
 
-\begin{abstract}
-Distributed consensus algorithms are the primary mechanism of implementing strong
-consistency in geo-replicated data stores.
-Consistency is guaranteed by the explicit sequential ordering of accesses or locks and
-leader based consensus protocols minimize the number of messages required to apply a
-command without conflict detection in a fault-tolerant manner.
-However, distributed consensus algorithms must reject inconsistent updates to the system
-and as a result do not provide high availability or throughput.
-In this paper we describe \textit{Hierarchical Consensus}, a new decentralized consensus
-protocol which distributes consensus decisions to multiple tiers of consensus groups
-according to shared accesses so as to maintain implicit dependencies.
-Hierarchical Consensus is unique in that it can efficiently guarantee the strict total
-ordering on replicated logs in the wider area even in the presence of partitions and
-varying connectivity. We will show its correctness and describe an experimental
-methodology that we will use to demonstrate durable, highly-available, and strongly
-consistent accesses in systems that scale from small to large networks.
-\end{abstract}
+% \begin{abstract}
+% Distributed consensus algorithms are the primary mechanism of implementing strong
+% consistency in geo-replicated data stores.
+% Consistency is guaranteed by the explicit sequential ordering of accesses or locks and
+% leader based consensus protocols minimize the number of messages required to apply a
+% command without conflict detection in a fault-tolerant manner.
+% However, distributed consensus algorithms must reject inconsistent updates to the system
+% and as a result do not provide high availability or throughput.
+% In this paper we describe \textit{Hierarchical Consensus}, a new decentralized consensus
+% protocol which distributes consensus decisions to multiple tiers of consensus groups
+% according to shared accesses so as to maintain implicit dependencies.
+% Hierarchical Consensus is unique in that it can efficiently guarantee the strict total
+% ordering on replicated logs in the wider area even in the presence of partitions and
+% varying connectivity. We will show its correctness and describe an experimental
+% methodology that we will use to demonstrate durable, highly-available, and strongly
+% consistent accesses in systems that scale from small to large networks.
+% \end{abstract}
 
 \maketitle
 
