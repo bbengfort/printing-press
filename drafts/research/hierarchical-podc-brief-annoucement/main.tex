@@ -1,15 +1,62 @@
-\documentclass[11pt,letterpaper]{article}
+% acm paper format
+\documentclass[sigconf]{acmart}
 
-\usepackage{graphicx}
-\usepackage[margin=1in]{geometry}
-\usepackage{authblk}
+\usepackage{booktabs}
+
+\setcopyright{rightsretained}
+
+% DOI
+\acmDOI{10.475/123_4}
+
+% ISBN
+\acmISBN{123-4567-24-567/08/06}
+
+%Conference
+\acmConference[PODC'17]{ACM Symposium on Principles of Distributed Computing}{July 2017}{Washington, D.C., USA}
+\acmYear{2017}
+\copyrightyear{2017}
+% end acm paper format
+
+% article paper format
+% \documentclass[11pt,letterpaper]{article}
+%
+% \usepackage{graphicx}
+% \usepackage[margin=1in]{geometry}
+% \usepackage{authblk}
+% end article paper format
 
 \title{Brief Announcement: Hierarchical Consensus for Scalable Strong Consistency}
-\author[ ]{Benjamin Bengfort}
-\author[ ]{Pete Keleher}
-\affil[ ]{University of Maryland}
-\affil[ ]{\textit{\{bengfort,keleher\}@cs.umd.edu}}
 \date{}
+
+% acm author format
+\author{Benjamin Bengfort}
+\affiliation{%
+  \institution{University of Maryland}
+  \streetaddress{}
+  \city{College Park}
+  \state{Maryland}
+  \postcode{20742}
+}
+\email{bengfort@cs.umd.edu}
+
+\author{Pete Keleher}
+\affiliation{%
+  \institution{University of Maryland}
+  \streetaddress{}
+  \city{College Park}
+  \state{Maryland}
+  \postcode{20742}
+}
+\email{keleher@cs.umd.edu}
+% end acm author format
+
+% regular author format
+% \author[ ]{Benjamin Bengfort}
+% \author[ ]{Pete Keleher}
+% \affil[ ]{University of Maryland}
+% \affil[ ]{\textit{\{bengfort,keleher\}@cs.umd.edu}}
+% end regular author format
+
 
 \begin{document}
 
@@ -93,27 +140,161 @@ Partitions eliminate distance by allowing decisions to be co-located with replic
 are responding to accesses. Hierarchical consensus is flexible locally, but provides
 strong global system guarantees.
 
+\section{Consistency and Consensus}
+
+We consider a set of processes $P = \{p_i\}_{i=1}^n$ which are connected via an asynchronous network, whose connections are highly variable.
+The variability of a communication link between $p_i$ and $p_j$ is modulated by the
+physical distance of the link across the geographic wide area.
+Each process maintains the state of a set of objects, $O = \{o_i^v\}_{i=1}^m$, which are
+accessed singly or in groups at a given process and whose state is represented by a monotonically increasing version number, $v$. There are two primary types of accesses, \texttt{read}, which returns the current versions of the accessed objects, and \texttt{update}, which increments the versions of the accessed objects.
+
+Strong consistency across all process requires a global ordering of accesses. The strongest consistency, \textit{linearizablity}, requires the ordering of both \texttt{read} and \texttt{update} operations. \textit{Sequential consistency} allows for concurrent accesses so long as there is some globally defined ordering, which is specified by the \texttt{happens-before} relation ($\rightarrow$). Sequential consistency therefore only considers \texttt{update} operations but specifies an ordering of updates, maintaining a sequence $o_i^w \rightarrow o_i^{w+1} \rightarrow o_j^x$ and so forth. Objects that are accessed together (by the same process and within a defined window of time) are implicitly dependent on each other, requiring their relative access order to be strictly defined. Objects that are not implicitly dependent on each other, e.g. accessed by separate processes, do not require a strict ordering and can instead be arbitrarily ordered by process id.
+
+Distributed consensus protocols implement strong consistency by maintaining an ordered log of accesses (commands). Once a leader has been elected (a dedicated proposer), accesses are forwarded to the leader who, after checking application-specific invariants, broadcasts a request to other nodes to append the access to their log. A decision is reached when a majority of the quorum accept the append, at which point the leader sends a commit message. Fault-tolerance is observed by nodes that fall behind by replaying the log of committed accesses until they are up to date. Correctness is maintained by observing communications failure from the leader and electing a new leader.
+
 \section{Hierarchical Consensus}
 
-Give concrete details and definitions.
+Hierarchical consensus implements coordination decisions as a tier of quorums such that
+parent quorums manage the decision space and leaf quorums manage access ordering.
+Hierarchical consensus considers the decision space as subsets of the object set, and
+subquorums are defined by a time-annotated disjoint subset of the objects they maintain,
+$Q_{i,e} \subset O$.
+The set of subquorums, $Q$ is not a partition of $O$, but only represents the set of
+objects that are being accessed at time $e$.
+
+The hierarchical consensus algorithm starts with a root quorum whose main
+responsibilities are i) the mapping of objects to subquorums and ii) the mapping of
+replicas to subquorums.
+Each instance of such a map defines a distinct \textit{epoch}, $E$, a monotonically
+increasing representation of the term of $Q_e$.
+Decisions that require a modification of the decision space or changes the mapping of
+objects or replicas to subquorums requires a new \textit{epoch}. The fundamental
+relationship between epochs is as follows: any access that happens in epoch
+$E_i \rightarrow E_{i+1}$. Alternatively, any access in epoch $E_{i+1}$
+\textit{depends on} all accesses in epoch $E_i$.
+Accesses in different subquorums but in the same epoch happen concurrently from the global
+perspective, though accesses in a specific subquorm are totally ordered locally.
 
 \subsection{Operation}
 
-\subsection{Epochs and ordering}
+The parent consensus group must coordinate all decision space changes.
+Consider the simple example of the transfer of some objects from one subquorum to another:
+
+\begin{quote}
+\small
+   $Q_1: \{ABC\} \rightarrowtail \{ABGH\}$\\
+   $Q_2: \{DEFGH\} \rightarrowtail \{CDEF\}$
+\end{quote}
+
+Each of the two subquorums, $Q_1$ and $Q_2$, wants to give up a portion of its
+existing tag, and to add a portion of a tag currently mapped to another subquorum.
+We propose, initially, that this is a two phase process.
+Both subquorums make their requests to the leader, who may aggregate several namespace
+changes into a single one.
+While the root quorum gets consensus to make the epoch change, subquorums can continue
+operating on their own tags.
+Once the root quorum updates the epoch, it communicates the change to all affected subquorums.
+Each such subquorum then increments its epoch and acknowledges its change to the root quorum.
+At this point, the subquorum can operate on the portion of the tag it owned before,
+\emph{but not the portion of the tag that is being modified}.
+Once the root quorum gets confirmations of epoch update from all subquorums, it notifies
+the subquorums that they can begin operating on the complete tag from the new epoch.
+
+\subsection{Epochs and Ordering}
+
+Let \emph{interval} $i_n$ be the ordered set of accesses of the replicas in subquorum
+$Q_i$ during epoch $E_n$.
+We enforce sequentially consistent ordering of all accesses in the entire system by
+ensuring that there must exist a total ordering of the intervals that produces the correct
+access results.
+Access results should be equivalent to any interval ordering
+such that all intervals in $E_n$ occur before intervals in $E_{n+1}$ (our ``interval
+ordering'' invariant). This is because there is no
+cross-traffic between any $Q_i$ and $Q_j$, and therefore ordering interval $i_n$ before $j_n$ is exactly
+the same as ordering interval $j_n$ before $i_n$, for any $i$, $j$,
+and $n$.
 
 \subsection{Correctness}
 
+Only the subquorums that are involved in the tagspace changes need be notified and
+involved in the epoch change coordinated by the root epoch.
+Other subquorums can update their epoch number at no cost when they see the new epoch
+number from remote requests from other subquorums, or when they are notified by the root
+epoch.
+In this way, non-responding subquorums do not block tagspace changes for other quorums.
+Because the tag is left behind in the previous epoch, all writes in that tag will be
+ordered before writes in the next epoch.
+However, because no writes in the next epoch depend on these writes safety is still
+guaranteed.
+
+This means that subquorums can have ``fuzzy epochs'', wherein some subquorums are behind
+others.
+Fuzzy epochs provide the flexibility needed to accommodate subquorums that may not be ready
+to move to a new epoch eliminate because application semantics (still accessing the same
+objects), or network conditions (in a tunnel).
+
+We are investigating approaches to providing \emph{eventual quiescence}: i.e.
+all tags eventually return to the root quorum if activity ceases.
+If implemented through either implicit or explicit leases,
+the root quorum would be empowered to pull a tag back when a lease expired.
+The ability for a tag to be pulled back could represent a loss of work performed by a
+partitioned subquorum, but is essential to the integrity of the system.
+
 \section{Experimental Design}
 
-Discuss implementation of a file system. decoupling blob from version replication.
+We propose to implement a distributed file system called FluidFS to more completely explore
+the use of hierarchical consensus in supporting file systems.
+FluidFS, implemented in the Go programming language, will allow us to quantitatively
+describe real-world environments and usage and to show how our proposed consistency
+model is experienced by users.
 
-Three modes of operation
+FluidFS will provide \emph{close-to-open consistency} (CTO), meaning that a file
+open, which implies a full-file read, is guaranteed to see the data written by the ``most recent'' close of
+that file.
+Therefore file opens and closes must be totally ordered, and map
+easily onto operations in a replicated log.
+The canonical use of CTO is a single-server case, where a total
+ordering of file open and closes is just the ordering that the opens
+and closes arrive at the server.
+The distributed case assumed by this work is much more demanding because
+opens and closes are distributed across servers throughout the system.
 
-Forks, mapping hierarchical onto a file system.
+We leverage hierarchical consistency to build a distributed set of sequentially-consistent logs
+that guarantee a total ordering over all file accesses.
+The result is a similar user experience to having the user/client co-located with a single
+server, while the user migrates around the system, using different devices, possibly
+collaborating with other users, and tolerating network vagaries, partitions, and failures.
 
-\section{Ongoing and Future Work}
+Note that FluidFS, like many modern file systems,
+decouples metadata file
+data storage~\emph{recipes}
+Metadata includes an ordered list of \emph{blobs}, which are opaque binary chunks.
+When a file is closed after editing, the data associated with the file is chunked into a
+series of variable-length blobs, identified by a hashing function applied to
+the data.
+The version created by the write access to the file specifies the blobs and their ordering
+that make up the file.
+Since blobs are effectively immutable, or tamper-evident, (blobs are named by hashes of
+their contents), we assert that consistent metadata replication can be decoupled from blob
+replication.
+Accesses to file system metadata becomes the operations or entries in the replicated logs.
+Metadata is therefore replicated through the system, allowing any file
+system client to have a complete view of the file system namespace.
 
-Current and future work.
+\section{Discussion}
+
+Hierarchical consensus flexibly allocates subquorums to dynamic object groupings.
+Multiple subquorums means both more leaders and less global communication, reducing the
+resource requirements for most nodes, preventing bottlenecks, and increasing throughput.
+Consensus decisions can also be localized to where the accesses are occurring,
+minimizing both distance and the effect of wide area network variability.
+Finally, hierarchical consensus does not arbitrarily assign consensus decisions to single
+objects or unrelated groups of objects, but to objects that are implicitly dependent on
+each other because of their associated accesses.
+
+An open question for our research is how to automatically allocate the namespace such that
+leadership of a subset of the namespace is local to the accesses and that members of the
+quorum are distributed to provide wide area durability and availability.
 
 \bibliographystyle{plain}
 \bibliography{paper}
