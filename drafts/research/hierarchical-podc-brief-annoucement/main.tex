@@ -29,6 +29,10 @@
 \title{\vspace{-2em}Brief Announcement: Hierarchical Consensus}
 \date{}
 
+\usepackage{color}
+\newcommand{\todo}[1]{{\textcolor{red}{#1}}}
+\newcommand{\pjk}[1]{[\todo{PJK: #1}]}
+
 % acm author format
 % \author{Benjamin Bengfort}
 % \affiliation{%
@@ -151,13 +155,14 @@
 % stuff in the paras above.
 
 We introduce \emph{Hierarchical Consensus}, an approach to generalize
-consensus that allows us to scale groups beyond a handful of nodes, across wide areas.
+consensus that allows us to scale groups beyond a handful of nodes, across
+wide areas.
 Hierarchical Consensus (HC) increases the availability of consensus groups by
-partitioning the decision space and nominating distinct leaders for each partition.
-Partitions eliminate distance by allowing decisions to be co-located with replicas that
-are responding to accesses. Hierarchical consensus is flexible locally, but provides
-Hierarchical Consensus
-improves upon prior
+partitioning the decision space and nominating distinct leaders for each
+partition.
+Partitions eliminate distance by allowing decisions to be co-located with
+replicas that are responding to accesses.
+Hierarchical consensus is flexible locally, but improves upon prior
 approaches~\cite{lamport_paxos_2001,2016arXiv160806696H,biely_s-paxos:_2012,mao_mencius:_2008,moraru_there_2013,kraska_mdcc:_2013}
 by balancing load, allowing fast replication across wide areas, and enabling
 consensus across large (\textgreater 100) systems of devices.
@@ -278,14 +283,15 @@ new epoch.
 \subsection{Epochs and Ordering}
 \vspace{-.5em}
 
-Hierarchical consensus requires all accesses in all subquorums to be at least
-sequentially consistent.
-Local sequential consistency is guaranteed by serializing all accesses through a leader.
-Global sequential consistency is guaranteed by serializing epochs at the parent quorum.
+Hierarchical consensus requires all accesses in each subquorums to be linearizable,
+guaranteed by serializing all accesses through the subquorum leader.
+Global linearizability is guaranteed by serializing epochs at the parent
+quorum, and limiting clients to access only one subquorum per epoch (relaxed
+in Section~\ref{sec:remote}).
 
 Let \emph{interval} $i_n$ be the ordered set of accesses of the replicas in subquorum
 $Q_i$ during epoch $E_n$.
-We enforce sequentially consistent ordering of all accesses in the entire system by
+We enforce linearizabile ordering of all accesses in the entire system by
 ensuring that there must exist a total ordering of the intervals that produces the correct
 access results.
 Access results should be equivalent to any interval ordering
@@ -297,12 +303,13 @@ before $i_n$, for any $i$, $j$, and $n$.
 
 The internal invariant requires $\forall_{x,y} : Q_{x,i} \rightarrow Q_{y,i+1}$.
 Ordering all accesses according to consensus-based log order and interval order satisfies both the
-internal invariant and sequential consistency while still allowing subquorums to operate
+internal invariant and linearizability  while still allowing subquorums to operate
 independently within epochs.
 Given $Q_i$ and $Q_j$ within epochs $E_1$ and $E_2$, one possible interval order is
 $Q_{i,1} \rightarrow Q_{j,1} \rightarrow Q_{i,2} \rightarrow Q_{j,2}$.
 
 \subsubsection{Remote Accesses}
+\label{sec:remote}
 \vspace{-.5em}
 
 By default we assume that the set of replicas \emph{assigned} to subquorums are also
@@ -373,7 +380,9 @@ the wide area.
 
 \section{Correctness}
 \vspace{-.5em}
-
+\pjk{Go ahead if you want to take another stab at this, or add text back where
+  I've hacked too much. Otherwise I'll remove
+  it and undo some of the hacks I've used to save space.}
 % not feeling good about this section ... probably just remove it?
 
 We assert that consensus at the leaf nodes is correct and safe because decisions are
