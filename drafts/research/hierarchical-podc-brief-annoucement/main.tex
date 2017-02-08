@@ -274,7 +274,7 @@ Once the parent quorum updates the epoch, it communicates the change to all affe
 subquorums.
 Each subquorum independently decides when to transition to the new epoch.
 Subquorums in the new epoch can only access newly-gained objects once they have been
-released by the objectss' owners in the last epoch.
+released by the objects' owners in the last epoch.
 
 \subsection{Epochs and Ordering}
 \vspace{-.5em}
@@ -287,7 +287,7 @@ in Section~\ref{sec:remote}).
 
 Let \emph{interval} $i_e$ be the ordered set of accesses of the replicas in subquorum
 $Q_i$ during epoch $e$.
-We enforce linearizabile ordering of all accesses in the entire system by
+We enforce linearizable ordering of all accesses in the entire system by
 ensuring that there must exist a total ordering of the intervals that produces the correct
 access results.
 Access results should be equivalent to any interval ordering
@@ -392,10 +392,10 @@ Hierarchical consensus therefore has to demonstrate linearizable correctness and
 between subquorums for a single epoch and between epochs.
 Briefly, linearizability requires that external observers view operations to objects as
 instantaneous events.
-Within an epoch, the subqourum coordinates read and write accesses, and thus guarantees
+Within an epoch, the subquorum coordinates read and write accesses, and thus guarantees
 linearizability for all replicas in that quorum.
 Remote accesses and the internal invariant also enforce linearizability of accesses
-between subqourums.
+between subquorums.
 Epoch transitions raise the possibility of objects being re-assigned from one subquorum to
 another, with each subquorum making the transition independently. Correctness is
 guaranteed by requiring acquiring subquorums to delay accessing newly acquired objects
