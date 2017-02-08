@@ -108,7 +108,7 @@
 % they cannot scale to arbitrary system sizes\cite{2016arXiv160806696H}.
 % Several recent algorithms have attempted to address the scaling limitations of consensus
 % and take two general forms --- leader election and conflict detection.
-% 
+%
 % Leader-oriented consensus such as MultiPaxos \cite{lamport_paxos_2001} and Raft
 % \cite{ongaro_search_2014} minimize the number of required communication phases by
 % nominating a dedicated proposer.
@@ -127,7 +127,7 @@
 % Although recent approaches such as S-Paxos \cite{biely_s-paxos:_2012} and Mencius
 % \cite{mao_mencius:_2008} add load balancing to leader-oriented mechanisms, they cannot
 % solve the distance problem.
-% 
+%
 % Conflict detection approaches such as EPaxos \cite{moraru_there_2013} and MDCC
 % \cite{kraska_mdcc:_2013} are optimistic that most consensus decisions are consistent.
 % They propose ``fast'' and ``slow'' consensus paths, such that a subset of close nodes can
@@ -140,7 +140,7 @@
 % large amounts of dependency resolution.
 % As the network scales, dependency graphs tend to increase in both size and complexity,
 % increasing the load on the system.
-% 
+%
 % In practice systems do not implement global consensus, but instead apply multiple
 % consensus groups to coordinate specific objects or tablets.
 % This keeps quorum sizes small, allocating just enough nodes to a quorum to maintain a
@@ -170,10 +170,10 @@ consensus across large (\textgreater 100) systems of devices.
 Our use case is that of maintaining \emph{linearizablity} across
 \texttt{read} and \texttt{update} operations used to support a wide-area
 object store or file system.
-% 
+%
 % \section{Consistency and Consensus}
 % \vspace{-.5em}
-% 
+%
 We consider a set of processes $P = \{p_i\}_{i=1}^n$ which are connected via
 an asynchronous network, whose connections are highly variable.
 The variability of a communication link between $p_i$ and $p_j$ is modulated
@@ -215,7 +215,7 @@ represented by a monotonically increasing version number, $v$.
 \vspace{-.5em}
 
 Hierarchical consensus conducts coordination decisions as a tier of quorums such that
-parent quorums manage the decision space and leaf quorums manage access ordering.
+parent quorums manage the \emph{decision space} and leaf quorums manage \emph{access ordering}.
 Hierarchical consensus considers the decision space as subsets of the object set, and
 subquorums are defined by a time-annotated disjoint subset of the objects they maintain,
 $Q_{i,e} \subset O$.
@@ -224,17 +224,17 @@ objects that are being accessed at time $e$.
 
 % The E_i notation doesn't really match with the Q_{i,e} notation, not sure what to do.
 
-The hierarchical consensus algorithm starts with a root quorum whose main
+The hierarchical consensus algorithm starts with a root quorum whose primary
 responsibilities are i) the mapping of objects to subquorums and ii) the
 mapping of replicas to subquorums.
-Each instance of such a map defines a distinct \emph{epoch}, $E$, a
+Each instance of such a map defines a distinct \emph{epoch}, $e$, a
 monotonically increasing representation of the term of $Q_e$.
 Decisions that require a change of the decision space or changes the
 mapping of objects or replicas to subquorums requires a new \emph{epoch}.
 The fundamental relationship between epochs is as follows: any access that
-happens in epoch $E_i \rightarrow E_{i+1}$.
-Alternatively, any access in epoch $E_{i+1}$ \emph{depends on} all accesses in
-epoch $E_i$.
+happens in epoch $e \rightarrow e+1$.
+Alternatively, any access in epoch $e+1$ \emph{depends on} all accesses in
+epoch $e$.
 
 All accesses to an object must be forwarded to the leader of the subquorum that contains
 the object.
@@ -289,23 +289,23 @@ Global linearizability is guaranteed by serializing epochs at the parent
 quorum, and limiting clients to access only one subquorum per epoch (relaxed
 in Section~\ref{sec:remote}).
 
-Let \emph{interval} $i_n$ be the ordered set of accesses of the replicas in subquorum
-$Q_i$ during epoch $E_n$.
+Let \emph{interval} $i_e$ be the ordered set of accesses of the replicas in subquorum
+$Q_i$ during epoch $e$.
 We enforce linearizabile ordering of all accesses in the entire system by
 ensuring that there must exist a total ordering of the intervals that produces the correct
 access results.
 Access results should be equivalent to any interval ordering
-such that all intervals in $E_n$ occur before intervals in $E_{n+1}$ (our ``interval
+such that all intervals in $e$ occur before intervals in $e+1$ (our ``interval
 ordering'' invariant).
 This is because there is no cross-traffic between any $Q_i$ and $Q_j$, and therefore
-ordering interval $i_n$ before $j_n$ is exactly the same as ordering interval $j_n$
-before $i_n$, for any $i$, $j$, and $n$.
+ordering interval $i_e$ before $j_e$ is exactly the same as ordering interval $j_e$
+before $i_e$, for any $i$, $j$, and $e$.
 
-The internal invariant requires $\forall_{x,y} : Q_{x,i} \rightarrow Q_{y,i+1}$.
+The internal invariant requires $\forall_{x,y} : Q_{x,e} \rightarrow Q_{y,e+1}$.
 Ordering all accesses according to consensus-based log order and interval order satisfies both the
 internal invariant and linearizability  while still allowing subquorums to operate
 independently within epochs.
-Given $Q_i$ and $Q_j$ within epochs $E_1$ and $E_2$, one possible interval order is
+Given $Q_i$ and $Q_j$ within epochs $e=1$ and $e=2$, one possible interval order is
 $Q_{i,1} \rightarrow Q_{j,1} \rightarrow Q_{i,2} \rightarrow Q_{j,2}$.
 
 \subsubsection{Remote Accesses}
@@ -316,7 +316,8 @@ By default we assume that the set of replicas \emph{assigned} to subquorums are 
 disjoint, and that all accesses through a replica of a given subquorum are mapped to the
 local decision space.
 This is often reasonable.
-However, if an object is assigned to a decision space and another subquorum wishes to
+However, if an object is assigned to a decision space and a replica in another subquorum
+wishes to
 access it, the system must either disallow the access (our default approach) or take
 explicit notice that a dependency has been created between the subquorums.
 
@@ -326,7 +327,8 @@ Assume a read access from $Q_k$ to $Q_i$ in epoch $e$; at the time of the read a
 accesses in $Q_i$ must $\rightarrow$ all accesses following the read.
 We accommodate this requirement by using the read endpoints to break interval $i_e$ into
 $i_{e.1}$ and $i_{e.2}$ at the point $Q_i$ receives the remote access, and interval $k_e$
-into $k_{e.1}$ and $k_{e.2}$ at the point $Q_k$ receives a response.
+into $k_{e.1}$ and $k_{e.2}$ at the point $Q_k$ receives a response as shown in
+Figure \ref{fig:fuzzy}.
 Our results are consistent with total interval ordering by incorporating $Q_{i.1}
 \rightarrow Q_{i.2}$.
 Remote accesses are expensive and the runtime system must weigh the cost of repeated
@@ -380,29 +382,37 @@ the wide area.
 
 \section{Correctness}
 \vspace{-.5em}
-\pjk{Go ahead if you want to take another stab at this, or add text back where
-  I've hacked too much. Otherwise I'll remove
-  it and undo some of the hacks I've used to save space.}
-% not feeling good about this section ... probably just remove it?
 
 We assert that consensus at the leaf nodes is correct and safe because decisions are
 implemented using well-known leader-oriented consensus approaches.
-Because decision allocation occurs on accesses and is defined by a fixed period of time,
-we propose to show correctness through \emph{eventual quiescence}.
-Quiescence is the property that subquorums disband and return object ownership
-back to the parent quorum if activity ceases.
-Because all changes to the decision space require incrementing the epoch, if only the
-root quorum exists, the epoch is closed (e.g. no accesses will be applied to a log with
-that epoch).
+% Because decision allocation occurs on accesses and is defined by a fixed period of time,
+% we propose to show correctness through \emph{eventual quiescence}.
+% Quiescence is the property that subquorums disband and return object ownership
+% back to the parent quorum if activity ceases.
+% Because all changes to the decision space require incrementing the epoch, if only the
+% root quorum exists, the epoch is closed (e.g. no accesses will be applied to a log with
+% that epoch).
+Hierarchical consensus therefore has to demonstrate linearizable correctness and safety
+between subquorums for a single epoch and between epochs.
+Linearizability requires that external observers view operations to objects as
+instantaneous events.
+Within an epoch, the subqourum coordinates read and write accesses, and thus guarantees
+linearizability for all replicas in that quorum.
+Remote accesses and the internal invariant also enforce linearizability of accesses
+between subqourums.
 
+Between epochs, the relationship of the parent quorum to subquorums defines correctness.
 The primary case to consider is an unsafe append to the access log: $Q_{i,e}$
 appends object $o_a^{v+1}$ while $Q_{j,e+1}$ appends object $o_a^v$ (incorrectly
 specifying that $o_a^{v+1} \rightarrow o_a^v$).
 It is the parent quorum's responsibility to ensure that $Q_{j,e+1}$ does not start
 operating until it has received confirmation from $Q_{i,e}$ that it has terminated.
-If the parent quorum does not receive a message from $Q_{i,e}$, it can enforce quiescence
--- closing epoch $e$, and then return control to $Q_{j,e+1}$. This causes all accesses in
-$Q_{i,e}$ to be dropped when it communicates with the leader.
+If the parent quorum does not receive a message from $Q_{i,e}$, it can force epoch $e$ to
+close at the latest known value, returning control to $Q_{j,e+1}$.
+This causes all accesses in $Q_{i,e}$ to be dropped when it communicates with the leader.
+Any quorum receiving messages from $Q_{i,e}$ will require $Q_i$ to move to epoch $e+1$,
+thus guaranteeing that no accesses will be appended after $Q_{j,e+1}$ has started
+operating.
 
 % \section{Experimental Design}
 %
@@ -446,7 +456,7 @@ $Q_{i,e}$ to be dropped when it communicates with the leader.
 % system client to have a complete view of the file system namespace.
 
 % \section{Discussion}
-% 
+%
 % Hierarchical consensus flexibly allocates subquorums to dynamic object groupings.
 % Multiple subquorums means both more leaders and less global communication, reducing the
 % resource requirements for most nodes, preventing bottlenecks, and increasing throughput.
@@ -455,7 +465,7 @@ $Q_{i,e}$ to be dropped when it communicates with the leader.
 % Finally, hierarchical consensus does not arbitrarily assign consensus decisions to single
 % objects or unrelated groups of objects, but to objects that are implicitly dependent on
 % each other because of their associated accesses.
-% 
+%
 % An open question for our research is how to automatically allocate the namespace such that
 % leadership of a subset of the namespace is local to the accesses and that members of the
 % quorum are distributed to provide wide area durability and availability.
