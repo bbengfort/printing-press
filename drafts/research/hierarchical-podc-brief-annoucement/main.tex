@@ -272,13 +272,9 @@ While the parent quorum gets consensus to make the epoch change, subquorums can 
 operating on their own decision space.
 Once the parent quorum updates the epoch, it communicates the change to all affected
 subquorums.
-Each such subquorum then increments its epoch and acknowledges its change to the parent
-quorum.
-At this point, the subquorum can operate on the portion of the decision space it owned
-before, \emph{but not the objects that are being added}.
-Once the parent quorum gets confirmations of epoch update from all subquorums, it notifies
-the subquorums that they can begin operating on the complete subset of objects from the
-new epoch.
+Each subquorum independently decides when to transition to the new epoch.
+Subquorums in the new epoch can only access newly-gained objects once they have been
+released by the objectss' owners in the last epoch.
 
 \subsection{Epochs and Ordering}
 \vspace{-.5em}
@@ -380,7 +376,7 @@ the wide area.
 % to $E_n$. This allows us to instead break our interval $i$ as before and maintain the
 % ordering $i_{2.1} \rightarrow k_2$.
 
-\section{Correctness}
+\section{Correctness Sketch}
 \vspace{-.5em}
 
 We assert that consensus at the leaf nodes is correct and safe because decisions are
@@ -394,25 +390,29 @@ implemented using well-known leader-oriented consensus approaches.
 % that epoch).
 Hierarchical consensus therefore has to demonstrate linearizable correctness and safety
 between subquorums for a single epoch and between epochs.
-Linearizability requires that external observers view operations to objects as
+Briefly, linearizability requires that external observers view operations to objects as
 instantaneous events.
 Within an epoch, the subqourum coordinates read and write accesses, and thus guarantees
 linearizability for all replicas in that quorum.
 Remote accesses and the internal invariant also enforce linearizability of accesses
 between subqourums.
-
-Between epochs, the relationship of the parent quorum to subquorums defines correctness.
-The primary case to consider is an unsafe append to the access log: $Q_{i,e}$
-appends object $o_a^{v+1}$ while $Q_{j,e+1}$ appends object $o_a^v$ (incorrectly
-specifying that $o_a^{v+1} \rightarrow o_a^v$).
-It is the parent quorum's responsibility to ensure that $Q_{j,e+1}$ does not start
-operating until it has received confirmation from $Q_{i,e}$ that it has terminated.
-If the parent quorum does not receive a message from $Q_{i,e}$, it can force epoch $e$ to
-close at the latest known value, returning control to $Q_{j,e+1}$.
-This causes all accesses in $Q_{i,e}$ to be dropped when it communicates with the leader.
-Any quorum receiving messages from $Q_{i,e}$ will require $Q_i$ to move to epoch $e+1$,
-thus guaranteeing that no accesses will be appended after $Q_{j,e+1}$ has started
-operating.
+Epoch transitions raise the possibility of objects being re-assigned from one subquorum to
+another, with each subquorum making the transition independently. Correctness is
+guaranteed by requiring acquiring subquorums to delay accessing newly acquired objects
+until receiving notice that the releasing subquorum(s) have transitioned, \emph{plus} a
+description of object versions at the point of this transition.
+% Between epochs, the relationship of the parent quorum to subquorums defines correctness.
+% The primary case to consider is an unsafe append to the access log: $Q_{i,e}$
+% appends object $o_a^{v+1}$ while $Q_{j,e+1}$ appends object $o_a^v$ (incorrectly
+% specifying that $o_a^{v+1} \rightarrow o_a^v$).
+% It is the parent quorum's responsibility to ensure that $Q_{j,e+1}$ does not start
+% operating until it has received confirmation from $Q_{i,e}$ that it has terminated.
+% If the parent quorum does not receive a message from $Q_{i,e}$, it can force epoch $e$ to
+% close at the latest known value, returning control to $Q_{j,e+1}$.
+% This causes all accesses in $Q_{i,e}$ to be dropped when it communicates with the leader.
+% Any quorum receiving messages from $Q_{i,e}$ will require $Q_i$ to move to epoch $e+1$,
+% thus guaranteeing that no accesses will be appended after $Q_{j,e+1}$ has started
+% operating.
 
 % \section{Experimental Design}
 %
