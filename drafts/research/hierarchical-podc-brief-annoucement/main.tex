@@ -228,15 +228,15 @@ The hierarchical consensus algorithm starts with a root quorum whose primary
 responsibilities are i) the mapping of objects to subquorums and ii) the
 mapping of replicas to subquorums.
 Each instance of such a map defines a distinct \emph{epoch}, $e$, a
-monotonically increasing representation of the term of $Q_e$.
+monotonically increasing representation of the term of $Q_{i,e}$.
 Decisions that require a change of the decision space or changes the
 mapping of objects or replicas to subquorums requires a new \emph{epoch}.
 The fundamental relationship between epochs is as follows: any access that
-happens in epoch $e \rightarrow e+1$.
+happens in epoch $e \rightarrow e+1$ (happens before).
 Alternatively, any access in epoch $e+1$ \emph{depends on} all accesses in
 epoch $e$.
 
-All accesses to an object must be forwarded to the leader of the subquorum that contains
+All accesses to an object must be forwarded to the leader of the subquorum that maintains
 the object.
 Objects that are accessed together or who have application-specific, explicit
 dependencies (such as the set of objects included in a transaction) must be part of the
@@ -279,7 +279,7 @@ released by the objects' owners in the last epoch.
 \subsection{Epochs and Ordering}
 \vspace{-.5em}
 
-Hierarchical consensus requires all accesses in each subquorums to be linearizable,
+Hierarchical consensus requires all accesses in each subquorum to be linearizable,
 guaranteed by serializing all accesses through the subquorum leader.
 Global linearizability is guaranteed by serializing epochs at the parent
 quorum, and limiting clients to access only one subquorum per epoch (relaxed
