@@ -219,7 +219,7 @@ parent quorums manage the \emph{decision space} and leaf quorums manage \emph{ac
 Hierarchical consensus considers the decision space as subsets of the object set, and
 subquorums are defined by a time-annotated disjoint subset of the objects they maintain,
 $Q_{i,e} \subset O$.
-The set of subquorums, $Q$ is not a partition of $O$, but only represents the set of
+The set of subquorums, $Q$, is not a complete partition of $O$, but only represents the set of
 objects that are being accessed at time $e$.
 
 % The E_i notation doesn't really match with the Q_{i,e} notation, not sure what to do.
@@ -398,7 +398,7 @@ Remote accesses and the internal invariant also enforce linearizability of acces
 between subquorums.
 Epoch transitions raise the possibility of objects being re-assigned from one subquorum to
 another, with each subquorum making the transition independently. Correctness is
-guaranteed by requiring acquiring subquorums to delay accessing newly acquired objects
+guaranteed by an invariant that acquiring subquorums delay accessing newly acquired objects
 until receiving notice that the releasing subquorum(s) have transitioned, \emph{plus} a
 description of object versions at the point of this transition.
 % Between epochs, the relationship of the parent quorum to subquorums defines correctness.
