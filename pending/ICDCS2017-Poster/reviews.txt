@@ -1,0 +1,290 @@
+Dear authors,
+
+The 37th IEEE International Conference on Distributed Computing (ICDCS
+2017) program committee regrets to inform you that your paper
+
+476
+Geo-Replicating Federated File Systems
+
+was not accepted by the research tracks.
+
+Each paper was reviewed by 3~4 independent reviews and discussed
+during online PC meeting and face to face TPC chair meeting held in
+Atlanta on February 24. Out of 531 submissions, 90 papers were
+accepted (16.9% acceptance rate). Both the number of papers submitted
+and the number of papers accepted are ICDCS records.
+
+Reviews and comments on your paper are appended to this email. The
+submissions site also has the paper's reviews and comments, as well as
+more information about review scores.
+
+Thank you for submitting your work for consideration to ICDCS 2017.
+
+Best Wishes,
+
+Ling
+
+----
+
+Prof. Dr. Ling Liu
+ICDCS 2017 Program Chair
+Professor, School of CS
+Georgia Institute of Technology
+
+
+----------------------- REVIEW 1 ---------------------
+PAPER: 476
+TITLE: Geo-Replicating Federated File Systems
+AUTHORS: Benjamin Bengfort and Pete Keleher
+
+Overall evaluation: 0 (borderline paper)
+How innovative is this paper?: 4 (good (some novel ideas here))
+How impactful is the paper likely to be?: 3 (fair (typical paper, will
+have some followup and citations))
+Is the paper technically correct?: 3 (Correct)
+Would you recommend this paper for the ICDCS 2017 best paper award?: 1 (No)
+
+----------- List strong points of the paper (at least three) -----------
+See review
+
+----------- List weak points of the paper (at least three) -----------
+See review
+
+----------- Please provide a detailed review: summary, justification,
+major and minor comments and suggestions -----------
+This paper explores a hierarchical consistency mechanism consisting of
+an eventually consistent collection of strongly consistent localized
+systems. Simulations are performed. It is hard for reader to judge
+effectiveness of this approach as realistic applications are not
+investigated and the simulations only look at "micro benchmarks" and
+do not quantitatively compare with any other systems. I would have
+expected a comparison with approaches like Spanner which is of course
+beautifully described in 2012 OSDI paper and known to satisfy some
+realistic constraints. The theoretical orientation and lack of key
+references of paper causes me to mark it down; otherwise it seems
+technically strong.
+
+
+----------------------- REVIEW 2 ---------------------
+PAPER: 476
+TITLE: Geo-Replicating Federated File Systems
+AUTHORS: Benjamin Bengfort and Pete Keleher
+
+Overall evaluation: -1 (weak reject)
+How innovative is this paper?: 3 (fair)
+How impactful is the paper likely to be?: 3 (fair (typical paper, will
+have some followup and citations))
+Is the paper technically correct?: 2 (Minor errors (could be addressed
+in a revision))
+Would you recommend this paper for the ICDCS 2017 best paper award?: 1 (No)
+
+----------- List strong points of the paper (at least three) -----------
+The paper studies the problems of consistency in existing file systems.
+This paper uses a combination of two consistency models to achieve the
+trade-off between performance and consistency.
+The paper contains some experimental results.
+
+----------- List weak points of the paper (at least three) -----------
+No definitions for many terms.
+
+It's hard to read and understand the Introduction.
+
+Some grammatical mistakes.
+
+Some figures are with waste of space and difficult to read, such as
+Figures 2 and 3.
+
+----------- Please provide a detailed review: summary, justification,
+major and minor comments and suggestions -----------
+The paper proposes a federated consistency model for distributed file
+systems, which achieves a middle ground in the trade-off between
+performance and consistency. The federated consistency combines the
+strengths of eventual and sequential consistency models. Comprehensive
+experiments show the efficacy of the proposed federated consistency
+model.
+
+
+Many terms are used without definitions, such as “message latency”,
+“RPC”, “eventual cloud” and so on. More importantly, what's
+“Geo-replicating” in Title? No description about it in the full paper.
+
+It is hard to follow the motivation in the Abstract and Introduction.
+
+- “we propose “federated consistency”, which combines the strengths of
+both approaches into a single protocol...” what the “both approaches”
+refer to? The “strongly consistent devices” and “eventually consistent
+devices” mentioned in the above paragraph? But there exists no
+description about them in Introduction.
+
+- “We believe that local, user-oriented distributed systems should
+augment cloud services rather than be replaced by them; and in some
+cases, such as disaster recovery or search and rescue, may be the only
+available system. ” Why this sentence appears there? It seems no
+correlation with the context.
+
+- “We show that a federated consistency protocol can find a middle
+ground in the trade-off between performance and consistency,
+particularly between an eventually consistent system ... and a
+sequential consistency model ... ”, but “strongly consistent” and
+“eventually consistent” in Abstract. What are the similarities and
+differences between “sequential consistency model” and “strongly
+consistent system”?
+
+- According to Introduction, I could not answer the questions: what
+are the challenges of existing file systems? Why other methods could
+not solve the challenges? What you have done?
+
+
+There exist some grammatical mistakes in the paper. For example, “we
+might, therefore, generally categorize ... and using some consensus
+algorithm for control ...” in the second paragraph of Introduction, it
+might be “some consensus algorithms”.“we limit this discussion to the
+models most useful for our purposes: eventual and sequential
+consistency” in Background. But why other consistency models are not
+useful for your purposes, such as causal consistency, linearizability
+presented above? Furthermore, what are your purposes? No descriptions
+about them.
+
+Many sentences are too long to read easily.
+
+
+----------------------- REVIEW 3 ---------------------
+PAPER: 476
+TITLE: Geo-Replicating Federated File Systems
+AUTHORS: Benjamin Bengfort and Pete Keleher
+
+Overall evaluation: 0 (borderline paper)
+How innovative is this paper?: 4 (good (some novel ideas here))
+How impactful is the paper likely to be?: 3 (fair (typical paper, will
+have some followup and citations))
+Is the paper technically correct?: 3 (Correct)
+Would you recommend this paper for the ICDCS 2017 best paper award?: 1 (No)
+
+----------- List strong points of the paper (at least three) -----------
+- interesting and relevant problem and solution
+  - there is novelty in the combination of Raft and gossiping
+  - decent writeup on context and related work
+
+----------- List weak points of the paper (at least three) -----------
+- work is still rather immature
+  - insufficient evaluations
+  - not always an easy read
+
+----------- Please provide a detailed review: summary, justification,
+major and minor comments and suggestions -----------
+Although I liked the paper, I found it a relatively difficult
+  read. The idea of combining Raft clouds with eventual consistency is
+  an interesting one and has some novelty. In essence, one can view it
+  as logical scaling with a Raft cloud forming a logical processor.
+
+  There are two major problems that need to be addressed. First,
+  although the model by itself is appealing, its description needs to
+  be improved to allow the reader to fully grasp what is going on. At
+  least I found it difficult at points to understand what the possible
+  implications of choices could be. A particular weak point of the
+  model is the way timing is introduced. Latencies in various networks
+  are known to be extremely variable, raising doubt about the
+  practical implications if this model would be instantiated in a real
+  environment.
+
+  It is not difficult to understand why the evaluation is done through
+  simulations, and I appreciate that at least to a certain extent
+  efforts are made to explore parameter spaces. However, the current
+  evaluation can at best hint that federated consistency may be
+  worthwhile, but for a conference like ICDCS we need much more.
+
+
+----------------------- REVIEW 4 ---------------------
+PAPER: 476
+TITLE: Geo-Replicating Federated File Systems
+AUTHORS: Benjamin Bengfort and Pete Keleher
+
+Overall evaluation: -2 (reject)
+How innovative is this paper?: 2 (poor (mostly known stuff))
+How impactful is the paper likely to be?: 2 (poor (a few people
+working on this problem may be interested))
+Is the paper technically correct?: 3 (Correct)
+Would you recommend this paper for the ICDCS 2017 best paper award?: 1 (No)
+
+----------- List strong points of the paper (at least three) -----------
+-> The paper addresses federated consistency problem when a
+distributed system spans across wide geographical area. This is an
+important and practical problem.
+
+-> The paper is well-written and easy to understand.
+
+-> The proposed federated architecture is simple.
+
+----------- List weak points of the paper (at least three) -----------
+-> The research contribution of the paper is limited. Please see below
+for detail comments.
+
+-> The proposed approach has scalability problems. Please see below
+for detail comments.
+
+-> The evaluation section is weak. Please see below for detail comments.
+
+----------- Please provide a detailed review: summary, justification,
+major and minor comments and suggestions -----------
+-> This paper proposes and analyzes a federated consistency protocol
+in which a system of heterogeneous replica servers implement a variety
+of consistency protocols depending on local policies and network or
+service conditions. In particular, the paper shows how eventually
+consistent systems implemented using gossip-based protocols and
+sequentially consistent systems implemented by Raft consensus
+protocols in different geographic regions can be combined together to
+provide flexible global consistency guarantees. The analysis
+demonstrates the spectrum of inherent tradeoff between performance and
+consistency guarantees. The paper proposes a system where most nodes
+implement optimistic eventual consistent protocols, while a small
+subset of nodes maintain sequentially consistent central quorum.
+
+-> The paper is well-written and easy to understand.
+
+-> The paper addresses an important problem. Since many modern
+distributed systems are geographically dispersed in areas with
+different network conditions and application needs, a homogeneous
+consistency approach is not always practical. It makes sense from
+practical point of view to allow groups of nodes in each geographical
+area to implement consistency protocols appropriate for that location,
+while providing some desirable performance and consistency guarantees
+at the global level.
+
+-> The main problem with the proposed architecture is scalability,
+which is a very important requirement for distributed systems. It is
+well known that it is difficult to scale  sequential consensus
+protocols like Raft, especially if the nodes are distributed across
+geographic regions with large and variable latencies among such
+regions. The leader selection as well as serializing message commits
+at the leader become problematic with the increase and variability of
+message latencies. The paper combines eventual and sequential
+consistent systems in a fairly straightforward way, without addressing
+this fundamental issue. The experimental results reported in the paper
+are for a small scale system with only 5 nodes implementing Raft
+protocol.
+
+-> The idea of providing hybrid consistency guarantees by combining
+strong/sequential and eventually consistent systems is not novel. This
+paper looks like another addition to a considerable amount of similar
+papers in this category. More importantly, it fails to address the
+fundamental scalability problem mentioned above.
+
+-> Although the paper argues for a system with one (or few) node(s) in
+a geographic area being part of the strongly consistent core and rest
+of the nodes participating in an eventually consistent group, it is
+not clear how realistic the proposed architecture is. In practice, it
+is more likely to encounter situations where data centers in different
+locations follow different consistency models, but all nodes in the
+same data center follow the same model - based on data center
+environment and local application needs.
+
+->The implementation of the Raft protocol in simulation needs to take
+into account “write forks”. In the current implementation, the forked
+writes are dropped. This could have implications on the scalability of
+the core system.
+
+-> The evaluation section needs more work. The proposed system is
+evaluated using only simulations. Also a relatively small number of
+nodes is used for evaluation. I would recommend implementing the
+proposed mechanism in real systems and addressing scalability concerns
+by performing larger scale experiments in practical settings.
