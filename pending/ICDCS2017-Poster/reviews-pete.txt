@@ -1,0 +1,101 @@
+
+- hard to read and understand introduction
+- There exist some grammatical mistakes in the paper. For example, “we might, therefore, generally categorize ... and using some consensus algorithm for control ...” in the second paragraph of Introduction, it might be “some consensus algorithms”.“we limit this discussion to the models most useful for our purposes: eventual and sequential consistency” in Background.
+
+- no definition of terms (“message latency”, “RPC”, “eventual cloud” )
+
+- "geo-replicating" in title but not paper
+
+- “we propose “federated consistency”, which combines the strengths of both approaches into a single protocol...” what the “both approaches” refer to? The “strongly consistent devices” and “eventually consistent devices” mentioned in the above paragraph? But there exists no description about them in Introduction.
+
+- “We believe that local, user-oriented distributed systems should augment cloud services rather than be replaced by them; and in some cases, such as disaster recovery or search and rescue, may be the only available system. ” Why this sentence appears there? It seems no correlation with the context.
+
+- “We show that a federated consistency protocol can find a middle ground in the trade-off between performance and consistency, particularly between an eventually consistent system ... and a sequential consistency model ... ”, but “strongly consistent” and “eventually consistent” in Abstract. What are the similarities and differences between “sequential consistency model” and “strongly consistent system”?
+
+- According to Introduction, I could not answer the questions: what are the challenges of existing file systems? Why other methods could not solve the challenges? What you have done?
+
+- why other consistency models are not useful for your purposes, such as causal consistency, linearizability presented above?
+
+- what are your purposes? No descriptions about them.
+
+- weak point of the model is the way timing is introduced. Latencies in
+  various networks are known to be extremely variable, raising doubt about the
+  practical implications if this model would be instantiated in a real
+  environment.
+
+- insufficient
+
+- figs 2+3 are waste of space and difficult to read
+
+- no apps, just micro benchmarks
+
+- comparison w/ Spanner
+
+- the current evaluation can at best hint that federated consistency may be
+  worthwhile
+
+- main problem with the proposed architecture is scalability (well known that it is difficult to scale  sequential consensus protocols like Raft).
+  Eval only used 5-node raft.
+
+- combining strong/sequential and eventually consistent systems
+
+- Although the paper argues for a system with one (or few) node(s) in a
+  geographic area being part of the strongly consistent core and rest of the
+  nodes participating in an eventually consistent group, it is not clear how
+  realistic the proposed architecture is. In practice, it is more likely to
+  encounter situations where data centers in different locations follow
+  different consistency models, but all nodes in the same data center follow
+  the same model - based on data center environment and local application
+  needs.
+
+- The implementation of the Raft protocol in simulation needs to take into
+  account “write forks”. In the current implementation, the forked writes are
+  dropped. This could have implications on the scalability of the core system.
+
+- The evaluation section needs more work. The proposed system is evaluated
+  using only simulations. Also a relatively small number of nodes is used for
+  evaluation. I would recommend implementing the proposed mechanism in real
+  systems and addressing scalability concerns by performing larger scale
+  experiments in practical settings.
+
+- "lack of key references". Spanner?
+//=====================================================================
+
+
+//=====================================================================
+// Federated
+//=====================================================================
+
+- Gray is client server, tentative transactions given directly to base, scope is only mobile and base nodes. Can't be used by other mobile nodes. Federated can make progress without base
+
+- currency needed to submit to base  (maybe dynamic between 0-30, depending on usage)
+  - frequent updater of x could grab more currency
+  - currency awarded for building on top of your work (reputation)
+  - inflation rate for weak updates arriving at base, but no competing updates arrive in future
+  - need to buffer at leader updates not strong enough
+    - as opposed to edge nodes doing filtering
+  - 
+- anti-entropy target probabilities based on updates both side
+
+- distributed computations (median)
+
+
+//=====================================================================
+// Hier
+//=====================================================================
+Eval
+ - get-put
+ - failure studies
+ - location stuff
+ 
+
+
+//=====================================================================
+// FS
+//=====================================================================
+
+
+
+//=====================================================================
+// Learning (later)
+//=====================================================================
