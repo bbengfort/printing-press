@@ -1,0 +1,13 @@
+Groups of strongly consistent devices can efficiently order events under ideal (data
+center) conditions, but become less effective in dynamic and heterogeneous environments.
+Weakly consistent devices efficiently tolerate both faults and dynamic conditions but are
+slow to converge on a single ordering of system events.
+We propose “federated consistency”, which combines the strengths of both approaches into
+a single protocol.
+Federated groups use a strongly consistent inner core of devices to maintain a totally
+ordered, fault-tolerant sequence of events.
+A cloud of weakly-consistent devices disseminates orderings and enables progress despite
+varying connectivity and partitions.
+Though the constituent sub-protocols take different (nearly opposite) approaches to
+resolving conflicts; we show that expanding distributed version vectors with a forte
+component allows them to inter-operate effectively.
