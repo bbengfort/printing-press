@@ -1,0 +1,72 @@
+Dear Pete Keleher,
+
+Congratulations again on the acceptance of your Brief Announcement.
+
+Please find below the reviews for your submission 69 titled
+
+Hierarchical Consensus
+
+We hope that you will find these reviews helpful in preparing the final submission.
+
+Best regards,
+
+Alex Schwarzmann
+Program Committee Chair
+ACM PODC 2017
+
+
+----------------------- REVIEW 1 ---------------------
+PAPER: 69
+TITLE: Hierarchical Consensus
+AUTHORS: Benjamin Bengfort and Pete Keleher
+
+Overall evaluation: 1 (weak accept)
+
+----------- Overall evaluation -----------
+This is a brief announcement.  It describes a way to dynamically partition a set of linearizable shared objects across a set of nodes into a hierarchy of consensus groups.  Static partitioning could result in many costly remote accesses---the proposed approach allows replicas to be moved while maintaining strong consistency.  While conceptually straightforward, the brief announcement identifies interesting efficiency and correctness issues.
+
+One weakness is that the challenges are not made very clear.  Given that we understand reconfigurable state machine replication well, it seems rather straightforward to arrange them into a hierarchy, with objects at the leaves and configuration at the internal nodes.  What exactly is hard here?
+
+Another weakness is that the approach describes a mechanism for dynamic partitioning, but an equally interesting question is what policies should govern mapping changes.
+
+
+----------------------- REVIEW 2 ---------------------
+PAPER: 69
+TITLE: Hierarchical Consensus
+AUTHORS: Benjamin Bengfort and Pete Keleher
+
+Overall evaluation: 2 (accept)
+
+----------- Overall evaluation -----------
+Brief Announcement: Hierarchical Consensus
+
+This paper discusses an algorithm (more in the form of an architecture) that implements consensus with a hierarchy of quorums and subqourums. Their work is motivated by the goal of achieving consensus at a larger scale. Their default use case is the linearizability of read and update operations on a large number of  file objects. Their quorum systems consists of two layers: one layer manages the membership of the objects in quorums and the second layer guarantees the safety of the individual objects by managing the replicas. Note that each object may have different set of quorums they belong to. The first layer maps the objects to subquorum by defining and maintaining a map from each object to a quorum and this may change from epoch to epoch.  For example,  a quorum may change with a new epoch,  set of  objects it manages.  Accesses to an object are  forwarded to the leader of the subquorum that maintains the object. Accesses in different subquorums but in the same epoch may!
+
+  happen concurrently, however, accesses in a specific subquorum are totally ordered locally. The latter fact is attributed to the higher availability of the consensus process.  Although the overall, the idea is straightforward and simple, the concept would be an interesting in an actual implementation for higher scalability. The paper is presented reasonably well and easy to understand.
+
+I would like the authors to point out the reason for selecting linearizability of reads and updates, instead of a file append like problem,  as the default case when there are algorithms like  those proposed by Attiya, Bar-Noy and Dolev which can even tolerate crash failures.
+
+
+----------------------- REVIEW 3 ---------------------
+PAPER: 69
+TITLE: Hierarchical Consensus
+AUTHORS: Benjamin Bengfort and Pete Keleher
+
+Overall evaluation: -1 (weak reject)
+
+----------- Overall evaluation -----------
+In this paper, the authors describe a hierarchical consensus algorithm used to implement a linearizable object. The consensus relies on two layers of quorums, the lower layer consists of a set of quorums called “subquorums”, each protecting a set of objects that are accessed within the same transactions. An extension is proposed to serialize transactions accessing objects of different subquorums.
+
+This is an interesting topic, but some work is needed to clarify the idea.
+
+The objects considered should be clearly specified, nowhere are the reads and updates specified, it is unclear whether these operations apply to a single or multiple objects or if instead the linearizability is ensured for transactions that represent a sequence of reads and writes.
+
+Transactions are only mentioned as an example in Section 2, however, consensus would not be needed if the authors were implementing atomic registers.
+
+That said, another use of consensus appears in Section 2.1 for the reallocation of subquorums to objects. It would be good to explicitly list the functions offered by the service that invoke a new consensus instance.
+
+Each subquorum has a leader that orders its accesses. It looks like such an approach annihilates the benefit of the distributed set of processes that defines multiple quorum intersections, by introducing a single point of failure.
+
+The notion of decision space is unclear. It seems that the decision space can be altered by adding and removing objects from the quorums, however, only the parent quorums handle the decision space.
+
+”The parent quorum gets consensus”: what do you mean by “getting consensus”? Is it reaching consensus or invoking consensus?
