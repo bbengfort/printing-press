@@ -1,0 +1,140 @@
+%----------------------------------------------------------------------------------------%
+% Old Introduction
+%----------------------------------------------------------------------------------------%
+
+Strong consistency in a geo-replicated distributed data store requires a fault-tolerant
+mechanism that maintains consistency during node failure and communication partitions.
+Distributed consensus protocols inspired by Paxos \cite{lamport_paxos_2001} have been
+widely adopted to coordinate consistency, however, because of increased communication
+they cannot scale to arbitrary system sizes\cite{2016arXiv160806696H}.
+Several recent algorithms have attempted to address the scaling limitations of consensus
+and take two general forms --- leader election and conflict detection.
+
+Leader-oriented consensus such as MultiPaxos \cite{lamport_paxos_2001} and Raft
+\cite{ongaro_search_2014} minimize the number of required communication phases by
+nominating a dedicated proposer.
+Less communication means better throughput, and fault-tolerance is achieved through node
+failure detection such as a heartbeat and a new leader is elected to minimize downtime.
+Leader-oriented approaches introduce two new problems, however: \emph{load} and
+\emph{distance}.
+Because the leader will necessarily do more work and handle more communication than other
+nodes, it must have sufficient resources to handle the workload; moreover, since any node
+can be elected leader, all nodes must have sufficient resources to handle the workload.
+This introduces scaling problems in two dimensions: adding nodes means more communication,
+increasing the minimum resource requirements for all nodes in the system.
+In geo-replicated systems, bandwidth and latency are highly variable therefore the
+election of a leader in a specific location means that consensus is bound by the slowest
+connection, making the consensus algorithm sensitive to distance.
+Although recent approaches such as S-Paxos \cite{biely_s-paxos:_2012} and Mencius
+\cite{mao_mencius:_2008} add load balancing to leader-oriented mechanisms, they cannot
+solve the distance problem.
+
+Conflict detection approaches such as EPaxos \cite{moraru_there_2013} and MDCC
+\cite{kraska_mdcc:_2013} are optimistic that most consensus decisions are consistent.
+They propose ``fast'' and ``slow'' consensus paths, such that a subset of close nodes can
+quickly reach consensus but add dependency information to detect conflicts when commands
+are applied.
+If a conflict is detected, then decision must traverse the ``slow'' path to ensure
+correctness.
+Conflict detection does not have a distance problem, as nodes can select close neighbors,
+however this method does not guarantee dissemination of the command, which can require
+large amounts of dependency resolution.
+As the network scales, dependency graphs tend to increase in both size and complexity,
+increasing the load on the system.
+
+In practice systems do not implement global consensus, but instead apply multiple
+consensus groups to coordinate specific objects or tablets.
+This keeps quorum sizes small, allocating just enough nodes to a quorum to maintain a
+minimum level of fault tolerance.
+However, in so doing, an object can only be consistent with respect to its own updates
+and the system loses information about dependencies.
+Moreover, there is no coordination between consensus groups, a single node can
+participate in multiple per-object consensus groups, which does not eliminate node and
+distance problems.
+
+%----------------------------------------------------------------------------------------%
+% From removed section "consistency and consensus"
+%----------------------------------------------------------------------------------------%
+
+There are two primary types of accesses, \texttt{read}, which returns the
+current versions of the accessed objects, and \texttt{update}, which
+increments the versions of the accessed objects.
+
+and wall clock time.
+\emph{Sequential consistency} allows for concurrent accesses so long as there
+is some globally defined ordering, which is specified by the
+\texttt{happens-before} relation ($\rightarrow$).
+Sequential consistency therefore only considers \texttt{update} operations but
+specifies an ordering of updates, maintaining a sequence $o_i^w \rightarrow
+o_i^{w+1} \rightarrow o_j^x$ and so forth.
+Objects that are accessed together (by the same process and within a defined
+window of time) are implicitly dependent on each other, requiring their
+relative access order to be strictly defined.
+Objects that are not implicitly dependent on each other, e.g.
+accessed by separate processes, do not require a strict ordering and can
+instead be arbitrarily ordered by process id.
+
+Distributed consensus protocols implement strong consistency by maintaining an
+ordered log of accesses (commands).
+Once a leader has been elected (a dedicated proposer), accesses are forwarded
+to the leader who, after checking application-specific invariants, broadcasts
+a request to other nodes to append the access to their log.
+A decision is reached when a majority of the quorum accept the append, at
+which point the leader sends a commit message.
+Fault-tolerance is observed by nodes that fall behind by replaying the log of
+committed accesses until they are up to date.
+Correctness is maintained by observing communications failure from the leader
+and electing a new leader.
+
+%----------------------------------------------------------------------------------------%
+% From fuzzy epochs section
+%----------------------------------------------------------------------------------------%
+
+Because the subquorum is left behind in the previous epoch, all writes in that subquorum
+will be ordered before writes in the next epoch.
+
+This means that subquorums can have ``fuzzy epochs'', wherein some subquorums are behind
+others.
+Fuzzy epochs provide the flexibility needed to accommodate subquorums that may not be
+ready to move to a new epoch eliminate because application semantics (still accessing the
+same objects), or network conditions (communication failure).
+
+Figure~\ref{fig:fuzzy} shows three subquorums.
+The gray boundary delineates the border between epochs $E_1$ and $E_2$ -- it is fuzzy
+because not all subquorums move to epoch $E_2$ at the same time.
+The first read access, $r_k(x_{2.1})$, reads the value of object $x$ from $Q_i$ into
+$Q_k$.
+However, $Q_i$ is in $E_2$ when it services the read, while $Q_k$ is still in $E_1$ when
+the value is returned.
+If we follow the remote access approach, we can divide interval $i_2$ into $i_{2.1}$ and
+$i_{2.2}$, and $k_1$ into $k_{1.1}$ and $k_{1.2}$.
+We must also insure accesses are consistent with the interval ordering invariant, but
+this is not maintained because of the new dependency $i_{2.1} \rightarrow k_{1.1}$.
+Therefore, data coming from an interval in $E_n$ requires the receiver to also transition
+to $E_n$. This allows us to instead break our interval $i$ as before and maintain the
+ordering $i_{2.1} \rightarrow k_2$.
+
+%----------------------------------------------------------------------------------------%
+% From Correctness Sketch section
+%----------------------------------------------------------------------------------------%
+
+Because decision allocation occurs on accesses and is defined by a fixed period of time,
+we propose to show correctness through \emph{eventual quiescence}.
+Quiescence is the property that subquorums disband and return object ownership
+back to the parent quorum if activity ceases.
+Because all changes to the decision space require incrementing the epoch, if only the
+root quorum exists, the epoch is closed (e.g. no accesses will be applied to a log with
+that epoch).
+
+Between epochs, the relationship of the parent quorum to subquorums defines correctness.
+The primary case to consider is an unsafe append to the access log: $Q_{i,e}$
+appends object $o_a^{v+1}$ while $Q_{j,e+1}$ appends object $o_a^v$ (incorrectly
+specifying that $o_a^{v+1} \rightarrow o_a^v$).
+It is the parent quorum's responsibility to ensure that $Q_{j,e+1}$ does not start
+operating until it has received confirmation from $Q_{i,e}$ that it has terminated.
+If the parent quorum does not receive a message from $Q_{i,e}$, it can force epoch $e$ to
+close at the latest known value, returning control to $Q_{j,e+1}$.
+This causes all accesses in $Q_{i,e}$ to be dropped when it communicates with the leader.
+Any quorum receiving messages from $Q_{i,e}$ will require $Q_i$ to move to epoch $e+1$,
+thus guaranteeing that no accesses will be appended after $Q_{j,e+1}$ has started
+operating.
