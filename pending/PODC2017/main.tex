@@ -204,6 +204,46 @@ Accesses in different subquorums but in the same epoch happen concurrently
 from the global perspective (but are non-conflicting), though accesses in a
 specific subquorum are totally ordered locally.
 
+\subsection{Elections}
+
+Upon initialization all processes are independent, though fully connected and must
+self-organize into a hierarchical structure.
+In order to maintain high availability, all participating processes elect a subset of the
+replicas to form the root quorum.
+In order to maintain correctness, the set of processes participating in root quorum
+leadership elections must intersect with the set of processes chosen to assign
+subquorums.
+To guarantee the intersection, $n - q + f$ votes is required to elect the root leader
+where $n$ is the number of processes, $q$ is the size of the root quorum and $f$ is the
+number of tolerated failures.
+In order to minimize the number of required consensus decisions, root leader candidates
+propose themselves along with $q-1$ other processes to form the root quorum after a
+timeout in the random interval $t_r$.
+
+In larger systems, the requirements for this election require the availability of the
+majority of processes in the system.
+Therefore in order to ensure root quorum availability during partitions, the root quorum
+may elect leaders after a candidate timeout, $t_c$ occurs without a message from the
+leader.
+Because $t_c \ll t_r$, root elections are rare and only occur at initialization, when the
+entire root quorum is partitioned, or during a reconfiguration of the system.
+
+In standard leader-oriented protocols, elections only occur after nodes detect that the
+leader has failed.
+In order to detect that the entire root quorum has failed, some heartbeat mechanism
+between all replicas is required.
+Rather than a broadcast from the root quorum to all other processes in the system,
+heartbeats are sent from the root quorum to leaders of the subquorums.
+Because subquorums are composed of $q$ replicas that are also sending heartbeats, any
+replica assigned to a subquorum can detect root node failure.
+This architecture creates an intersection between the root quorums and subquorums while
+minimizing the number of required messages.
+For simplicity, we might make the leaders of the subquorums members of the root quorum,
+thereby introducing no additional messages.
+This might make the root quorum too large, however, therefore we propose to investigate
+deepening the consensus hierarchy or using subsets of subquorum leaders in the root
+quorum similar to root quorum election.
+
 \subsection{Operation}
 
 The root consensus group coordinates all decision space changes.
