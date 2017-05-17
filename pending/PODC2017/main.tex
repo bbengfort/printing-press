@@ -220,8 +220,11 @@ In order to minimize the number of required consensus decisions, root leader can
 propose themselves along with $q-1$ other processes to form the root quorum after a
 timeout in the random interval $t_r$.
 
-In larger systems, the requirements for this election require the availability of the
-majority of processes in the system.
+In consensus groups of dozens or scores of members, the requirements for this election
+require the availability of the majority of processes in the system, not a simple three
+or five member consensus group.
+In a geo-replicated environment that intends to maintain linearizability, this is an
+onerous requirement that prevents progress.
 Therefore in order to ensure root quorum availability during partitions, the root quorum
 may elect leaders after a candidate timeout, $t_c$ occurs without a message from the
 leader.
@@ -238,8 +241,22 @@ Because subquorums are composed of $q$ replicas that are also sending heartbeats
 replica assigned to a subquorum can detect root node failure.
 This architecture creates an intersection between the root quorums and subquorums while
 minimizing the number of required messages.
-For simplicity, we might make the leaders of the subquorums members of the root quorum,
-thereby introducing no additional messages.
+The benefit is not simple load balancing across multiple leaders, but in fact
+localization of decision making to stable networks so that the entire system can make
+progress in a geo-replicated environment.
+
+Once replicas are communicating in a hierarchy, we can solve the intersection problem
+between the root quorum and subquorums by allowing replicas to \emph{delegate} their
+vote.
+Initially we propose that followers in a subquorum delegate their vote to their local
+leader.
+However, this delegation cannot last an entire epoch (or the possibility exists that no
+epoch change decisions are possible).
+To solve this, followers delegate their vote for a specific number of decisions, which
+expire, after which all replicas in the quorum vote as a single unit until the next
+epoch.
+For simplicity, if the leaders of the subquorums with delegated votes are also members of
+the root quorum, no additional messages are required.
 This might make the root quorum too large, however, therefore we propose to investigate
 deepening the consensus hierarchy or using subsets of subquorum leaders in the root
 quorum similar to root quorum election.
