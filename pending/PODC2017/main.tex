@@ -247,7 +247,7 @@ progress in a geo-replicated environment.
 
 Once replicas are communicating in a hierarchy, we can solve the intersection problem
 between the root quorum and subquorums by allowing replicas to \emph{delegate} their
-vote.
+vote (Figure~\ref{fig:delegates}).
 Initially we propose that followers in a subquorum delegate their vote to their local
 leader.
 However, this delegation cannot last an entire epoch (or the possibility exists that no
@@ -260,6 +260,13 @@ the root quorum, no additional messages are required.
 This might make the root quorum too large, however, therefore we propose to investigate
 deepening the consensus hierarchy or using subsets of subquorum leaders in the root
 quorum similar to root quorum election.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/delegates}
+    \caption{To guarantee intersection between the root and sub-quorums without unnecessarily increasing the number of votes required for root leadership, followers in subquorums delegate their votes to the subleader, which participate in the root quorum.}
+    \label{fig:delegates}
+\end{figure}
 
 \subsection{Operation}
 
@@ -356,12 +363,37 @@ the wide area.
 
 \begin{figure}[t]
     \centering
-    \includegraphics[height=0.2\textheight]{figures/fuzzy}
+    \includegraphics[width=0.5\textwidth]{figures/fuzzy}
     \caption{The gray region shows the ``fuzzy'' boundary between epochs $E_1$
       and $E_2$. The first read access, $r_k(x_{2.1})$, reads the value of object $x$ from $Q_i$ into
       $Q_k$ and forces $Q_k$ to change epochs.}
     \label{fig:fuzzy}
 \end{figure}
+
+\subsubsection{Linearizability}
+
+The primary goal of hierarchical consensus is strong consistency in the form of a
+globally agreed upon linearizable ordering of read and update accesses.
+By combining the internal ordering invariant and subintervals on remote access,
+hierarchical consensus can be seen as defining the ordering of accesses in a grid
+(Figure~\ref{fig:linearizability}).
+If traditional consensus can be seen as assigning operations to positions in a log,
+hierarchical consensus can be seen as assigning positions in a grid.
+The root quorum partitions the grid into major rows (each epoch) and major columns
+(each subquorum).
+Subquorums assign positions to cells in the current row, while remote accesses create
+new minor rows within each epoch.
+Once constructed, a global ordering is acheived that is maintained by \emph{all} replicas,
+who read the grid left to right, top to bottom.
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.4\textwidth]{figures/linearizability}
+    \caption{Hierarchical consensus provides linearizability by assigning positions for operations in a grid. The final, global order is read from left to right, top to bottom.}
+    \label{fig:linearizability}
+\end{figure}
+
 
 \section{Correctness Sketch}
 
