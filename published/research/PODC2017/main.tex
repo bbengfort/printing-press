@@ -20,6 +20,12 @@
 \clubpenalty=10000
 \widowpenalty = 10000
 
+% remove the "ACM Reference Format" from the first page
+\settopmatter{printacmref=false, printfolios=false}
+
+% remove the headers from each page
+\fancyhead{}
+
 % Pete's editing special sauce
 \usepackage{color}
 \newcommand{\todo}[1]{{\textcolor{red}{#1}}}
@@ -104,7 +110,7 @@
 
 % NOTE: omit from paper, but include in upload to submission site
 % NOTE: must be separated by semi-colons, not commas.
-%\keywords{consensus; consistency; leaders}
+%\keywords{consensus; consistency; linearizablity; hierarchical; leader election}
 
 % NOTE: must also generate thumbnail image to upload to submission site
 
@@ -114,7 +120,7 @@
 
 Strong consistency in geo-replicated storage systems requires fault-tolerance that
 guarantees consistency during node failure and communication partitions.
-Widely adopted distributed consensus protocols inspired by Paxos~\cite{lamport_paxos_2001} 
+Widely adopted distributed consensus protocols inspired by Paxos~\cite{lamport_paxos_2001}
 usually handle such scenarios through leader re-election or conflict detection.
 However, due to increased communication load and decreasing availability, these
 strategies scale poorly~\cite{2016arXiv160806696H}.
@@ -268,11 +274,9 @@ quorum similar to root quorum election.
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.5\textwidth]{figures/delegates}
-\vspace{-.15in}
     \caption{Followers in subquorums guarantee
       intersection between the root and subquorums by delegating their votes to the subleader.}
     \label{fig:delegates}
-\vspace{-.3in}
 \end{figure}
 
 \subsection{Operation}
@@ -280,7 +284,7 @@ quorum similar to root quorum election.
 The root consensus group coordinates all decision space changes.
 % Consider the simple example of the transfer of object responsibility from one subquorum
 % to another:
-% 
+%
 % Pete: I'm not a fan of this notation, was just following from what I had above. I think
 % we could probably go back to the ABC --> ABGH notation.
 % \begin{quote}
@@ -331,7 +335,6 @@ $Q_{i,1} \rightarrow Q_{j,1} \rightarrow Q_{i,2} \rightarrow Q_{j,2}$.
 
 % \subsubsection{Remote Accesses}
 % \label{sec:remote}
-\vspace{.03in}
 \noindent
 \textsl{Remote Accesses:}
 By default we assume that the set of replicas \emph{assigned} to subquorums are also
@@ -430,13 +433,13 @@ description of object versions at the point of this transition.
 
 
 % \section{Experimental Design}
-% 
+%
 % We propose to implement a distributed file system called FluidFS to more completely explore
 % the use of hierarchical consensus in supporting file systems.
 % FluidFS, implemented in the Go programming language, will allow us to quantitatively
 % describe real-world environments and usage and to show how our proposed consistency
 % model is experienced by users.
-% 
+%
 % FluidFS will provide \emph{close-to-open consistency} (CTO), meaning that a file
 % open, which implies a full-file read, is guaranteed to see the data written by the ``most recent'' close of
 % that file.
@@ -447,13 +450,13 @@ description of object versions at the point of this transition.
 % and closes arrive at the server.
 % The distributed case assumed by this work is much more demanding because
 % opens and closes are distributed across servers throughout the system.
-% 
+%
 % We leverage hierarchical consistency to build a distributed set of sequentially-consistent logs
 % that guarantee a total ordering over all file accesses.
 % The result is a similar user experience to having the user/client co-located with a single
 % server, while the user migrates around the system, using different devices, possibly
 % collaborating with other users, and tolerating network vagaries, partitions, and failures.
-% 
+%
 % Note that FluidFS, like many modern file systems,
 % decouples metadata file
 % data storage~\emph{recipes}
