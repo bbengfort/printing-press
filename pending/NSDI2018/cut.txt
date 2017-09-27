@@ -1,0 +1,710 @@
+Our default use case is in maintaining
+\emph{linearizablity}~\cite{herlihy_linearizability:_1990,attiya_sequential_1994} across
+\texttt{read} and \texttt{update} operations used to support a wide-area object store or
+file system.
+We consider a set of processes (replicas) $P = \{p_i\}_{i=1}^n$ which are connected via an
+asynchronous network, whose connections are highly variable.
+The variability of a communication link between $p_i$ and $p_j$ is modulated by the
+physical distance of the link across the geographic wide area.
+Each process maintains the state of a set of objects, $O = \{o_i^v\}_{i=1}^m$, which are
+accessed singly or in groups at a given process and whose state is represented by a
+monotonically increasing version number, $v$.
+All replicas must maintain a consistent state of object versions and version history as
+well as dependencies that exist between different object's versions.
+
+
+Strong consistency in geo-replicated storage systems requires fault-tolerance that
+guarantees consistency during node failure and communication partitions.
+Widely adopted distributed consensus protocols inspired by Paxos~\cite{lamport_paxos_2001} 
+usually handle such scenarios through leader re-election or conflict detection.
+However, due to increased communication load and decreasing availability, these
+strategies scale poorly~\cite{2016arXiv160806696H}.
+Global, strong consistency is therefore often traded for weaker, localized
+consistency by implementing small consensus groups to coordinate object groups or
+tablets.
+
+//=====================================================================
+
+Fault tolerance:
+\begin{itemize}
+\item Delegated votes time out. How is this measured?
+  \begin{itemize}
+  \item Duration at the root quorum leader causes the root leader to discard a delegated
+    vote. Discussion:
+    \begin{itemize}
+    \item  Without a global bound on message delays, a replica may time out its vote well
+      before the leader does, in fact even before the leader receives the delegated vote. 
+    \item The response of the replica can be either:
+      \begin{itemize}
+      \item ensure local group live, and wait for vote to be re-delegated
+      \item respond to root leader itself. Problems: what is being ``responded'' to? Root
+        requests go to leaders. 
+      \end{itemize}
+    \end{itemize}
+    global bound on delays the follower might think it's 
+  \item from follower timestamp + some assumed global bound on uncertainty. We could
+    ``guarantee'' this like truetime: 
+    \begin{itemize}
+    \item have a set of well-known reliable time-servers
+    \item folks have a worst-case skew rate
+    \item periodic time checks
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+Nuclear option. How work? Have two issues:
+\begin{enumerate}
+\item handshake to \subs
+\item ensure recovered state of each \sub. 
+\end{enumerate}
+
+Two approaches:
+\begin{enumerate}
+\item each nuclear candidate proposes a distribution with \sub slate (maybe w/
+  different sub-leaders.
+\item all replicas respond w/ current committed from their last \sub.
+\end{enumerate}
+//=====================================================================
+
+\Sub leaders vote in root elections without consulting \sub membership. Hence, no record
+of a leader's vote exists if that leader fails and replaces. Given network vaguaries, the
+root may timeout and send a new request to the \sub, this time to the entire
+membership. The new \sub leader will respond with a new, potentially different vote. 
+
+How to prevent two sub-leaders from voting in the same root election?
+
+- make the root fail w/ duration less than leadership timeout ?  NO
+- mandate new \sub leaders must wait until the next root election?  A single root election
+  must have a single root leader. This leader accepts first response it receives from each \sub.
+
+//=====================================================================
+
+
+
+\pjk{So, does this really work?  }
+\pjk{Even if it does, how to generalize to Paxos?}
+
+The handshake works as follows (bootstrap):
+\begin{itemize}
+\item Root quorum performs consensus over all replicas, 
+\item \Subs start consensus.
+\end{itemize}
+The above handshake is clearly correct, as consensus decisions will only be made by
+\subs after being informed of membership.
+
+Handshake works (steady state):
+\begin{itemize}
+\item Root quorum logically consists of all replicas.
+\item Individual replicas delegate votes to local leaders, which include either a count or
+  an enumeration of delegated sources.
+\item Root quroum reaches decisions based on leader votes.
+\end{itemize}
+
+\noindent
+
+The crucial bit is that all root votes are logically among all members. Some votes are
+delegated to others (\sub followers delegate to \sub leaders). An issue is the
+mechanism where all the normal delegated vote approach fails, i.e., failure or partition
+of sufficient nodes that the root fails to garner majorities and progress halts. 
+
+We also have a \emph{local delegation timeout}. This is duration a \sub leader has
+since the last ack from $r_i$ to delegate $r_i$'s vote to the root. Note that the local
+delegation timeout is greater than \sub leader timeout.  If $r_i$ waits at least the
+local delegation timeout
+
+Our approach is based on the axiom that each replica gets one vote, whether delegated or
+not.  A vote by replica $i$ has a local timestamp. Later votes always override earlier
+votes have local \emph{Re-claimed} votes supercede delegated
+
+What if one partition sees a re-claimed vote and another sees only a delegated vote?  
+//=====================================================================
+\subsection{Epochs and Ordering}
+
+Hierarchical consensus requires all accesses in each subquorum to be linearizable,
+guaranteed by serializing all accesses through the subquorum leader.
+Global linearizability is guaranteed by serializing epochs at the parent
+quorum, and limiting clients to access only one subquorum per epoch (relaxed
+below).
+
+Let \emph{interval} $i_e$ be the ordered set of accesses of the replicas in subquorum
+$Q_i$ during epoch $e$.
+We enforce linearizable ordering of all accesses in the entire system by
+ensuring that there must exist a total ordering of the intervals that produces the correct
+access results.
+Access results should be equivalent to any interval ordering
+such that all intervals in $e$ occur before intervals in $e+1$ (our ``interval
+ordering'' invariant).
+This is because there is no cross-traffic between any $Q_i$ and $Q_j$, and therefore
+ordering interval $i_e$ before $j_e$ is exactly the same as ordering interval $j_e$
+before $i_e$, for any $i$, $j$, and $e$.
+
+The internal invariant requires $\forall_{x,y} : Q_{x,e} \rightarrow Q_{y,e+1}$.
+Ordering all accesses according to consensus-based log order and interval order satisfies both the
+internal invariant and linearizability  while still allowing \subs to operate
+independently within epochs.
+Given $Q_i$ and $Q_j$ within epochs $e=1$ and $e=2$, one possible interval order is
+$Q_{i,1} \rightarrow Q_{j,1} \rightarrow Q_{i,2} \rightarrow Q_{j,2}$.
+
+//=====================================================================
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.4\textwidth]{figures/linearizability}
+    \caption{Hierarchical consensus provides linearizability by ordering operations from left to right, top to bottom.}
+    \label{fig:linearizability}
+\vspace{-.2in}
+\end{figure}
+
+//=====================================================================
+The HC protocol consists of two 
+Throughout this work we reference a term in the root quorum as the \emph{epoch}.
+
+We view the problem through the lens of a distributed object store needing strong
+consistency.
+The space of distinct objects in \sys is called the \emph{tagspace}. The
+tagspace is partitioned into disjoint subsets called \emph{tags}.
+$qt_{i,e}$ is defined as the tag assigned to $q_i$ of epoch $e$.
+Our system is based on multiple cooperating instantiations of the Raft~\cite{raft}
+consensus protocol.
+Like the great body of work on distributed consensus, we assume fail-stop replicas; replicas
+either participate correctly in the protocol or cease to communicate.
+Failures are not Byzantine~\cite{lamport1982byzantine}, nor will our protocol detect or
+correct for such errors~\cite{pbft}.
+
+The HC system is composed of a \emph{root quorum}, $RQ$, that interlocks with potentially
+many \subs, $q_i$.
+The system's configuration evolves through a series of \emph{epochs}, denoted $E_i$.
+We define the \emph{domain} of a client, $cd_i$, as the set of objects accessed by that client, $c_i$.
+We define the \emph{clientset}, $qc^i_{cl,cm,cn...}$, as the set of clients that interact
+primarily with $q_i$.
+\Sub $i$ in epoch $j$ is denoted $q_{i,j}$.
+Epoch change decisions are disseminated in \emph{announcements} that delineate new \sub
+makeups and tagspace partitioning\footnote{Section might go away, but I want
+  to have it for reference while writing.}.
+
+
+Define ``normal'' operation commit.
+
+\subsection{The Hierarchy}
+\label{sec:hierarchy}
+
+Stuff:
+\begin{itemize}
+\item \emph{Joint consensus is only needed in the root quorum}. This is because
+\sub paritioning is a normal decision in the root quorum. A \sub never needs to change
+system membership, though it may change leaders. The root leader learns of a leadership
+change either by notification from the new leader or when broadcasting to the entire \sub
+after timing out at the old leader.
+\end{itemize}
+
+
+//=====================================================================
+\section{Assumptions and Definitions}
+\label{sec:assumptions}
+
+
+Throughout this work we reference a term in the root quorum as the \emph{epoch}.
+A \emph{peer} is another replica in the  same quorum.
+
+We view the problem through the lens of a distributed object store needing strong
+consistency.
+The space of distinct objects in \sys is called the \emph{tagspace}. The
+tagspace is partitioned into disjoint subsets called \emph{tags}.
+$qt_{i,e}$ is defined as the tag assigned to $q_i$ of epoch $e$.
+Our system is based on multiple cooperating instantiations of the Raft~\cite{raft}
+consensus protocol.
+Like the great body of work on distributed consensus, we assume fail-stop replicas; replicas
+either participate correctly in the protocol or cease to communicate.
+Failures are not Byzantine~\cite{lamport1982byzantine}, nor will our protocol detect or
+correct for such errors~\cite{pbft}.
+
+The HC system is composed of a \emph{root quorum}, $RQ$, that interlocks with potentially
+many \subs, $q_i$.
+The system's configuration evolves through a series of \emph{epochs}, denoted $E_i$.
+We define the \emph{domain} of a client, $cd_i$, as the set of objects accessed by that client, $c_i$.
+We define the \emph{clientset}, $qc^i_{cl,cm,cn...}$, as the set of clients that interact
+primarily with $q_i$.
+\Sub $i$ in epoch $j$ is denoted $q_{i,j}$.
+Epoch change decisions are disseminated in \emph{announcements} that delineate new \sub
+makeups and tagspace partitioning\footnote{Section might go away, but I want
+  to have it for reference while writing.}.
+
+//=====================================================================
+\section{Why a New Consensus}
+\label{sec:motivation}
+\pjk{Anything to say here that has not already been said in intro?}
+
+Strictly speaking, HC is not a new consensus protocol.
+Rather, it is meta-protocol that combines and controls multiple instances of an existing
+protocol, in this case Raft~\cite{raft}.
+
+Existing consensus protocols usually run with small numbers of replicas, which then serve
+requests from a much larger number of clients.
+A three-replica Chubby~\cite{chubby} instance might serve many clients, but that instance
+is vulnerable to failures, and is slow unless communication is quite fast.
+This type of system is therefore usually confined
+
+Environment issues:
+\begin{itemize}
+\item network heterogeneity
+\item network partitions
+\item network latency
+\item replica-node heterogeneity
+\end{itemize}
+
+Approaches:
+\begin{itemize}
+\item decomposition
+\item co-location
+\item fuzzy boundaries
+\item multi-group coordination
+\end{itemize}
+
+Enabled usage situation:
+\begin{itemize}
+\item multiple sets of homogeneous replicas from distinct clusters or data centers
+\item random set of replicas from across the Internet
+\item collections of ad hoc collections of personal or company-wide devices
+\end{itemize}
+
+Systems to be built on this mechanism include:
+\begin{itemize}
+\item key-value stores
+\item resource management
+\item global file systems
+\end{itemize}
+
+Key challenges to face:
+\begin{itemize}
+\item how to partition into \subs
+\item efficient dissemination of new partitions
+\item consistency maintainence with remote writes
+\item protocol handshaking from \roo and subquora
+\item fault tolerance
+\end{itemize}
+
+
+
+Our goal is to build a fast, distributed, and fault-tolerant system 
+that supports linearizability over dozens or hundreds of replicas. Our approach is to
+serialize accesses by representing each as a distinct operation and use a distributed
+consensus algorithm to order the accesses. Driving assumptions about system and
+environment: 
+\begin{itemize}
+\item \emph{not small} - the system should scale to hundreds or thousands of replicas.
+\item \emph{mobile} - devices are potentially mobile, have varying connectivity, and
+  resource poor. 
+\end{itemize}
+
+is to dynamically shard sets of objects (\emph{object sets}) across disjoint
+subsets (\emph{subquora}) of \emph{servers}. 
+The system as a whole consists of clients and servers. Clients merely submit
+requests to servers, and may be co-located (or even the same processes).
+
+Each subquora provides linearizable accesses to its objects.
+The set of all of these sub-orderings provides a linearizable ordering of all
+system accesses if the sets of processes accessing each subquora's object set is
+distinct.
+
+Simplifying assumptions:
+\begin{enumerate}
+\item 
+\item System membership, the current mapping of tags to subquora, and all subquora memberships, is globally known.
+\item System membership does not change (relaxed later).
+\item 
+\end{enumerate}
+
+As a first step, we define the system as two tiers: the \emph{root tier} (\emph{root
+  quorum}) and
+the \emph{leaf tier} (\emph{sub-quora}). Sub-quora consist of disjoint sets of
+replicas. The \roo has two types of decisions:
+\begin{itemize}
+\item \roo leadership elections: The membership (and hence the set of potential
+  participationts in each root leadership election), consists of all replicas in the system.
+\end{itemize}
+Global time in the system is divided into \emph{epochs}, 
+the 
+
+
+
+//=====================================================================
+\subsection{Elections}
+
+Upon initialization all replicas are independent, though fully connected, and must
+self-organize into a hierarchical structure.
+In order to maintain high availability, all participating replicas elect a subset of the
+replicas to form the \roo.
+In order to maintain correctness, the set of replicas participating in \roo
+leadership elections must intersect with the set of replicas chosen to assign
+\subs.
+To guarantee the intersection, $n - q + f$ votes is required to elect the root leader
+where $n$ is the number of replicas, $q$ is the size of the \roo and $f$ is the
+number of tolerated failures.
+In order to minimize the number of required consensus decisions, root leader candidates
+propose themselves along with $q-1$ other replicas to form the \roo after a
+timeout in the random interval $t_r$.
+
+In consensus groups of dozens or scores of members, the requirements for this election
+require the availability of the majority of replicas in the system, not a simple three
+or five member consensus group.
+In a geo-replicated environment that intends to maintain linearizability, this is an
+onerous requirement that prevents progress.
+Therefore in order to ensure \roo availability during partitions, the \roo
+may elect leaders after a candidate timeout, $t_c$ occurs without a message from the
+leader.
+Because $t_c \ll t_r$, root elections are rare and only occur at initialization, when the
+entire \roo is partitioned, or during a reconfiguration of the system.
+
+In standard leader-oriented protocols, elections only occur after replicas detect that the
+leader has failed.
+In order to detect that the entire \roo has failed, some heartbeat mechanism
+between all replicas is required.
+Rather than a broadcast from the \roo to all other replicas in the system,
+heartbeats are sent from the \roo to leaders of the \subs.
+Because \subs are composed of $q$ replicas that are also sending heartbeats, any
+replica assigned to a subquorum can detect root replica failure.
+This architecture creates an intersection between the \roos and \subs while
+minimizing the number of required messages.
+% The benefit is not simple load balancing across multiple leaders, but in fact
+% localization of decision making to stable networks so that the entire system can make
+% progress in a geo-replicated environment.
+The primary benefit is
+localization of decision making to stable networks, so that the entire system can make
+progress in a geo-replicated environment.
+Secondarily, load is balanced across the system.
+
+Once replicas are communicating in a hierarchy, we can solve the intersection problem
+between the \roo and \subs by allowing replicas to \emph{delegate} their
+vote (Figure~\ref{fig:delegates}).
+Initially we propose that followers in a subquorum delegate their vote to their local
+leader.
+However, this delegation cannot last an entire epoch (or the possibility exists that no
+epoch change decisions are possible).
+To solve this, followers delegate their vote for a specific number of decisions, which
+expire, after which all replicas in the quorum vote as a single unit until the next
+epoch.
+For simplicity, leaders of the \subs with delegated votes are also members of
+the \roo, and no additional messages are required.
+This might make the \roo too large, however, therefore we propose to investigate
+deepening the consensus hierarchy or using subsets of subquorum leaders in the root
+quorum similar to \roo election.
+//=====================================================================
+
+The primary goal of hierarchical consensus is strong consistency in the form of a
+globally agreed upon linearizable ordering of read and update accesses.
+By combining the internal ordering invariant and subintervals on remote access,
+hierarchical consensus can be seen as defining the ordering of accesses in a grid
+(Figure~\ref{fig:linearizability}).
+If traditional consensus can be seen as assigning operations to positions in a log,
+hierarchical consensus can be seen as assigning positions in a grid.
+The \roo partitions the grid into major rows (each epoch) and major columns
+(each \sub).
+\Subs assign positions to cells in the current row, while remote accesses create
+new minor rows within each epoch.
+Once constructed, a global ordering is achieved that is maintained by \emph{all} replicas,
+who read the grid left to right, top to bottom.
+//=====================================================================
+\para{Example:}
+Assume changing access behavior causes clients of \sub $q_i$ to start
+accessing part of the namespace assigned to  $q_j$, 
+and vice versa.
+Online access monitoring causes the leaders of $q_i$ and $q_j$ to 
+send change requests to the \roo leader,
+which may aggregate several requests into a single namespace change.
+The \roo then runs an instance of its \emph{commit} phase to commit an
+epoch change that remaps the namespace appropriately.
+In the absence of faults or other draconian events, all \roo decisions are
+committed just by the set of replicas with votes undelegated (usually \sub leaders).
+During this process, both \subs can
+continue operating on their own decision space.
+
+Once the parent quorum updates the epoch, it communicates the change to all
+affected \subs.
+Each subquorum independently decides when to transition to the new
+epoch, but remote writes may only occur between \subs in the same
+epoch.
+A remote write is a ``put'' by a client from one \sub to another
+\sub. Remote writes have implications for distributed shared logs
+(Section~\ref{sec:log}), but are also forcing for epoch
+change.
+In Figure~\ref{fig:fuzzy}, $q_i$ transitions first, and then sends a
+remote write to $q_j$.
+\Sub $q_j$ must transition to epoch $e_2$ before receiving
+incorporating the write.
+\Sub $q_k$, still on epoch $e_2$ has its write to $q_k$ rejected by
+$q_k$ is already in the new epoch, while $q_j$ has yet to transition.
+
+% or violate correctness
+A \sub can only start serving newly-gained portions of the
+namespace in the new epoch once they have been released by the prior owners through an
+\emph{transition handshake}.
+
+The other cause for a transition handshake is transfer of a namespace
+portion. 
+//=====================================================================
+
+
+starting with the next.
+Failure of a delegatee results in a 
+
+Normal \roo votes take place only among \sub leaders because of peer
+delegations.
+This approach is crucial in allowing the \roo to remain relatively lightweight and
+efficient.
+The problem is to prevent replica $r_i$ from participating directly in an
+election while some other replica votes $r_i$'s delegated vote in the same election.
+Parameterizing delegation in either local log slots or local leader terms
+fails to
+prevent this situation.
+Consider the latter approach, where a vote is delegated to a leader that
+becomes temporarily unreachable and a new local leader is elected.
+At the next root vote, either $r_i$ directly, or the new leader with a new
+delegation, will vote for $r_i$. Meanwhile, the old leader becomes re-connects
+and also votes for $r_i$.
+
+Delegating votes as a number of epochs (\roo slots) avoids this problem.
+Replica $r_i$ might not be allowed to vote in the next
+
+Our first attempt at defining delegation intervals was to define them as small number of
+local \sub terms, possibly one.
+This would allow the local leader to respond
+
+
+We avoid this problem by parameterizing delegations not in terms of timeouts,
+which would be incorrect in the presence of unbounded message delays, but in epochs.
+Each epoch is a slot in the shared root log.
+Delegation in \sub terms would
+A replica specifies its \emph{delegation limit} to its leader as 
+an interval defined as a  terms of the \roo.
+, usually starting immediately.
+The delegation is active in all consensus decisions until a new root leader's term exceeds
+this limit.
+Replicas routinely renew delegations during normal operation, but cease upon receipt of a
+nuclear \emph{CANDIDATE} announcement.
+
+We argue the correctness of this approach as follows.
+There is no possibility of double-counting a replica's vote in competing root and nuclear
+votes.
+A replica's vote will only count in a root vote until the delegation limit.
+A replica will never issue overlapping delegations.
+Likewise, a replica will not respond to nuclear candidates whose terms are not greater
+than the replica's delegation limit.
+
+Finally, this approach will make progress, assuming more than half the total replicas in
+the system are live.
+Nuclear candidates will repeatedly time out and increase the terms of their candidacy
+until sufficient replica delegation limits have been exceeded.
+Replicas stop renewing delegations when valid nuclear candidates are detected.
+Replicas re-start delegations only when they are notified that either a new root or nuclear
+decision has been reached.
+
+Figure~\ref{fig:tiers} shows an example of \emph{generalized
+delegation}: replicas $O$ and $N$ delegate their votes not to their
+leader, but to the leader in another \sub.
+Delegation outside of one's \sub is correct, but the duration can not
+be defined in local \sub commits because the \emph{delegator} and
+\emph{delegatee} are not in the same \sub.
+The delegator would have no way to count commits in the delegatee's \sub, and
+vice versa.
+Instead, we define the duration of generalized delegations in terms of a small
+number, generally one, of
+slots of the \roo.
+
+//=====================================================================
+
+The \roo handles overall configuration
+and consistency management.
+
+Hierarchical consensus considers the decision space as disjoint subsets of an \emph{object
+set}, to which accesses occur.
+Parent quorums therefore define \subs as time-annotated disjoint subsets of the
+objects they maintain, $Q_{i,e} \subset O$.
+The set of \subs, $Q$, is not a complete partition of $O$, but only represents the
+set of objects that are being accessed at time $e$.
+
+Fuzzy transitions/handshakes crucial for performance.
+
+leader reads/committed reads/stale reads.
+
+
+when we see op commit, commit event passed to k-v store , give cmd/valu to key
+value store.  
+
+- put from client
+- leader gets next version num, stores in log AE
+
+
+//=====================================================================
+
+The fundamental relationship between epochs is as follows: any access that
+happens in epoch $e \rightarrow e+1$ (happens before).
+Alternatively, any access in epoch $e+1$ \emph{depends on} all accesses in
+epoch $e$.
+
+
+\subsubsection{Remote Accesses}
+\label{sec:remote} 
+The mapping of replicas to \subs is disjoint.
+We also assume that each \sub has a set of assigned clients.
+We assume that most or all of a given client's accesses are to the portion of
+the tagspace assigned to that client's local \sub.
+mapped to the local decision space.
+A client can access tags assigned to other quorums, but system must take
+explicit notice of the dependencies thereby created.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.5\textwidth]{figures/newForcingFuzzy}
+\caption{The dotted line shows the announcement of epoch change to the system. $q_i$
+      transitions almost immediately, and then sends a write to $q_j$. Receipt of this
+      write causes $q_j$ to transition. $q_j$ receives and rejects a write from $q_k$
+      (dashed line), as $q_k$'s is not sufficiently current.}
+\label{fig:fuzzy}
+\end{figure}
+
+\pjk{make about the figure}
+The latter approach requires a serialization of all accesses currently within the remote
+quorum with respect to all accesses before the remote access in the local quorum.
+Assume a read access from $Q_k$ to $Q_i$ in epoch $e$; at the time of the read all
+accesses in $Q_i$ must $\rightarrow$ all accesses following the read.
+We accommodate this requirement by using the read endpoints to break interval $i_e$ into
+$i_{e.1}$ and $i_{e.2}$ at the point $Q_i$ receives the remote access, and interval $k_e$
+into $k_{e.1}$ and $k_{e.2}$ at the point $Q_k$ receives a response as shown in
+Figure \ref{fig:eventOrdering}.
+Our results are consistent with total interval ordering by incorporating $Q_{i.1}
+\rightarrow Q_{i.2}$.
+Remote accesses are expensive and the runtime system must weigh the cost of repeated
+remote accesses against the cost of epoch changes.
+
+\subsubsection{blah}
+
+
+This requirement of externalization is useful when elements of the system interact with
+systems or actors outside the system.
+Sometimes this level of guarantee is unnecessary.
+For example, if $w_{i,n}$ (the $j$th write by $g_i$) and $w_{j,m}$ are unsynchronized and
+are to distinct objects, whether $w_{i,n}$ comes before $w_{j,m}$ in the ordering seen by
+$g_k$, or the converse, often does not matter, regardless of which ordering reflects ``real
+time''.
+The consistency capturing this intuition is \emph{sequential consistency} (SC).
+SC requires all reads to return values with some total ordering of writes in the system,
+but this ordering does not have to be externalizable or reflect real-world constraints.
+
+Lin requires all reads to reflect the single externalizable order, whereas SC requires
+reads to reflect ``some'' order, as long as it is a total ordering.
+
+Lin requires all accesses to see current values, and therefore a linearizable system
+requires all writes \emph{and reads} to go through consensus. Reads can be serialized with
+respect to the writes in our system by sending reads to the leader, which responds with
+the most recent committed value. 
+Lin is \emph{not} satisfied if reads are cached, though some systems ignore this (calvin?). 
+//=====================================================================
+
+We talked about several different levels of consistency, strongest being
+\textbf{lin}:
+\begin{itemize}
+\item \textit{linearizability} - reads and writes both to leader
+\item \textit{linearizable writes} - writes go to leader, reads from random member
+\end{itemize}
+
+\noindent
+\begin{enumerate}
+\item \emph{What we want to show:}
+  \begin{itemize}
+
+  \item Performance:
+    \begin{itemize}
+    \item System is faster than monolithic, both because small consensus groups
+      and because of locality. Emphasis not on raw performance, because
+      \emph{we aren't building or competing with datacenter solutions}. We
+      also aren't comparing against blah sharding, because we have a
+      \textbf{dynamic, constantly-re-configuring} mobile system.
+    \item System deals well with partitions.
+    \item System re-configures (tagspace change) efficiently, i.e. \roo is
+      small and fast.
+    \end{itemize}
+  \item Correctness:
+    \begin{itemize}
+    \item System recovers asteroid-crashed tags.
+    \item Fail-safe when more than half \roo goes away.
+    \end{itemize}
+  \end{itemize}
+\item \emph{What system:}
+  \begin{itemize}
+  \item system a set of ``clusters'', each of which has one or more servers,
+    one or more clients. Since each may really have only a single machine,
+    we'll have to experiment to find the right number of cores. However, we
+    need there to be at least have a couple dozen servers, and we need to be
+    getting increased throughput at that scale, e.g., if we choose $N=25$, we
+    better be getting higher throughput at $N=25$ than at $N=20$.
+  \item look at bringing in Horvitz vms if not too slow. Note that we'll have
+    to ensure that the cluster is relatively unoccupied when doing this.
+  \end{itemize}
+\item \emph{What inputs:}  This is a whole tarball we don't really want to get
+  into.  I assume we want to be at synthetic.
+  \begin{itemize}
+  \item synthetic
+  \item real
+  \item synthetic based on real
+  \item some TPC - Problem here is that people will compare our absolute numbers against
+    seriously optimized metal and large-scale systems. We can try to caveat,
+    but not entirely sure people will buy it. Also, of course, we aren't
+    doing transactions.
+  \item some file-system derived trace
+  \end{itemize}
+//=====================================================================
+
+\item \textbf{Experiments:}
+  Assume EC2 for all. Start with assumption of uniform inter-machine latencies.
+  \begin{enumerate}
+  \item \textbf{Failure-free steady-state performance:}
+    \begin{itemize}
+      \item (1 now)single group throughput vs consensus size from 3 to 25
+
+      \item (1 wed)aggregate throughput for 3 - 24 total replicas in jumps of 3. HC has
+        1-8 groups of size 3. Log y scale.
+      \item (1 wed) latencies vs system size
+      \item (1 fri)heterogeneous architecture
+        Best if EC2 in different regions. Otherwise UMD. Make sure that each
+        sub completely pegged in client requests.
+      \item (1 thurs) Sawtooth graph. Two active clusters. Start with co-located client hitting local group
+        100\%. Slowly move client access locality 100\% to another
+        cluster. Plot instantaneous throughput vs clock time. We
+        should see:
+        \begin{itemize}
+        \item steady state until accesses start moving,
+        \item dropping down until re-configuration forced
+        \item epoch change might show blip, then
+        \item new stead state
+        \item repeat 2-3 times
+      \end{itemize}
+    \end{itemize}
+  \item Fault tolerance:
+    \begin{itemize}
+    \item (2) 3x3, one group loses 2 members. After a while root re-configures two
+      spares, or re-configures to two subgroups. 2 3-rep q.
+      Show all three tag throughputs vs time for each of HC and raft.  One tag
+      should drop to 0 for HC, all three should dip for raft. Eventually
+      re-configure and all three non-zero for HC.
+
+      system:
+      Root heartbeat not acked, epoch change to cover the tags.
+
+      partitioned:
+      Obligation timeout same time?, stops serving clients. Waits another ob
+      	timeout and then tries to become root leader.
+
+
+    \item (3) 5x5. Steady state, sub-quorum partition (perf drops by 1/5), second
+      sub partitioned (perf drops by another 1/5, but still make
+      progress). Second quorum comes back (up by a 1/5). Root re-configures
+      entire namespace to be covered by four (get most of performance back).
+    \end{itemize}
+  \item (4) Alia consistency:  Partition input stream 50/50, 33/66, and 17/83 write/read
+    stream. For each stream, measure throughput with ``full linearizable read'' (reads
+    through the commit process), recent snapshot reads (any server responds with it's
+    current cached copy).
+\end{enumerate}
+
+
+\end{enumerate}

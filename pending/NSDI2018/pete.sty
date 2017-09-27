@@ -1,0 +1,120 @@
+% this is my first package
+% 
+% (c) Pete
+% Free
+%  
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{pete}[2011/01/11 v0.01 LaTeX package for my own purpose]
+
+% \def\hi{Hello, this is my own package}
+% \let\myDate\date
+% \newcommand\GoodBye[1][\bfseries]{{#1Good Bye}}
+
+\usepackage{times}
+\usepackage{xspace}
+\usepackage{url}
+\usepackage{colortbl}
+\usepackage{setspace}
+\usepackage{rotating}
+\usepackage{amssymb}
+\usepackage{subfig}
+\usepackage{flushend}
+\usepackage{enumitem}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{claim}{Claim}
+\newtheorem{property}{Property}
+
+\newcommand{\prob}{{\tt prob}}
+\newcommand{\lru}{{\tt lru}}
+\newcommand{\seq}{{\tt seq}}
+\newcommand{\tf}[1]{{\small \tt #1\/}}
+\def\e#1{{\em #1}}
+\def\t#1{{\tt #1}}
+\def\b#1{{\bf #1}}
+\def\D{\hskip.5em\relax}
+\def\hdr#1{\par\bigskip{\bf #1\/} \\}
+\def\itm#1{\item {\em #1\/}}
+\def\ques#1{{\em #1}}
+\def\D{\hskip.5em\relax}
+\def\hdr#1{\par\bigskip{\bf #1\/} \\}
+\def\itm#1{\item {\em #1\/}}
+\def\mc#1{\multicolumn{1}{|c|}{#1}}
+\def\mcl#1{\multicolumn{1}{||c|}{#1}}
+\def\mclr#1{\multicolumn{1}{||c||}{#1}}
+\def\mcr#1{\multicolumn{1}{|c||}{#1}}
+\def\mctwo#1{\multicolumn{2}{|c|}{#1}}
+\def\mctwon#1{\multicolumn{2}{c}{#1}}
+\def\tmcr#1{\multicolumn{2}{|c||}{#1}}
+\def\mconen#1{\multicolumn{1}{c}{#1}}
+\def\mconer#1{\multicolumn{1}{c|}{#1}}
+\def\mcones#1{\multicolumn{1}{c|}{\small #1}}
+\def\mcthree#1{\multicolumn{3}{|c|}{#1}}
+\def\mcthreer#1{\multicolumn{3}{|c||}{#1}}
+\def\mcfour#1{\multicolumn{4}{|c|}{#1}}
+\def\mcfourr#1{\multicolumn{4}{|c||}{#1}}
+\def\mcfive#1{\multicolumn{5}{|c|}{#1}}
+\def\mcfiver#1{\multicolumn{5}{|c||}{#1}}
+\def\mcsix#1{\multicolumn{6}{|c|}{#1}}
+\def\mcsixr#1{\multicolumn{6}{|c||}{#1}}
+\def\mcseven#1{\multicolumn{7}{|c|}{#1}}
+\def\mcsevenr#1{\multicolumn{7}{|c||}{#1}}
+\def\rot#1{\begin{sideways}#1\end{sideways}}
+\def\lb#1{\raisebox{-1.5ex}[0em][0em]{#1}}
+\def\lbc#1{\multicolumn{1}{|c|}{\raisebox{-1.5ex}[0em][0em]{#1}}}
+\def\lbcn#1{\multicolumn{1}{c}{\raisebox{-1.5ex}[0em][0em]{#1}}}
+\def\rb#1{\raisebox{1.5ex}[0em][0em]{#1}}
+\def\hdg#1{\vspace{0.1in}\noindent{\bf #1}\\}
+\def\m#1{{\em #1}}
+
+% from chaw
+\newcommand{\reminder}[1]{{\bf
+    [\marginpar[\hbox{{\Huge
+    $\bullet$}\raisebox{0ex}{\Huge $longrightarrow$}}]%
+{\hbox{\raisebox{0ex}{\Huge $\longleftarrow$}{\Huge $\bullet$}}}#1]}}
+\newcommand{\pjk}[1]{{\bf
+    [\marginpar[\hbox{{\Huge
+    $\bullet$}\raisebox{0ex}{\Huge $longrightarrow$}}]%
+{\hbox{\raisebox{0ex}{\Huge $\longleftarrow$}{\Huge $\bullet$}}}{\em pjk} #1]}}
+
+%%%%%%%%%%%%%%%%%
+\newcommand{\dn}[1]{{$n_{#1}$}}
+\newcommand{\ow}[1]{{\em owner(#1)}}
+
+
+% from PJK
+%e}
+
+\newcommand{\subsubsubsection}[1]{{\vspace{.1in}\noindent\bf #1\\}}
+
+
+%% One inch margins all around for letter-size paper:
+%\oddsidemargin 0in
+%\evensidemargin 0in
+%\topmargin -.5in
+%\textwidth 6.5in
+%\textheight 9in
+
+
+%\setcounter{secnumdepth}{4}
+%\newcommand{\Paragraph}[1]{\paragraph{#1\\\\}}
+%\newcommand{\Paragraph}[1]{\paragraph{#1}}
+\newcommand{\para}[1]{\vspace{-.1in}\noindent\paragraph{#1:}}
+\newcommand{\Paragraph}[1]{\subsubsection{#1}}
+\newcommand{\Section}[1]{\section{#1}\vspace{-.1in}}
+%\input{ext.sty}
+\newcommand{\hmm}[1]{}%{#}1
+\newcommand{\ax}[1]{{\bf A#1}}%{#1}
+\newcommand{\lf}[1]{\textsf{\small{#1}}}
+
+\newcommand{\biggerspace}{\renewcommand{\baselinestretch}{1.092}\Large\normalsize}
+
+\newcommand{\sspace}{\renewcommand{\baselinestretch}{1}\Large\normalsize}
+\newcommand{\dspace}{\renewcommand{\baselinestretch}{1.1}\Large\normalsize}
+
+
+
+
+\endinput
+%%

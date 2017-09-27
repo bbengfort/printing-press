@@ -1,0 +1,278 @@
+- stronger/different than close-to-open consistency (essentially aggregation + convergent EC), which allows forks (overwrites)
+
+- db description of our consistency?
+
+- app response to dropped or forked?  (ignore)
+
+- if we don't have SC anyway (because of caching), why bother with consensus?
+  - in other words, is their some significant relaxation (more
+    performant) that makes no difference for consistency?
+
+- Does hier get SC as long as we don't have remote writes?
+  - can't actually force app close of file, messes up semantics
+    - c-o is atomic, if force close we break this.
+  - we might need to delay until file closes, which is an arbitrarily- long time.
+
+//=====================================================================
+Novelties: fast, strongly-consistent access to all data, all devices, all access patterns
+- decouples access from location
+  - data accessed from any device
+- decouples access from time
+  - versioning, nothing ever thrown away
+- decouples replication from consistency 
+  - allows range of data movement possiblities
+- decouples application consistency from device consistency
+  - across single devices, distributed resources, clouds
+- decouples data presentation (indexing) from data movement
+  - pools replicate, local indexers can provide DB, file system,
+    object PUT/GET front ends
+  - efficient if episodic
+- fault tolerant
+- secure
+
+
+=============================================================================
+
+- a pool has meta-information
+- we can extract a latest-coherent snapshot from a pool, for different consistencies, even SC by using tiebreaking
+  - what we can't do is to ensure conflicts don't happen.
+  - minimum necessary here is a lock server
+    - locks move consistency info
+    - locks are adaptible granularity
+    - locks do not imply data movement
+    - data vs locks
+      - can be combined, i.e. the holder for Lx might need to have x local
+      - remote writes still possible
+      - must the writer and data holder exchange consistencency info?  
+        - no, as long as the write is properly marked as coming from the  writer, not the data holder
+
+
+=============================================================================
+
+Distinguished objects, and locks.
+
+What we want:
+- pools of data, with embedded meta-information
+- want it to be replicated
+
+Try:
+- only distinguished objects are streams, which are:
+  - granularity of consistency
+  - protected by locks
+  - the unit of replication
+  - stream (the backbone) must be tied to a replica
+
+What happens when we replicate a pool to another device?
+- get all data
+- get none of the locks
+- so pools are device-independent, but consistency not.
+  - can replicate at will, but ``committing'' doesn't happen without
+  locks
+
+Can even eventual consistency work device-independent?
+- replicate pools, but ``convergence'' depends on merging from
+  everyone in ``system''
+- could say that we support eventual among pools that exchange
+consistency
+- have to worry about operationally transforming diffs, but not all
+  apps can deal with this
+- make point that general applications can not work on eventual consistency
+
+Causal?
+- works easily if writes tagged w/ replica ID
+- scenario: we have a replica, want to treat causal
+  - find the greatest causally-consistent snapshot (probably not
+  unique, how to choose?)
+  - but any mods made from such a snapshot continue to be causally
+    consistent with respect to everything else anywhere.
+  - how about merges? Say:
+    - we choose earlier causal snapshot 
+    - want to merge with someone else, causal consistency should be
+      preserved
+
+What is a stream?
+- GUID
+- set of data
+- stream log of 'stream events'
+- set of updates (which are different than stream events?)
+
+Can we really separate, assuming coherence, all ops performed at owners?
+
+x owned by i, y owned by j:
+
+i      j
+w(x)1  w(y)1
+r(y)?  r(x)?
+
+Assume happen same time, can we get <0,0>?
+NO: if r(y) arrives at j before w(y) happens, r(x) must return 1
+AFTER w(y), and the last two say the reverse.
+
+  i      j      k      l
+w(x)1  w(y)1
+              r(x)1  r(y)1
+              r(y)0  r(x)0
+Can't happen as the reads of x say that k's read must have happened
+after l's read, which is after l's read of y. So k's ready of y must
+have happened after l's, which doesn't happen.
+
+As long as we maintain coherence with single-writer semantics on each
+distinct object, we support SC.
+
+
+Sequential?
+
+Coherence (cache consistency cite goodman) is a location-specific
+  weakening of SC, requiring all accesses to a single location to be
+  totally order, but nothing between them.  This is NOT equivalent to SC, as the
+  above example is possible with coherent memory.  However, when we
+  maintain single-writer semantics as above, this can not happen.  See
+  above!
+
+- More formally, sequential consistency is guaranteed if we meet two restrictions~\cite{lazySC}. 
+First, all accesses to each individual object $x$, including reads, must be totally ordered. 
+Second, all reads must be "legal", where legal means that the read returns the most recent value
+written to $x$ in the system. These restrictions are easily met if all reads and writes to $x$ are 
+transformed into remote accesses to the object's "manager". The remote accesses are necessary
+only when the data accessor is not the manager. Under our assumption of episodic behavior in
+combination of ownership migration, we can expect that many of the accesses will be local, and therefore
+cheap. The key is ensuring that ownership is migrated to the replica accessing the data.
+
+- need a stream head. 
+  - identified by GUID
+  - Works great if only a single lock, or a single
+    owner for multiple locks, but what if different owners?
+  - work backwards:
+    - a stream could record ``group'' actions:
+      - lock granularity/ownership changes (at least enough to chase pointers)
+      - replica weight changes?
+      - must have the ability to gain control of a lock, but this is difficult
+        - what if the 'main' replica gave control of a lock to
+          another, currency is devalued, and then control is vested
+          elsewhere (but distributed). How to find the current owner
+          of a set of objects?
+        - So, we replicate a pool, how do we find the `head' (or
+          heads)?
+  - let's assume that an owner is always singular, but weights needed
+    for changes are distributed. Does this buy us anything?
+    - gives us ability to acquire a lock w/ just a single server
+    - still have fault tolerance
+  - let's assume that a 'stream' is a totally ordered log of weight
+    and lock changes, fully replicated everywhere. 
+    - still can only know that a replicated stream log is 'current' if
+      we gather a quorum
+      - multi-paxos, uses leases
+
+So we now have that a stream has:
+- a single leader
+- possibly multiple weighted replicas that vote on leadership changes
+- the leader keeps leases given to other replicas.
+  - what happens if a lease expires in multi-paxos? How do we know
+    what the failed replica has done?
+  - answer: even multi-paxos requires one round trip (accept
+    broadcast, accepted broadcast) per message before the write can be
+    'done' 
+    - can optimize as 3-way: writer sends to owner, owner blasts to
+      all, all blast to all (including writer)
+  - reads can be satisfied by the leader for the lifetime of his lease
+  - amortize cost by grouping together local writes, either at a
+    remote writer, or at the owner, and treating as one
+  - can also group together everything done locally until output
+    (network, file, anything).
+    - sounds big, but should really be a small thing because we don't
+      need to do rollbacks
+
+Transactions:
+- if owners of write/read set are same, sent as new value in paxos
+- if not, deterministic tie breaker for master, followed by some
+  hierarchical process. It's NOT just have separate paxos, because
+  might need to roll back. What does spanner do?
+
+So, we find a pool and replicate it locally, how do we do SC?
+- find the stream head
+- see if in valid lease (and which replica has it)
+  - if so, we know who to talk to.
+  - if not, we broadcast to quorum, and start chasing pointers.
+    - can use pointer collapsing, as below
+  - should we have a stream manager? Should it be informed of object
+    ownership changes?  
+    - I think the answer is yes, though mainly for performance
+      reasons.  This implies that informing the manager can be
+      asynchronous and best effort because it does not affect
+      correctness.  The pointer chasing should work as a default.
+
+Questions:
+- is the set of replias identical for all objects in the stream?
+- can objects be shared across streams?
+- how do we do merges?
+
+- supports strong (SC) semantics on varying-consistency data storage, and across
+  multiple different storage servers, with potentially differing
+  underlying consistencies
+
+Ideal scenario for new machine:
+- replicate from A to B
+  - this is long process and does not need to be complete
+    immediately. However, stream (or stream events, decide on term)
+    must be replicated first, then the rest can stream in.
+- start accessing objects
+  - migrate ownership
+  - migrate recent versions
+- stream the rest of the versions, subject to the ``replication filter''
+
+=============================================================================
+
+adaptive ownership - 
+- stream event
+- many choices:
+  - episodic nature argues for migrate on first (or maybe second) access
+  - competitive protocols - online protocols within a constant factor
+    of best offline
+
+adaptive granularity - let's call the unit a 'tablet'
+- stream event
+- which?
+  - coarse granularity => false sharing
+  - fine granularity => overhead
+- expect to start at coarse and work down
+  - decrease gran when we detect ``excessive'' false sharing in a table
+  - decrease gran when we detect fellow travelers among multiple tablets
+  - hysteresis
+
+quorum 
+- stream event for re-assigning weight
+  - reclamation for dead replicas
+  - re-allocation for bandwidth/latency
+  - re-allocation for availability
+  - proxy events
+
+So, what is in the stream, just membership/lock changes (and which of
+those), or everything?
+- the second example above argues that all writes do not have to be
+  here. Clearly not all ownership changes have to be there, as they
+  might be non-local. 
+- a consequence is that the 'stream log' will be distributed, and
+  following the end of the ``stream log'' might mean chasing ownership
+  of each distinct object across quorums and an indefinite number of
+  changes.
+- might be able to use form of pointer collapsing (don't remember
+  name), where the 'manager' gets a request for lock owner and
+  forwards on. Next requestor gets forwarded to last requestor. Does
+  not affect correctness, but does affect speed.
+
+The intent is to make data self-describing to the extent that future data
+archeologists will be able to decipher the data. Capturing a "life" stream
+only makes sense if the data is permanent. JSON has the twin
+advantages of being specific (unambiguous syntax), while being
+human readable.
+
+Consistency is a local property. Picture swirls and eddies, strong 
+consistency when needed (sharing, collaboration) weak consistency
+the rest of the time.
+
+All the information needed to access data in a coherent way is embedded
+in the pools of blobs.
+
+
+
+``Generic operation model approach: which is to devise transformation functions for three primitive operations: insert, delete, and update.[16] This approach needs an operation adaptation process to map application operations to these primitive operations. In this approach, the OT operation model is generic, so transformation functions can be reused , wea wefodifferenapplications.''
