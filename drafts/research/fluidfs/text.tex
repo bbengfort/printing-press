@@ -31,7 +31,7 @@ keleher@cs.umd.edu
 \section*{Implementation}
 
 The FluidFS File System is implemented in Golang as a filesystem in user
-space using the \texttt{bazil.org/fuse} implementation in pure Go
+space~\cite{vangoor_fuse_2017} using the \texttt{bazil.org/fuse}~\cite{virtanen_bazil.org/fuse_2016} implementation in pure Go
 (without libfuse bindings).
 This dependency is a custom implementation of the kernel-userspace
 communication protocol inspired by the FUSE library.
@@ -47,12 +47,270 @@ When two mount points are specified with the same prefix (either locally or
 on different hosts), FluidFS treats each mount point as a partial replica of
 the global file system.
 
+Interaction with the file system occurs either through \texttt{ioctl} calls
+from the kernel via FUSE or through a RESTful API over HTTP.
+The primary FluidFS process is therefore composed of several servers: FS
+servers for FUSE for each mount point, an HTTP server for the REST API, and
+replica servers for both blob and metadata replication.
+The API exposes standard create, read, update, and delete CRUD operations for interaction with file objects by implementing standard HTTP methods.
+
+
+\subsection*{Data Model}
+
 FluidFS is a virtual distributed file system that does not manage a disk
 directly but instead primarily manages objects (files).
-A file is a collection of version metadata and binary blobs that are stored
-separately. A \textit{file version} is represented by a single piece of meta
-data that contains two Lamport scalar compound numbers: the version number and the parent of the current version.
+A file is identified by a unique path and is composed of a collection of
+version metadata and binary blobs that are stored separately.
+The filesystem lists the latest version for a file and optionally can display
+the version history for a specific file.
+Directories in the file system are computed based on prefixes of paths in the
+file system and are currently only cached locally.
+Empty directories therefore are not currently replicated.
 
+There are also two primary data stores utilized by the file system: a version
+store and a blob store.
+Versions are stored in a local embedded key/value database for fast metadata
+reads and writes to disk.
+Currently interfaces for both LevelDB and BoltDB are implemented for the
+version store.
+Blobs are stored on disk (location configurable) in a hierarchical format
+that provides for fast search and retrieval of blobs.
+
+\subsubsection*{File Versions}
+
+A file is composed by multiple versions and associated binary data.
+A \textit{file version} is represented as a single piece of meta
+data that contains at minimum two Lamport scalar compound
+numbers~\cite{lamport_time_1978}: the
+version number and the parent of the current version, as well as an ordered
+list of blob identities that contain the data for the file.
+Versions can also contain other metadata such as user information,
+encryption, access time and statistics, or permissions.
+A file can read from a single version meta data, though that read may be
+stale.
+
+When a file is created a new version with no parent and no blobs is created
+to represent the root of the file.
+When files are written to, a new version is created for the write whose
+parent is the version that was previously read or cached locally.
+The versions that represent the file are therefore a tree of totally ordered
+writes whose conflict-free version numbers show a total ordering of file
+operations.
+Replication and consistency concerns are handled when the newly created
+version is flushed to disk.
+
+File version information is stored in a local cache implemented by an
+embedded key/value database.
+Each database contains three "buckets" (unique keyspace partitions):
+\texttt{names}, \texttt{versions}, and \texttt{prefixes}.
+The \texttt{names} bucket stores the current \textit{view} of the database,
+that is it maps file paths to \texttt{Version} objects.
+The \texttt{versions} bucket stores the file version meta data as well as
+pointers to other versions.
+The \texttt{prefixes} bucket is a local cache that stores information about
+the contents of directories.
+
+Therefore to read a locally cached copy of the file, you lookup the current
+version of the file in the \texttt{names} bucket, then you fetch the version
+from the \texttt{versions} bucket.
+The file metadata informs the system if you have permission to read the meta,
+and if so, the blobs are fetched from disk.
+
+\subsubsection*{Blobs}
+
+A blob is a bounded length array of binary data that can belong to one or more
+versions of one or more files.
+Blobs are unique and immutable in the file system and are identified by the
+hash of their contents.
+Blobs are detached from file versions such that they are stored and
+replicated independently, decoupling their distributed behavior.
+This allows optimism and a separation of concerns: consistency depends only
+on version replication, durability on blob replication and so forth.
+
+When the a file is flushed to disk, it is chunked into blobs using either
+fixed length chunks or variable length chunking using a Rabin-Karp rolling
+hash~\cite{karp_efficient_1987}.
+Variable length chunking is preferred since it reduces the number of blobs in
+the system, thereby reducing storage overhead costs.
+The identity (hash) and order of the blobs that compose the file are stored
+in the version meta data and the blobs themselves are written to disk.
+
+We currently compute the identity of the blob as a base64 encoded
+cryptographic hash (digital signature).
+We specify several options for hashing algorithm including MD5, SHA1, SHA224,
+SHA256, City Hash, Murmur, and Sip Hash (SHA256 is the default).
+Each cryptographic hashing algorithm provides trade-offs between performance
+and likelihood of collisions.
+
+Blobs are stored on disk in a data directory, organized hierarchically by
+prefixes of their base64 encoded hash value.
+Currently we prefix blobs by 7 characters constraining the depth of the tree
+to 3 levels.
+The root of the data dir therefore contains folders with the first seven
+characters of the blob's hash, each of which contain the next 7 characters
+and so forth.
+The location of a blob on disk is deterministically computed based on its
+hash and the configuration of the local host.
+This data structure allows us to create a pseudo-Merkel
+Tree~\cite{merkle_digital_1987} for efficient detection of changes in the
+underlying blob store to support anti-entropy replication of blobs.
+
+\subsection*{Consistency}
+
+File versions must be replicated in a strongly consistent fashion to avoid
+two primary forms of inconsistency: stale reads and forks.
+A stale read occurs when a read access occurs at the local cache even though
+a more recent update exists elsewhere in the distributed system.
+A fork occurs when two concurrent write accesses create two independent
+versions with the same parent.
+Both stale reads and forks are symptomatic of weak or relaxed consistency
+mechanisms that allow concurrent access to objects in the distributed system
+and resolve conflicts as they occur.
+
+Sequential consistency can be observed globally on a per-object basis because
+there will be a single, linear version history.
+Inter-object consistency requires file system-transactions where a series of
+updates includes dependency information.
+These dependencies are stored in the version object and a read request cannot
+be satisfied unless dependencies have been satisfied.
+Inter-object consistency can therefore be observed by directed, acyclic
+graphs of dependency structures.
+
+
+
+\subsection*{Replication}
+
+Because file versions specify the \textit{view} of the file system, only
+file version meta data needs to be replicated consistently for correctness.
+The underlying data, residing in blobs, can be replicated orthogonally to the
+version information and requires no correctness checks.
+By separating the replication and consistency of file versions and associated
+data, we hope to show improvements to the performance of the system as well
+as strong guarantees for both consistency and durability.
+
+\subsubsection*{Version Replication}
+
+We propose to use both the Raft consensus algorithm as well as an extension
+of Raft, Alia (hierarchical consensus) to replicate versions with strong
+consistency.
+
+
+\subsubsection*{Blob Replication}
+
+
+
+\subsection*{Network Environment}
+
+FluidFS is deployed on a geographically distributed cluster of commodity
+hardware in two countries and two continents.
+Currently, we are running FluidFS on six dual core machines with a minimum of
+8GB of RAM and 256GB of hard disk space.
+Four of the machines are located in College Park, Maryland one is located in
+Seattle, Washington and the last machine is located in Athens, Greece.
+Each machine runs a single FluidFS server process with multiple mount points.
+
+Each machine is connected to a broadband internet connection with a minimum
+of 100 MBit/second download and 5 MBibt/second upload guaranteed bandwidth.
+The network is provided by standard residential ISPs with no dedicated
+access.
+The network is prone to increased latency especially during peak demand
+times; it is also prone to partitions -- short periods of network
+unavailability.
+These conditions can be further amplified programmatically to demonstrate the
+behavior of our system under adverse conditions.
+
+\subsection*{API}
+
+This section discusses the HTTP API for interacting with the FluidFS server;
+the other client API is the FUSE API, which provides for standard FS access
+using kernel \texttt{ioctl} commands inside of a mounted directory.
+Note also that the HTTP API is not currently fully implemented.
+
+FluidFS runs an HTTP server that maps standard HTTP requests to paths in the
+file system.
+For example, the HTTP request \texttt{GET /bbengfort/docs/foo.txt} returns
+the file from the \texttt{/bbengfort} prefix at \texttt{/docs/foo.txt}.
+A request to the API contains an HTTP verb which defines the operation,
+HTTP headers modify the operation, the path of the request defines a location
+in the file system, parameters in the URL modify the request and finally the
+HTTP body contains data.
+A response to a request contains an HTTP status code (e.g. \texttt{200: OK}
+for success), headers that modify the response, and a body that contains the
+requested data.
+
+The primary HTTP verb is \texttt{GET} which specifies a read access to the
+file system.
+If the path of the request ends in a \texttt{/} the server interprets this as
+an listing request for a directory, which simply displays an HTML page with
+the contents of the directory, otherwise it assumes the request is for a file
+object.
+If the file doesn't exist the response will be \texttt{404: Not Found},
+otherwise the type of response will depend on the value of the \texttt{Accept}
+header in the request which specifies a mimetype for the response as follows:
+
+\begin{enumerate}
+    \item \texttt{Accept: text/html} a web page is returned that
+    displays the current file meta data in a human readable fashion.
+    \item \texttt{Accept: application/json} or \texttt{Accept:
+    application/protobuf} the server will return the version data serialized
+    in the specified machine-readable format.
+    \item \texttt{Accept: application/octet-stream} will cause the server to
+    compose the file from blobs and return the file as an attachment for
+    download.
+\end{enumerate}
+
+Other HTTP request headers can include authentication/authorization
+information, partials and ranges for multipart downloads, requests for
+encoding, etc.
+
+HTTP parameters also allow deeper control of the request.
+For example, the \texttt{?version=9.3} parameter allows the user to fetch
+historical versions of the file.
+More importantly the \texttt{?blob=a3de93af} parameter allows the user to
+fetch a specific blob and is useful for demand-fetching blobs before they
+are replicated locally.
+The \texttt{?blob} parameter can also be used at the root to request a blob
+not associated with a specific file, though in this case no file-specific
+validation occurs nor is there a guarantee of success.
+
+Other HTTP verbs specify various \textit{accesses} on the server as follows:
+
+\begin{enumerate}
+    \item \texttt{POST}: create a file at the specified path. If the file
+    does not exist and the request includes data, this is the same as create
+    and update in one step. If the file exists and data is included, the
+    server will return a \texttt{409: Conflict} response. If no data is
+    included in the request, then this is equivalent to \texttt{touch}.
+    \item \texttt{GET}: read a file or list a directory.
+    \item \texttt{PUT}: update (write) to a file at the specified path. A
+    successful request will return the newly created version similar to how a
+    \texttt{GET} works. This method expects the entire file to be uploaded.
+    \item \texttt{DELETE}: delete the file at the specified path.
+    \item \texttt{HEAD}: collect information about what will be returned from
+    a read request, e.g. the size of the data or status of the response.
+    Basically a \texttt{GET} without a body.
+\end{enumerate}
+
+The HTTP API is fairly straightforward using well known resource operations,
+standards, and codes.
+Hopefully this will ensure that the API is easy to use and create clients
+for, whether on the web or on the command line.
+
+\subsubsection*{Configuration API}
+
+I propose a special path for the HTTP API, \texttt{http://host:port/etc}, that
+is used to configure FluidFS both locally for the specified host or globally
+for the entire file system.
+I considered using subdomains, but FluidFS has no control over routing at the
+domain level, or using a different port which would involve instantiating
+another HTTP server alongside the API server; in both cases it felt simpler
+to simply reserve \texttt{/etc} as a special prefix in the file system.
+
+This path could provide a web interface for managing the server as well as
+viewing status and statistics information.
+Alternatively we could write configuration and status files in this
+directory, managing them similarly to other files in the file system with the
+exception that only the system was allowed to write to this directory.
 
 {\footnotesize \bibliographystyle{acm}
 \bibliography{references}}
