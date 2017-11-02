@@ -157,8 +157,9 @@ underlying blob store to support anti-entropy replication of blobs.
 
 \subsection*{Consistency}
 
-File versions must be replicated in a strongly consistent fashion to avoid
-two primary forms of inconsistency: stale reads and forks.
+File versions represent the state of the file system and must be replicated
+in a strongly consistent fashion to avoid two primary forms of inconsistency:
+stale reads and forks.
 A stale read occurs when a read access occurs at the local cache even though
 a more recent update exists elsewhere in the distributed system.
 A fork occurs when two concurrent write accesses create two independent
@@ -176,7 +177,131 @@ be satisfied unless dependencies have been satisfied.
 Inter-object consistency can therefore be observed by directed, acyclic
 graphs of dependency structures.
 
+Whether or not transactions are implemented for writes, a consensus algorithm
+must govern the accesses to the file system to ensure that strong consistency
+is maintained.
+Consensus has two phases: propose and commit in both phases all participants
+in the quorum must ensure that file system invariants are met, for example
+not allowing forks to occur.
+For strong consistency we propose two governing mechanisms: lease (lock)
+commits and access commits.
 
+\subsubsection*{Lease Commits}
+
+The first mechanism is perhaps the simplest on the surface -- replicas in the
+file system implement a distributed lock server via consensus.
+When a host would like to access a file or set of files, it requests a
+\textit{lease}, a timed lock, from the leader of the consensus protocol.
+It can then perform any operations on the files specified by the lease.
+Before the lease expires, the host must commit its final writes and release
+the lock.
+If the lease expires, the system is reset to the original state and all
+uncommitted writes during the lease period are dropped.
+
+When the client requests the least, it must demonstrate that it is as up to
+date as the leader, otherwise the lease request will be rejected (or the
+client will be made up to date with the latest state of the file system).
+The client can request a single object in the file system by path or a
+portion of the file system using glob-like syntax e.g. \texttt{/docs/proj/*}.
+A consensus decision is made and if the lock request is committed then the
+client may access the files under its lease.
+
+During the period of the lease, any requests for files under the lock will
+either be blocked by the leader or rejected.
+The consequence of contention in this system is latency or no progress.
+To ensure the system is not deadlocked, if the leader has not received a
+heartbeat message from the client holding the lock and another lock request
+has become available, then the leader will forfeit the current lock and no
+writes made under that lock will be accepted.
+If no requests for the lock are made, it is possible for the client to
+recover and commit changes after the lock has expired.
+
+Once the client is done with its accesses, it submits a lock release request.
+The lock release request contains any updates made to the underlying file
+system.
+The lock release and updates are committed, and once committed the lock is
+released.
+Clients can also request a lease extension, which also includes a snapshot of
+current writes to ensure that the system remains durable.
+
+Commands that are applied to the state machine:
+
+\begin{enumerate}
+    \item \texttt{ACQUIRE LEASE}: requires client to be as up to date as the
+    leader for the files requested in the lease.
+    \item \texttt{FORFEIT LEASE}: called by the leader to cancel a currently
+    held lease.
+    \item \texttt{WRITE VERSIONS}: during a lease, files accessed during the
+    lease can be committed. This must happen before the lock is released.
+    \item \texttt{RELEASE LEASE}: this must be committed to ensure that all
+    replicas know the lease is released and can be handed out again.
+    \item \texttt{EXTEND LEASE}: essentially RELEASE/ACQUIRE in one step,
+    this is only allowed if no other client has requested a lease.
+\end{enumerate}
+
+Leases can be extended to implement read and write leases and other mutex
+semantics.
+
+\subsubsection*{Access Commits}
+
+Leases are ideal in the scenario where one client needs to make many changes
+during a single session, however, leases maintain strong consistency by
+blocking concurrent access for a fixed window of time.
+A more optimistic approach is \textit{access commits} where consensus
+decisions are made on actual file system operations.
+In this case the file system implements \textit{close to open} consistency
+rather than per-access consistency because low granularity will require too
+many consensus operations.
+The access commits mechanism is optimistic in that it believes that conflict
+is rare and that when conflicts do occur they can be easily resolved.
+
+When a client wants to modify an object in the file system it makes a request
+to the leader that initializes a consensus decision to serve the access
+request.
+If a client wants to write a new version to a file, it submits the write; if
+the write is not a fork -- that is its parent is the latest committed write,
+the leader accepts the write, otherwise the write is rejected or must be
+prepared.
+Forks occur if on open, the version that was read becomes stale while the
+file is being edited e.g. another write was committed.
+This is more likely if a local cached version is read to open the file, it is
+less likely if a \texttt{READ} access was specified to the leader, who
+returns the last committed value.
+
+We can therefore specify how we want reads to be handled to decrease the
+likelihood of contention at the cost of read latency.
+Read local cache is the fastest but most likely to have a conflict.
+A remote read to the leader of the consensus group that returns the latest
+commit or the latest proposed write is even less likely to have a conflict,
+and finally a remote read that is committed by the consensus protocol will
+result in external linearizability of all reads and writes to the system.
+
+If a write is a fork, the leader has several options; if we simply reject the
+forked write then we have implemented a "first writer wins" policy and the
+application will have to handle the conflict.
+For text files, it is possible to use a merge protocol similar to Git to
+repair conflicts, or for images and videos which are usually updated
+atomically the system can simply choose to overwrite the file with the new
+data, updating the parent as required.
+
+Commands applied to the state machine are as follows:
+
+\begin{enumerate}
+    \item \texttt{CREATE}: create a file, if it exists already the operation
+    is rejected.
+    \item \texttt{WRITE}: commit a new version of the file, it is rejected if
+    the version is a fork. Writing to a file that is not created will be
+    rejected unless a flag is set, then two commands are issued together.
+    \item \texttt{DELETE}: delete the file from the file system, a write
+    whose parent is deleted is rejected unless a flag is set in which case
+    the file is created again with a new root version.
+    \item \texttt{READ}: optional, read accesses do not need to be committed
+    unless an external linearizability is required.
+\end{enumerate}
+
+While leases are simpler to implement with respect to transactions, access
+commits can also maintain transaction semantics by writing versions with
+dependency information included.
 
 \subsection*{Replication}
 
@@ -193,11 +318,65 @@ as strong guarantees for both consistency and durability.
 We propose to use both the Raft consensus algorithm as well as an extension
 of Raft, Alia (hierarchical consensus) to replicate versions with strong
 consistency.
+In this case, versions are replicated by being broadcasted via the consensus
+protocol, note that in this case all replicas must participate in consensus.
+Changes are applied to the view of the file system on commit, new replicas
+can be brought up to date with the state of the leader by performing a
+snapshot repair of their log, then replaying all log commands.
 
+For comparison we propose the following topologies:
+
+\begin{enumerate}
+    \item \textit{Raft with writes}: Raft consensus with optimistic access
+    commits.
+    \item \textit{Raft with leases}: Raft consensus implementing a
+    distributed lease server.
+    \item \textit{Alia with both}: Hierarchical consensus where the root
+    quorum partitions the namespace (essentially high level leases) to
+    subquorums that can be \textit{either} write or lease quorums depending
+    on the requirements for the partition and the number of clients.
+\end{enumerate}
+
+Note that because file versions are small pieces of metadata, file versions
+are \textit{totally replicated} across all replicas.
 
 \subsubsection*{Blob Replication}
 
+The chunks that compose a file (blobs) are immutable and therefore can be
+safely replicated using \textit{anti-entropy}.
+This mechanism ensures that large amounts of data are not slowing down the
+consistency process, that blobs can be partially replicated to save space,
+while still ensuring a high level of durability.
+When a host tries to read a file, if the blobs haven't been replicated, they
+can demand-fetch the blobs from the originating client or a \textit{sync}
+node -- a host with a large disk that is prioritized in anti-entropy.
+Additionally we can use heuristic or learning algorithms to colocate blobs
+where they are most likely to be read.
 
+We propose \textit{bilateral anti-entropy} such that every anti-entropy
+session repairs the state between both the local and remote.
+On a routine interval, the localhost will select a remote peer to synchronize
+with (\textit{sync nodes} will have a slightly higher probability of being
+selected).
+The local machine will send a tree of the prefixes of the hashes of the blobs
+(the same tree that blobs are stored on disk), each node in the tree will
+have the count of the number of blobs underneath it.
+Using this data structure, it is is simple to identify which directories have
+been updated with new blobs, and the remote returns a listing of those
+directories.
+The local will then send all missing blobs along with a request for blobs it
+is missing.
+
+Note that by simply using counts it is possible that two different blobs will
+be inserted into the same directory, causing both replicas to assume that
+they are up to date.
+The first mechanism to handle this is to ignore counts in the root of the
+tree - comparing only counts and the second level.
+In the rare case that this does occur, on read the blobs can be demand
+fetched.
+If stronger guarantees are required, each level of the tree can also track
+the hash of the hashes of all its children, which also makes it easy to
+detect changes.
 
 \subsection*{Network Environment}
 
