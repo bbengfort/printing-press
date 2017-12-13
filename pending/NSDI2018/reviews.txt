@@ -1,0 +1,354 @@
+NSDI '18 Paper #2 Reviews and Comments
+===========================================================================
+Paper #86 There Is More Consensus in the Hierarchy
+
+
+Review #86A
+===========================================================================
+
+Overall merit
+-------------
+1. Reject (bottom 50%)
+
+Paper summary
+-------------
+The paper introduces hierarchical consensus, a protocol to consistently
+distribute the work of an object store among multiple subquorums, each located
+close to the clients accessing the objects it's responsible for. A single root
+quorum, consisting of all nodes in the system, is ultimately responsible for
+assigning objects to subquorums, but subquorums do not have to operate in
+lockstep with each other and with the root quorum.
+
+Strengths
+---------
+The problem of achieving strong consistency while allowing local access is an
+important one.
+
+Weaknesses
+----------
+There is no proof (even an informal one) that the protocol is correct, and at
+least one likely flaw undermining its correctness. The protocol is imprecisely
+and incompletely defined, particularly the part about synchronizing logs to
+achieve strong consistency. The system only provides per-object consistency,
+not sequential consistency. The experimental results don't compare to any
+other alternatives. Alternatives like Vertical Paxos are likely superior.
+
+Comments for author
+-------------------
+The introduction of your paper is very compelling. You present a good case for
+what you're trying to achieve. Unfortunately, you need to do a lot of work to
+provide a solution that lives up to the challenges you lay out in the
+introduction, to prove that it does so, and to demonstrate experimentally that
+it does better than other alternatives for doing so.
+
+Your paper has several big omissions, one of which is any proof of
+correctness. You don't even have a reference to a proof in a technical report,
+or even an informal proof or proof sketch. Without doing the work of
+constructing such a proof, you are leaving open the likely possibility that
+your protocol is incorrect. Achieving strong consistency is challenging,
+particularly for a protocol as complex as yours.
+
+One flaw that I can already see is that your nuclear option relies on timing
+assumptions. If two nodes don't have perfect time synchronization, it's
+possible that one will conclude a delegation has lapsed while the other
+believes the delegation hasn't lapsed. This could lead to incorrectness.
+
+Another reason to write a proof is that it will obligate you to write out your
+protocol in careful detail. There are many places in which you're vague, and
+thus leave open the possibility that what you're describing is incorrect or
+will be interpreted incorrectly by the reader. The most egregious is your
+description of your algorithm for merging logs into a sequential
+log. Essentially, it is just the first paragraph of page 8. You need to expand
+such complex aspects of your protocol in a lot more detail.
+
+Another big omission from your paper is a comparison to other systems for
+achieving strong consistency in a wide-area network. You list several examples
+in your related-work section, so you're clearly aware of alternatives. But, by
+not directly experimentally comparing to them you're not demonstrating to the
+reader that you've usefully improved on the state of the art. Qualitative
+arguments that your system is better aren't nearly as convincing as
+quantitative ones. For instance, you say that HC offers "deep integration of
+the two different levels" compared to Vertical Paxos, but this strikes me as a
+bad thing, not a good thing. By running experiments, you can demonstrate
+quantitative benefits.
+
+I'm not sure, though, that you will be able to demonstrate any quantitative
+benefit relative to the state of the art. Indeed, there are systems and
+approaches out there, like Eris, vCorfu, and Vertical Paxos, that will likely
+give better performance while at the same time giving stronger
+consistency. After all, you only provide per-object consistency and not
+sequential consistency or transaction support, but other systems do.
+
+In many places, you use terms like linearizability and consistency precisely
+but confusingly. You don't want to leave a reader with the wrong impression
+that you provide sequential consistency, so avoid using terms in contexts that
+might confuse the reader into thinking so.
+
+Detailed comments:
+
+Page 1: Regarding "There Is More Consensus in the Hierarchy", I get the joke
+reference here, but I think you may prefer a title that's informative and
+meaningful to a broader audience.
+
+Page 3: Regarding "representation of the term of qi,e.", I found this
+confusing. Clarify what you mean.
+
+Page 3: Regarding "client accesses to other than their local subquorum,", this
+use of the definite article suggests that a client will always have exactly
+one local subquorum. But I would think it might have multiple.
+
+Page 3: Regarding "Consider an alternative leader-based approach where root
+quorum membership is defined as the current set of subquorum leaders.", that's
+not the alternative I'd envision. I'd have a designated root quorum that had
+no particular relationship to the subquorums' membership. Why don't you do
+this instead? (I actually suggest you do this instead.)
+
+Page 4: Regarding "the root quorum leader sends vote requests to all system
+replicas.", this sounds like a recipe for a scalability bottleneck. This is
+yet another reason to just have the root quorum be a small set of nodes.
+
+Page 4: Regarding "The command proposed by the leader is an enumeration of the
+new subquorum partition, namespace partition, and assignment of namespace
+portions to specific subquorums.", this will be huge. I suggest instead having
+it be the difference between the previous epoch and the new epoch, conditional
+on the epoch number still being a particular value.
+
+Page 4: Regarding "Truncation is necessary to guarantee a consistent view of
+the log within a subquorum, as peers may have been part of different
+subquorums, and thus have different logs, during the last epoch.", I don't
+understand this at all. Please clarify.
+
+Page 4: Regarding "Safety is guaranteed by tracking subquorum dependencies
+across the epoch boundary.", define those more precisely. Or say something
+like, "We'll now discuss in detail what this means."
+
+Page 5: Regarding "All three subquorums learn of the epoch change at the same
+time,", this seems like an unreasonable assumption.
+
+Page 5: Regarding "These bilateral handshakes", I don't understand how two
+quorums perform a handshake. This is another aspect of your protocol that you
+need to present in more detail.
+
+Page 5: Regarding "We define the system's progress property as the system
+having enough live replicas to commit votes or operations in the root
+quorum.", this isn't a usefully end-to-end progress property. What ultimately
+matters is progress of the object stores, not of the root quorum.
+
+Page 5: Regarding "a 25/5 system", define this x/y notation.
+
+Page 6: Regarding "3.3.2 The Nuclear Option", this section seems quite fraught
+with peril. But if you take my advice and have the root quorum be a small set
+of nodes rather than everyone, you won't have to have all this complexity.
+
+Page 7: Regarding "epoch handoffs contain enumerations of all current object
+versions, though not the data itself.", that's still a huge message. Consider
+ways to reduce it, like using a Merkle tree.
+
+Page 7: Regarding "If operations on each object are linearizable, the entire
+object space is also linearizable.", this is the kind of confusing phrasing
+that is likely to confuse a reader into thinking you've achieved sequential
+consistency when you haven't.
+
+Page 7: Regarding "a globally consistent abstraction.", this also makes it
+sound like you provide sequential consistency, which you don't.
+
+Page 7: Regarding "subquorums in Figure 4(b) create additional dependencies by
+issuing remote writes to other subquorums", I don't understand why subquorums
+are writing, rather than clients.
+
+Page 8: Regarding "Presenting a sequentially consistent global log across the
+entire system, then, only requires tracking these inter-subquorum data
+accesses,", this is yet more confusing language that makes it sound like
+you're providing stronger consistency than you actually are.
+
+Page 8: Regarding "with strong consistency", this is another example of such
+misleading language.
+
+Page 9: Regarding "Monitoring and adapting to network conditions is part of
+ongoing work.", I don't understand why this is necessary, since Raft already
+has code for adaptive timeouts.
+
+Page 9: Regarding "We therefore allow replicas to accommodate multiple
+distinct logs with different access characteristics.", given this support, you
+may want to consider allowing two subquorums to overlap even within the same
+epoch.
+
+Page 9: Regarding "Our system avoids these synchronous writes by allowing
+epochs to re-join a subquorum at the next epoch change without any saved
+state, avoiding these handshakes altogether.", explain how this can be done
+safely.
+
+Page 9: Regarding "Howard [19] proposes T = λµ + 2λσ", define
+lambda-sub-sigma. Also, I suggest switching which Greek letter is the
+subscript.
+
+Page 10: Regarding "λµ = 34.651ms,", this is not much of a wide area.
+
+Page 10: Regarding "We think the reason for this ceiling is hinted at by
+Figure 5(b).", it would be better to conclusively pin down the reason your
+system doesn't scale. And it would be even better to then fix it.
+
+Page 10: Regarding "Figure 5:", something seems wrong with this graph, as it
+says you get nonzero throughout with zero replicas per cluster. Also, you
+should use error bars in this and other figures.
+
+Page 11: Regarding "where one entire subquorum becomes partitioned from the
+others.", I don't understand how you can recover from this scenario. After
+all, you'll have to wait indefinitely for the handshake to complete:  if a
+subquorum is partitioned from the rest, it won't be able to complete a
+handshake.
+
+Page 12: Regarding "Figure 7:", I don't understand the legends here. Are those
+data center names?
+
+Page 13: Regarding "Scalable consistency in scatter.", be careful of incorrect
+capitalization of titles in this and other references.
+
+
+Nits:
+
+* Page 1: "Current approaches [6, 31, 34, 23, 39]" -> Put citations in such
+lists in numerical order.
+* Page 1: "objects stores" -> Object
+* Page 2: "the existing leader, and announce" -> Leader's, announces
+* Page 3: "responsibilities are" -> Responsibility is
+* Page 6: "increment's" -> Increments
+* Page 6: "after to the next" -> Cut to
+* Page 8: "Golang use" -> And
+* Page 9: "msec" -> ms
+
+
+
+Review #86B
+===========================================================================
+
+Overall merit
+-------------
+2. Weak reject (next 20%)
+
+Paper summary
+-------------
+Protocols for hierarchical consensus, using locality of groups to form sub-quorums.
+
+Strengths
+---------
+- Interesting ideas for hierarchical consensus.
+
+- Would be a real technical contributions for protocol with significantly better fault-tolerance, performance, etc.
+
+Weaknesses
+----------
+- Unclear benefits to applications compared to earlier approaches
+
+- More complex protocols but lack of any proofs of correctness
+
+- Very underwhelming evaluation
+
+Comments for author
+-------------------
+Many details below, but let me preface review by saying there are interesting ideas here that I hope to lead to some real technical innovations.  However, the paper as is lacks clarity in terms of its benefits, properties, and correctness, and the evaluation is completely underwhelming.  It was really the evaluation with led me to provide a lower score - It didn't come close to evaluating the promise of scale/performance that the paper promised.
+
+---
+
+1:  Confusing in intro how you claim at various parts to offer sequential log then later linearizable access.  Talk about this a little bit later, but I think the properties of the system are still a bit unclear.
+
+3.1:  "However the leader approach dramatically decreases fault tolerance" - Please better explain.
+
+3.1:  I found it confusing to talk about this as a hierarchy, if the approach is actually broadcast down the tree.  Typically expected for leaders in subtrees to server as member of group in current level of k-ary tree.
+
+3.3.1:  Some nice analysis, but there's a strange thing here. I.e., you claim a 25/5 can tolerate min 8 failures and max 16 failures.  But it seems like you need to be really careful here, as it's assuming you can operate successfully if more than a majority fail (as of course, they might not have failed, but instead are on a network partition. So it would be good to better explain why you can't get into any nasty split brain scenarios.
+
+3.3.2:  We're starting to get into a lot of mechanism...and the paper doesn't have any proofs of correctness.  When complex consensus algorithms talk about "finessing the issues" by doing some weird math, well, I'm not sure I should believe it.
+
+4: Are you claiming globally linearizable or only per-tag?  Become more clear if I think about protocol, but you need to be clear about this.  
+
+4: "Reads are not committed by default, but always served by leader of appropriate subquorum". Not sure exactly what you mean by stating "by default".
+
+4: "Replicas perform background anti-entropy, disseminating..."  Less clear how this fits into other parts of your protocol (particularly as it relates to strong consistency properties you claim).
+
+End of 4: What's the point about citing to results about linearizability being composable?  Is this meaningful if your system doesn't actually support any transactions that would make cross-tag/key consistency actually matter?  What's the point of this?
+
+Evaluation is underwhelming. A significant point of this research seems to be about scale, but you end up evaluating 9 nodes (on an uncertain test bed "on the WAN"), and 26 AWS notes in the same cluster?  It seems like the entire motivation behind this system was large-scale deployments over WAN, but this evaluation was very weak. It basically shows that it can do some failover and load adaptation (although the latter seems like a pretty minor part in the body of paper).  But there is no comparison, no understanding of key design decisions (given system complexity), and how it would compare against simpler/existing design.
+
+For example, I really wanted a better explanation about what this system can do that something like hierarchical Paxos / Chubby can't. Very little head-to-head to explain how differs from architectures already employed at large internet services.
+
+Finally, regarding deployments: AWS / Azure give a perfect setting for this: Azure has 36 regions worldwide.  Use those.
+
+
+
+Review #86C
+===========================================================================
+
+Overall merit
+-------------
+1. Reject (bottom 50%)
+
+Paper summary
+-------------
+Hierarchical consensus (HC) is a new consensus design targeted at
+non-datacenter environments with many heterogeneous nodes. It that has
+two levels of consensus.  The top, root, level includes all nodes in
+the system.  The bottom, leaf, level includes potentially many smaller
+"subquorums".  Subquorums are responsible for disjoint namespaces.
+Operations within namespaces are only allowed within a one
+subquorum. The root level is used mainly to map namespaces to
+subquorums and to manage the membership of subquorums.  All nodes
+participate in the root quorum, but performance is improved by having
+nodes in a subquorum delegate their votes to the leader of the
+subquorum.  Performance for root level operations is further improved
+using fuzzy handshakes that allow different subquorums to apply root
+level changes at different times.  HC is used to build a linearizable
+key-value store called Alia.  Alia is shown to provide higher
+throughput than an implementation of Raft with an advantage that
+increase when there are many replicas.
+
+Strengths
+---------
+The complete source code and documentation will be made available by the time of the camera-ready version.
+
+Used HC to build a key-value store.
+
+Nuclear option discussion is interesting.
+
+Weaknesses
+----------
+No motivation for target environment.
+
+Does not compare to the state of the art.
+
+Comments for author
+-------------------
+I scored this paper a 1 because I think it has two fatal flaws.  I
+would still score a future version of the paper a 1 if either flaw
+still remained.  I focus my comments on explaining these two flaws.
+
+One of the flaws is that the paper never provides any motivation for
+the unusual environment it targets. The introduction says:
+
+> This problem space is im- portant, as it encompasses a wide variety of usages, from agglomerations of the environments assumed by previous systems down to ad hoc systems of local and personal devices.
+
+This is simply asserting that the problem space is important instead
+of demonstrating that it is important.  We know datacenter
+environments are important because they are used to support a huge
+number of web services we all use.  I'm not fully clear on what
+environment this paper is targeting, but I know it's supposed to be
+different from the datacenter environment.  Why is such an environment
+an important topic to study?  Or, put another way, there are an
+infinite number of environments we can study, why study this one?
+Without an explanation of why the target environment is important this
+paper seems like a solution to a problem that will never actually
+exist.
+
+
+Another fatal flaw is that HC is not compared to state of the art
+systems.  EPaxos (reference 34 and broken reference 33) is
+specifically designed to provide low latency for geo-replicated
+consensus.  This is exactly the situation HC purports to improve
+performance in.  EPaxos is also written in go and the code is
+available (as well as code for other variants of Paxos).  So an
+evaluation that compared EPaxos and HC seems necessary to see if the
+differences in HC's design provides any improvement over what we
+already know how to do.  I suspect that EPaxos would beat HC in that
+comparison in all metrics: latency, throughput, and number of replicas
+requires for that performance.
+
