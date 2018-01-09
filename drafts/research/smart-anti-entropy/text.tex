@@ -1,0 +1,264 @@
+\documentclass[letterpaper,11pt,onecolumn]{article}
+
+% Packages
+\usepackage{epsfig}
+\usepackage{subfigure}
+\usepackage{xspace}
+\usepackage{amsmath}
+
+% One inch margins all around for letter-size paper:
+\oddsidemargin 0in
+\evensidemargin 0in
+\topmargin -.5in
+\textwidth 6.7in
+\textheight 9.1in
+
+% Pete's editing special sauce
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+\newcommand{\todo}[1]{{\textcolor{red}{#1}}}
+\newcommand{\pjk}[1]{{\textcolor{red}{PJK: #1}}}
+\newcommand{\ben}[1]{{\textcolor{orange}{Ben: #1}}}
+
+\renewcommand{\baselinestretch}{1.2}
+
+\begin{document}
+
+\title{\Large \bf Smarter Anti-Entropy with Bandits}
+\author{Benjamin Bengfort and Pete Keleher}
+\date{}
+\maketitle
+
+\begin{abstract}
+We propose an \emph{adaptive} distributed storage system that can monitor
+user access patterns and network environment and change its replication
+behavior in order to improve consistency.
+Specifically we look at eventually consistent replication implemented with
+routine, pairwise anti-entropy sessions.
+By applying reinforcement learning techniques to the anti-entropy process,
+we show that we can optimize the speed of replication, thereby reducing
+overall inconsistency.
+Additionally we explore monitoring mechanisms that modify the reinforcement
+learning process, detecting anomalies to temporarily shift behavior or to
+reset reinforcement learning.
+We show the advantages of such a system through an implementation called
+Honu, a replicated key-value store.
+\end{abstract}
+
+\section*{Introduction}
+
+The next phase of distributed storage systems will be smarter than their
+predecessors by optimizing their behavior in response to their environment.
+Constraints such as bandwidth, latency, storage, mobility, and user access
+patterns mean that a future data fabric of heterogenous devices and systems
+can shape how they participate in full or partial replication.
+User experience, consistency, fault tolerance, and availability can all be
+improved by \emph{adaptivity}.
+
+An adaptive system monitors its environment and changes its behavior at
+runtime without user intervention.
+For example, a system colocated with a mobile user may detect that it is
+offline and track changes in objects being modified.
+When the system comes back online, it uses merging algorithms during
+replication to ensure data integrity.
+This example, however, is a simple heuristic mechanism.
+Truly adaptive systems will use machine learning techniques both to identify
+criteria for response as well as to learn correct behaviors.
+We believe a powerful combination for such a system is anomaly
+detection algorithms~\cite{angiulli_fast_2002,qian_recognition_2010} for
+monitoring combined with online reinforcement
+learning~\cite{osugi_balancing_2005,kalai_efficient_2005,bouneffouf_contextual_2014,langford_epoch-greedy_2008}
+to suggest behavioral strategies.
+
+In this paper we consider the adaptive behavior of an eventually consistent
+object store implemented with pairwise anti-entropy \cite{decandia2007dynamo,terry1995managing}.
+In such a system, clients access objects on one or more replicas in the
+system, observing the current local state or making a local update.
+The state is replicated on a routine basis, where one replica randomly
+selects another and exchanges state to ensure each has the latest version.
+The system is eventually consistent \cite{vogels2009eventually} because so
+long as there are no accesses, the system will reach a consistent state.
+Anti-entropy is a specific type of gossip protocol \cite{haeupler2015simple}
+that is deterministic and avoids broadcast saturation problems.
+However, during runtime, the system is prone to \emph{stale reads} and \emph{write forks} that are observable to external clients \cite{bailis2012probabilistically}.
+
+The speed of total replication throughout the system determines the severity
+of such inconsistencies.
+Said another way, the faster an update can replicate through the system, the
+fewer inconsistencies external clients will encounter.
+However, because anti-entropy is a random process, no guarantees can be made
+about how quickly an update propagates.
+
+Instead of using uniform random selection, however, we propose to use
+\emph{bandit algorithms} to modify the selection of peers to perform
+replication.
+These algorithms will learn optimal peers to have anti-entropy sessions with
+by optimizing rewards based on availability, amount of data exchanged,
+latency of connection and locality of access.
+We will show that the topology of messaging in an anti-entropy session will
+change over time to respond to client accesses as optimally as possible,
+minimizing the total replication delay.
+
+The location of accesses in such a system will also change over time.
+Therefore an optimal configuration reached through reinforcement learning may
+not always be the optimal configuration.
+We therefore propose to use anomaly detection algorithms, particularly
+\emph{one-class SVMs} to detect changes in user behavior.
+The SVM state will consider the location and frequency of accesses in a
+system.
+If the access pattern changes, the system will revert it's peer selection
+probabilities, learning a new optimal configuration.
+
+\section*{System Description}
+
+Our system will consist of $N$ peers that maintain a set of replicated
+objects.
+Clients can contact one or more replicas to \texttt{Get} or \texttt{Put} data
+to/from an object.
+On a \texttt{Get} operation, the replica(s) contacted will return the
+\emph{latest} version of the object.
+On a \texttt{Put} operation, the replica(s) contacted will update a
+monotonically increasing conflict-free distributed version
+number~\cite{almeida2002version,parker1983detection} which determines which
+version is later than another version.
+Objects also contain parent versions, which delineates their lineage in a
+read-then-write context.
+the parent version is the latest version of the object on the replica.
+
+On a routine interval, $T$, each replica will select a random peer and
+perform \emph{bilateral anti-entropy}.
+That is, the replica will send a vector of all latest versions of objects to
+the remote peer.
+The remote will respond with all objects whose version is later along with
+a vector of requested objects that are later on the initiating replica.
+The anti-entropy session is concluded by the initiating peer sending the
+requested objects.
+
+The speed of total replication, $t_r$ is determined by the size of the system,
+the rate of anti-entropy, as well as some random element where replicas
+choose a peer such that no exchange occurs as shown in
+Equation~\ref{eq:propagation}.
+
+\begin{equation}
+t_{r} \approx T \log_3N + \epsilon
+\label{eq:propagation}
+\end{equation}
+
+Note that this equation gives maximal behavior in the case of accesses
+happening at every replica, and every replica perfectly selecting a peer.
+In the case of accesses happening at only one replica, the best case is that
+all replicas select that peer to perform anti-entropy with.
+
+The system is prone to three types of inconsistencies:
+
+\begin{enumerate}
+    \item \emph{Stale reads}: the replica reads a version that is older than the globally latest version.
+    \item \emph{Forked writes}: the replica writes to an object such that the
+    parent version is stale.
+    \item \emph{Stomped writes}: a version becomes outdated so quickly so as
+    to never be fully replicated.
+\end{enumerate}
+
+The magnitude of these latencies in a system depends primarily on the latency
+of connections between replicas ($\lambda_\mu$) as well as
+$t_r$. If $T \gg \lambda_\mu$ then it primarily depends on $t_r$.
+
+The system is currently implemented as a key-value store called Honu.
+
+\section*{Learning Behavior}
+
+Adaptivity comes from two learning behaviors: reinforcement learning
+implemented with multi-armed bandits to optimize the anti-entropy topology
+and anomaly detection implemented with one class SVMs to detect changes in
+the client access behavior.
+
+\subsection*{Multi-Armed Bandits}
+
+Multi-armed bandits are a class of reinforcement learning algorithm that seek
+to optimize the search for the probability of a maximal reward.
+The premise is that you have a set of slot machines (with an arm to pull) and
+that one of the machines is more likely than the other to produce a jackpot.
+The goal of the algorithm is to discover which arm is most likely to produce
+a jackpot.
+
+The algorithm starts by allocating each arm equal probabilities, e.g. a
+uniform selection of arms.
+It then selects an arm with the specified probability and observes the
+result.
+If the result is a reward, then it increments the probability of that machine
+being selected, taking away probability density from the others.
+By continuing with this random selection, eventually the arm with the highest
+likelihood of payoff is selected.
+
+Most bandit algorithms consider the \emph{exploit vs. explore} tradeoff.
+E.g. if you discover an arm that's paying off, how often do you continue to
+use that arm, considering that it could be a local maxima. There are two
+primary forms of balancing this trade off - epsilon greedy and simulated
+annealing.
+
+Epsilon greedy algorithms use a parameter, $\epsilon$ to modify selection as
+follows: with a probability, $\epsilon$ simply choose the highest likelihood
+arm (the greedy part), otherwise select from all arms with their specified
+probabilities. Simulated annealing approaches reduce $\epsilon$ over time so
+that the first phase of the learning is more exploratory and the last phase
+is more greedy.
+
+To implement this with Anti-Entropy we assign the selection of a remote peer
+to participate in anti-entropy with a likelihood. The likelihood is modified
+through reinforcement using various bandit strategies. The reward function
+can include the following:
+
+\begin{enumerate}
+    \item if data was exchanged between peers
+    \item the amount of data exchanged between peers
+    \item the recency of versions in the exchange
+    \item network latency
+    \item the locality of accesses to specific objects
+\end{enumerate}
+
+A successful anti-entropy session is one where data is exchanged.
+We are essentially comparing uniform random selection with bandit selection
+of the remote for an anti-entropy session.
+
+\subsection*{Anomaly Detection}
+
+We posit that reinforcement learning produces an optimal topology based on
+specific client access patterns.
+However, client access patterns change over time, and the system needs to
+adapt to these changes as well.
+Some research will have to be conducted into determining if reinforcement
+learning strategies are able to adapt themselves.
+In the meantime, I propose the use of anomaly detection to determine if the
+normal access pattern of the system has changed.
+
+We will break down the system in to sessions.
+A session is defined by a period of ``normal'' accesses, e.g. a specific set
+of clients accessing objects on specific replicas.
+During a session, a bandit strategy can be used to optimize the topology of
+anti-entropy.
+When the session changes, however, the bandit probabilities can be reset so
+that a new optimal anti-entropy topology can be learned.
+
+We propose the use of anomaly detection algorithms to detect session
+boundaries, particularly one-class support vector machines.
+A time series vector of the number of accesses per client, per object will
+be created on each replica.
+The state of the system is all accesses to all replicas across all clients.
+The SVM will be trained on ``stable state'' data, e.g. a series of
+configurations where clients do not shift access patterns very much.
+
+Replicas will also exchange vector information about the state of the system
+during anti-entropy sessions.
+If a replica detects an anomaly (e.g. changing state) locally, it will reset
+its bandit probabilities and also broadcast new session information.
+Each replica should eventually shift topologies, resulting in a new optimal
+anti-entropy topology.
+
+\section*{Experiments}
+
+\section*{Related Work}
+
+\newpage
+\bibliographystyle{acm}
+\bibliography{paper}
+
+\end{document}
