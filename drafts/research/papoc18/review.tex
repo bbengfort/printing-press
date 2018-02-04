@@ -1,0 +1,46 @@
+% Stripped down document format for reviewers.
+\documentclass[sigconf]{acmart}
+\usepackage{booktabs} % For formal tables
+
+% Don't print any ACM extra stuff, just a plain paper
+\setcopyright{none}
+\settopmatter{printccs=false, printacmref=false}
+
+% Conference
+\acmConference[PaPoC'18 Worshop Proposal]{5th Workshop on Principles and Practice of Consistency for Distributed Data}{April 2018}{Porto, Portugal}
+\acmYear{}
+\copyrightyear{}
+
+
+\acmDOI{}
+\acmISBN{}
+
+
+\begin{document}
+\title{Improved Anti-Entropy with Reinforcement Learning}
+
+\author{Benjamin Bengfort}
+\affiliation{%
+  \institution{University of Maryland}
+}
+\email{bengfort@cs.umd.edu}
+
+\author{Pete Keleher}
+\affiliation{%
+  \institution{University of Maryland}
+}
+\email{keleher@cs.umd.edu}
+
+
+\begin{abstract}
+    \input{abstract}
+\end{abstract}
+
+\maketitle
+
+\input{text}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{papers}
+
+\end{document}
