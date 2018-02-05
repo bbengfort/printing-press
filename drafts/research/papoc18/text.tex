@@ -319,14 +319,102 @@ topologies result from the bandit-based approaches.
 The uniform selection network is simply a hairball of connections with
 a limited number of synchronizations.
 Clear optimal connections have emerged with the bandit strategies, dark
-lines represent extremely successful synchronizations between replicas,
-while light lines represent connections that happen more rarely.
-The fewer edges in the graph, the fewer network connections that exist
-between the links described. 
+lines represent extremely successful synchronization connections between
+replicas, while light lines represent synchronization pairs that are
+selected less frequently.
+We posit that fewer edges in the graph represents a more stable network;
+the fewer synchronization pairs that are selected the less noise that
+occurs from selecting a peer that is in a similar state.
 
 \section*{Discussion}
 
+In order to achieve stronger eventual consistency, the visibility latency
+of a system replicated with anti-entropy must be reduced.
+We believe that this can be achieved with two primary goals: increasing
+the number of successful synchronizations and maximizing the the number
+of local and regional synchronizations such that the average latency of
+anti-entropy sessions is as low as possible.
+These goals must also be tempered against other requirements such as
+fault and partition tolerance, a deterministic anti-entropy solution that
+ensures the system will become consistent eventually, and load balancing
+the synchronization workload evenly across all replicas.
+
+Bandit based approaches to peer selection clearly reduce noise inherent
+in uniform random selection as shown in Figure~\ref{fig:system_rewards},
+the bandit algorithms achieve better rewards over time because peers
+are selected that are more likely to have an update to synchronize.
+Moreover, based on the network diagrams shown in
+Figures~\ref{fig:uniform_selection}-\ref{fig:annealing_epsilon}, this is
+not the result of one or two replicas becoming primary syncs: most
+replicas have only one or two dark in-edges meaning that most replicas
+are only the most valuable peers for one or two other replicas.
+At the same time, the rewards using a bandit approach, while clearly better
+than the uniform case, are not significantly better.
+Future work to explore the reward function in detail may help to adjust
+the reward curves more significantly.
+Additionally the inclusion of penalties (negative rewards) might also make
+the system faster to adjust to a high quality topology.
+Future work must also show an increase in consistency by demonstrating a
+reduced number of stale reads and forked writes.
+
+As for localization, there does appear to be a natural inclination for
+replicas that are geographically proximate to be a more likely selection.
+In Figure~\ref{fig:epsilon_greedy_e2}, replicas in Seoul (orange), Virginia
+(red), Sydney (yellow), California (purple), and Frankfurt (grey) all
+prioritize local connections.
+Regionally, this same figure shows strong links such as those between Ohio
+and California (\texttt{OH21} $\rightarrow$ \texttt{CA24}) or Frankfurt and
+London (\texttt{GB3} $\rightarrow$ \texttt{DE14}).
+Replicas such as \texttt{OH21} and \texttt{DE14} appear to be hubs that
+specialize in cross-region collaboration.
+Unfortunately there does also seem to be an isolating effect, for example
+Sydney (yellow) appears to have no significant out of region synchronization
+partners.
+Multi-stage bandits might be used to create a tiered reward system to
+specifically adjust the selection of local, regional, and global peers.
+Other strategies such as upper confidence bounds, softmax, or Bayesian
+selection may also create more robust localization.
+
+Finally, and perhaps most significantly, the experiments conducted in
+this paper were on a static workload; future work must explore dynamic
+workloads with changing access patterns to more closely simulate real
+world scenarios.
+While bandit algorithms are considered online algorithms that do respond
+to changing conditions, the epsilon greedy strategy can be slow to change
+since it prefers to exploit high value arms.
+Contextual bandits utilize side information in addition to rewards to make
+selection decisions, and there is current research in exploring contextual
+bandits in dynamic worlds that may be applicable.
+Other strategies such as periodic reseting of the values may incur a small
+cost to explore the best anti-entropy topology, but could respond to changing
+access patterns or conditions in a meaningful way.
+
 \section*{Conclusion}
+
+In this paper we have presented a novel approach to peer selection during
+anti-entropy by replacing uniform random selection with multi-armed bandits.
+Multi-armed bandits consider the historical reward obtained from
+synchronization with a peer, defined by the number of objects synchronized
+and the latency of synchronization, when making a selection.
+Bandits balance the exploitation of a known high value synchronization
+peer with the exploration of possibly better peers or the impact of
+failures or partitions.
+The end result is a replication network that is not impacted by noise
+due to randomness, but more efficiently propagates updates.
+
+In an eventually consistent system, efficient propagation of updates is
+directly tied to higher consistency.
+By reducing visibility latency, the likelihood of a stale read decreases,
+the primary source of inconsistency in a highly available system.
+We believe that the results presented show a promising start to a renewed
+investigation of highly available distributed storage systems in novel
+network environments, particularly those that span the globe.
+Future work will consider different reward functions and how the priorities
+of system designers can be embedded into rewards.
+We will also explore dynamic environments and how reinforcement learning
+algorithms can maintain optimal replication behavior, exploring other
+strategies for selection such as upper confidence bounds, softmax, or
+Bayesian approaches.
 
 All code for the key-value store and bandit-based entropy as well as
 experimental results is open source and available on GitHub at
