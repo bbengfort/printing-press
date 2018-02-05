@@ -34,7 +34,37 @@ is consistent enough''~\cite{bermbach_eventual_2011,wada2011data}
 particularly in a data center context where visibility latency is far below
 the rate of client requests, leading to practically strong consistency.
 
-More recently there have been two important changes in
+Recently there have been two important changes in considerations for the
+design of such systems that have led us to reevaluate propagation speed:
+systems are getting larger and are becoming geographically distributed
+outside of the datacenter.
+Scaling an eventually consistent system to dozens or even hundreds of nodes
+increases the radius of the network, which leads to increased noise during
+anti-entropy; e.g. the possibility that an anti-entropy session will be
+between two already synchronized nodes.
+Geographic distribution and extra-datacenter networks increase the latency of
+anti-entropy sessions so that inconsistencies become more apparent.
+Large, geographically distributed systems are becoming the norm -- from
+content delivery systems that span the globe, to mobile applications, to
+future systems such a automated vehicular networks, and all will require
+additional consistency guarantees without sacrificing availability.
+
+We propose a new class of adaptive distributed data systems whose replicas
+monitor their environment and modify their behavior to optimize consistency.
+Anti-entropy utilizes gossip and rumor spreading to efficiently propagate
+updates in a deterministic fashion without saturating the
+network~\cite{haeupler_simple_2015,karp_randomized_2000,moreno_dynamics_2004}.
+These protocols utilize uniform random selection of peers to synchronize
+with, which means that a write occurring at one replica is not efficiently
+propagated across the network.
+We propose the use of \textit{multi-armed bandit}
+algorithms~\cite{langford_epoch-greedy_2008,luo_efficient_2017} to modify the
+probability of peer selection in order to optimize for fast, successful
+synchronizations.
+The result is a network topology that emerges according to access patterns
+and network latency, often localizing replicas to produce efficient
+synchronization, efficiency which lowers visibility latency and increases
+consistency.
 
 \section*{System Description}
 
@@ -42,7 +72,29 @@ A basic sketch of an eventually consistent system is as follows:
 
 \section*{Bandit Approaches}
 
+\begin{table}[]
+\centering
+\begin{tabular}{@{}|l|l|l|l|@{}}
+\toprule
+ & \textbf{Pull} & \textbf{Push} & \textbf{Total} \\ \midrule
+Synchronize at least 1 object & 0.25 & 0.25 & 0.50 \\ \midrule
+Synchronize multiple objects & 0.05 & 0.05 & 0.10 \\ \midrule
+Latency <= 5ms (local) & 0.10 & 0.10 & 0.20 \\ \midrule
+Latency <= 100ms (regional) & 0.10 & 0.10 & 0.20 \\ \midrule
+\textit{Total} & \textit{0.50} & \textit{0.50} & \textit{1.00} \\ \bottomrule
+\end{tabular}
+\caption{Reward Function}
+\label{tab:rewards}
+\end{table}
+
 \section*{Experiments}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/network}
+    \caption{Geographically distributed network}
+    \label{fig:network}
+\end{figure}
 
 \begin{figure*}[t]
     \centering
@@ -68,6 +120,13 @@ A basic sketch of an eventually consistent system is as follows:
   \endminipage
 \end{figure*}
 
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/rewards}
+    \caption{Total system rewards over time}
+    \label{fig:system_rewards}
+\end{figure}
 
 \section*{Discussion}
 
