@@ -30,7 +30,7 @@ system by decreasing the likelihood of a stale read, which is tuned by
 improving the \textit{visibility latency} of a write, the speed at which a
 write is propagated to a significant portion of servers.
 This idea has led many system designers to decide that ``eventual consistency
-is consistent enough''~\cite{bermbach_eventual_2011,wada2011data}
+is consistent enough''~\cite{bermbach_eventual_2011,wada_data_2011}
 particularly in a data center context where visibility latency is far below
 the rate of client requests, leading to practically strong consistency.
 
@@ -68,33 +68,209 @@ consistency.
 
 \section*{System Description}
 
-A basic sketch of an eventually consistent system is as follows:
+Our system implements an eventually consistent, in-memory key-value store
+that is totally replicated using anti-entropy~\cite{decandia_dynamo:_2007};
+a brief sketch of our implementation follows.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/network}
+    \caption{Latencies in a geo-replicated key-value store}
+    \label{fig:network}
+\end{figure}
+
+\subsection*{Accesses \& Consistency}
+
+Clients can \texttt{Put} (write) and \texttt{Get} (read) key-value pairs to
+one or more replicas in a single operation.
+The set of replicas that responds to a client creates a quorum that must
+agree on the state of the operation at its conclusion.
+Clients can vary read and write quorum sizes to improve consistency or
+availability -- larger quorums reduce the likelihood of stale reads but
+smaller quorums respond much more quickly.
+In large, geo-replicated systems we assume that clients will prefer to choose
+fewer, local replicas to connect with, optimistic that collisions across the
+wide-area are rare, e.g. that writes are localized but reads are global.
+
+On \texttt{Put}, the instance of the key-value pair is assigned a
+monotonically increasing, conflict-free \textit{version
+number}~\cite{almeida_version_2002}.
+For simplicity, we assume a fixed number of replicas, therefore each version
+is made up of two components: the update and precedence ids.
+Precedence ids are assigned to replicas during configuration, and update ids
+are incremented to the largest observed value during synchronization.
+As a result, any two versions generated on \texttt{Put} are comparable such
+that the \textit{latest} version of the key-value pair is the version with the
+largest update id, and in the case of ties, the largest precedence id.
+
+Additional version metadata including the parent version that object was
+created from implements a virtual object history that allows us to reason
+about consistency.
+Keys can be managed independently, e.g. each key has its own update id
+sequence, or all objects can be managed together with a single sequence; in
+the latter case, it is possible to construct an ordering history of
+operations to all objects.
+There are two primary inconsistencies that can occur in this system:
+\textit{stale reads} and \textit{forked writes}.
+A stale read simply means that the \texttt{Get} operation has not returned
+the globally most recent version of the object.
+A forked write, on the other hand, means that there are two branches of the
+object history, created by concurrent writes to the same object.
+As we will see in the next section, one of these writes will be
+\textit{stomped} before it can become fully replicated.
+The ideal consistency for a system is represented by a linear object history
+without forks.
+
+\subsection*{Anti-Entropy}
+
+Anti-Entropy sessions are conducted in a pairwise fashion at a routine
+interval to ensure that the network is not saturated with synchronization
+requests.
+There are two basic forms of synchronization: \textit{push} synchronization
+is a fire-and-forget form of synchronization where the remote is sent the
+latest version of all objects, whereas \textit{pull} synchronization requests
+the latest version of objects and minimizes the size of data transfer.
+We have implemented \textit{bilateral} synchronization which combines push
+and pull in a two-phase exchange.
+
+Bilateral anti-entropy starts with the initiating replica sending a vector of
+the latest local versions of all keys currently stored (this can be optimized
+with Merkel trees to make comparisons faster).
+The remote replica compares the versions sent by the initiating replica with
+its current state and responds with any objects whose version is \textit{later} than
+the initiating replicas's as well as another version vector of requested
+objects that are earlier on the remote.
+The initiating remote then replies with the requested objects, completing the
+synchronization.
+We refer to the first stage of requesting later objects from the remote as
+the pull phase, and the second stage of responding to the remote the push
+phase.
+
+There are two important things to note about this form of synchronization.
+First, this type of synchronization implements a \textit{latest writer wins}
+policy.
+This means that it is possible that not all versions become fully replicated
+-- if a later version is written during propagation of an earlier version,
+then the earlier version gets stomped by the later version.
+If there are two concurrent writes, only one write will become fully
+replicated.
+Second, the visibility latency is maximized when all replicas choose a remote
+synchronization partner that does not yet have the update.
+This means that maximal visibility latency is equal to $t\log_3n$ where
+$t$ is the anti-entropy interval and $n$ is the number of replicas in the
+network.
+However, because of stomps and noise created by uniform random selection of
+synchronization partners, this latency is never practically achieved.
 
 \section*{Bandit Approaches}
 
+Multi-armed bandits refer to a statistical optimization procedure that is
+designed to find the optimal payout of several choices that each have
+different probabilities of reward and are often used in active and
+reinforcement machine learning.
+A bandit problem is designed by identifying several ``arms'', so called
+because multi-armed bandit refers to pulling slot machine arms, as well as a
+reward function that determines how successful the selection of an arm is.
+During operation, the bandit uses a \textit{strategy} to select an arm -- the
+most common of which is epsilon greedy -- then updates the rewards of the
+selected arm, normalized by the number of selections.
+The arm with the highest reward value is considered the optimal arm.
+
+Bandits must balance exploration of new arms with possibly better reward
+values and exploitation of an arm that has higher rewards than the other.
+In the epsilon greedy strategy, the bandit will select the arm with the best
+reward with some probability $1-\epsilon$, otherwise it will select any of the
+arms with uniform probability.
+The smaller $\epsilon$ is, the more the bandit favors exploitation of known
+good arms, the larger $\epsilon$ is, the more it favors exploration.
+If $\epsilon=1$ then the algorithm is simply uniform random selection.
+A simple extension of this is annealing epsilon greedy, which starts with a large $\epsilon$, then as the number of trials increases, steadily decreases
+$\epsilon$ on a logarithmic scale.
+
 \begin{table}[]
 \centering
-\begin{tabular}{@{}|l|l|l|l|@{}}
+\begin{tabular}{@{}l c c c @{}}
 \toprule
- & \textbf{Pull} & \textbf{Push} & \textbf{Total} \\ \midrule
-Synchronize at least 1 object & 0.25 & 0.25 & 0.50 \\ \midrule
-Synchronize multiple objects & 0.05 & 0.05 & 0.10 \\ \midrule
-Latency <= 5ms (local) & 0.10 & 0.10 & 0.20 \\ \midrule
-Latency <= 100ms (regional) & 0.10 & 0.10 & 0.20 \\ \midrule
-\textit{Total} & \textit{0.50} & \textit{0.50} & \textit{1.00} \\ \bottomrule
+& \textbf{Pull} & \textbf{Push} & \textbf{Total} \\
+\midrule
+Synchronize at least 1 object & 0.25 & 0.25 & 0.50 \\
+Synchronize multiple objects  & 0.05 & 0.05 & 0.10 \\
+Latency <= 5ms (local)        & 0.10 & 0.10 & 0.20 \\
+Latency <= 100ms (regional)   & 0.10 & 0.10 & 0.20 \\
+\midrule
+\textit{Total} & \textit{0.50} & \textit{0.50} & \textit{1.00} \\
+\bottomrule
 \end{tabular}
 \caption{Reward Function}
 \label{tab:rewards}
 \end{table}
 
+Peer selection for anti-entropy is usually conducted with uniform random
+selection.
+To extend anti-entropy with bandits, we design a selection method whose arms
+are remote peers and whose rewards are determined by the success of
+synchronization.
+The goal of adding bandits to anti-entropy is to optimize selection of peers
+such that the visibility latency becomes closer to the optimal propagation
+time as a synchronization topology emerges from the bandits.
+A secondary goal is to minimize anti-entropy latency by preferring local (in
+the same data center) and regional (e.g. on the same continent) connections.
+
+Our reward function favors synchronizations to replicas where the most writes
+are occurring by giving higher rewards to anti-entropy sessions that exchange
+later versions in either a push or a pull as well as additional rewards if
+more than one object is exchanged.
+Additionally, the latency of the synchronization RPC is computed to reward
+replicas that are in close proximity to each other.
+The complete reward function is given in Table~\ref{tab:rewards}: for each
+phase of synchronization (push and pull), compute the reward as the sum of the
+propositions given.
+For example if a synchronization results in 3 objects being pulled in 250ms,
+and 1 object being pushed in 250ms, the reward is 0.75.
+
 \section*{Experiments}
+
+We conducted experiments using a distributed key-value store totally
+replicated across 24 replicas in 8 geographic regions on 5 continents
+around the world as shown in Figure~\ref{fig:network}.
+Replicas were hosted using AWS EC2 t2.micro instances and were connected to
+each other via internal VPCs when in the same region, using external
+connections between regions.
+The store, called Honu, is implemented in Go 1.9 using gRPC and protocol
+buffers for RPC requests; all code is open source and available on GitHub.
+
+The workload on the system was generated by 8 clients, one in each region and
+colocated with one of the replicas.
+Clients continuously created Put requests for random keys with a unique
+prefix per-region (consistency conflicts only occur within a region).
+The average throughput generated per-client was 5620.4 puts/second.
+Because the mean round trip latency between each region ranged from 23ms to
+600ms and synchronization requires at least two round trips, the
+anti-entropy delay for these experiments was set to 1 second.
+To account for lag between commands sent to replicas in different regions,
+the experiment was run for 10 minutes, the workload running for 8 minutes,
+offset by one minute from the start.
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=0.5\textwidth]{figures/network}
-    \caption{Geographically distributed network}
-    \label{fig:network}
+    \includegraphics[width=0.5\textwidth]{figures/rewards}
+    \caption{Total system rewards over time}
+    \label{fig:system_rewards}
 \end{figure}
+
+Our first experiments compared uniform random peer selection with epsilon
+greedy bandits using $\epsilon \in \{0.1, 0.2, 0.5\}$ as well as an annealing
+greedy epsilon bandit.
+The total system rewards as a rolling mean over a time window of 15
+synchronizations are shown in Figure~\ref{fig:system_rewards}.
+The rewards ramp up from zero as the clients come online and starting
+creating work to be synchronized.
+All of the bandit algorithms improve over the baseline of uniform selection,
+not only generating more total reward across the system, but also introducing
+less variability with lower $\epsilon$ values.
+None of the bandit curves immediately produces high rewards as they explore
+the reward space; lower $\epsilon$ values may cause exploitation of incorrect
+arms, while higher $\epsilon$ values take longer to find optimal topologies.
 
 \begin{figure*}[t]
     \centering
@@ -120,18 +296,38 @@ Latency <= 100ms (regional) & 0.10 & 0.10 & 0.20 \\ \midrule
   \endminipage
 \end{figure*}
 
+We have visualized the resulting topologies as network diagrams in
+Figure~\ref{fig:uniform_selection} (uniform selection),
+Figure~\ref{fig:epsilon_greedy_e1} (epsilon greedy $\epsilon=0.1$),
+Figure~\ref{fig:epsilon_greedy_e2} (epsilon greedy $\epsilon=0.2$), and
+Figure~\ref{fig:annealing_epsilon} (annealing epsilon).
+Each network diagram shows each replica as a vertex, colored by region e.g.
+purple is California, light blue is Sao Paulo, Brazil.
+Each vertex is also labeled with the 2-character UN country or US state
+abbreviation as well as the replica's precedence id.
+The size of the vertex represents the number of \texttt{Put} requests that
+replica received over the course of the experiment; larger vertices
+represent replicas that were colocated with workload generators.
+Each edge between vertices represents the total number of successful
+synchronizations, the darker and thicker the edge is, the more
+synchronizations occurred between the two replicas.
+Edges are directed, the source of the edge is the replica that initiated
+anti-entropy with the target of the edge.
 
-\begin{figure}[t]
-    \centering
-    \includegraphics[width=0.5\textwidth]{figures/rewards}
-    \caption{Total system rewards over time}
-    \label{fig:system_rewards}
-\end{figure}
+Comparing the resulting networks, it is easy to see that more defined
+topologies result from the bandit-based approaches.
+The uniform selection network is simply a hairball of connections with
+a limited number of synchronizations.
+Clear optimal connections have emerged with the bandit strategies, dark
+lines represent extremely successful synchronizations between replicas,
+while light lines represent connections that happen more rarely.
+The fewer edges in the graph, the fewer network connections that exist
+between the links described. 
 
 \section*{Discussion}
 
 \section*{Conclusion}
 
-% \begin{acks}
-% The authors would like to thank the servers for working so hard.
-% \end{acks}
+All code for the key-value store and bandit-based entropy as well as
+experimental results is open source and available on GitHub at
+\url{https://github.com/bbengfort/honu}.
