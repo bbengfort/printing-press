@@ -1,8 +1,8 @@
 \section*{Introduction}
 
 A distributed system is made highly available when individual servers are
-allowed to operate independently without coordination that may be prone to
-failure or high latency.
+allowed to operate independently without coordination, which can be prone to
+failure and high latency.
 The independent nature of the server's behavior means that it can immediately
 respond to client requests, but that it does so from a limited, local
 perspective which may be inconsistent with another server's response.
@@ -46,7 +46,7 @@ Geographic distribution and extra-datacenter networks increase the latency of
 anti-entropy sessions so that inconsistencies become more apparent.
 Large, geographically distributed systems are becoming the norm -- from
 content delivery systems that span the globe, to mobile applications, to
-future systems such a automated vehicular networks, and all will require
+future systems such as automated vehicular networks, and all will require
 additional consistency guarantees without sacrificing availability.
 
 We propose a new class of adaptive distributed data systems whose replicas
@@ -63,7 +63,7 @@ probability of peer selection in order to optimize for fast, successful
 synchronizations.
 The result is a network topology that emerges according to access patterns
 and network latency, often localizing replicas to produce efficient
-synchronization, efficiency which lowers visibility latency and increases
+synchronization, lower visibility latency, and increased
 consistency.
 
 \section*{System Description}
@@ -96,7 +96,7 @@ On \texttt{Put}, the instance of the key-value pair is assigned a
 monotonically increasing, conflict-free \textit{version
 number}~\cite{almeida_version_2002}.
 For simplicity, we assume a fixed number of replicas, therefore each version
-is made up of two components: the update and precedence ids.
+is made up of two components: the \textit{update} and \textit{precedence ids}.
 Precedence ids are assigned to replicas during configuration, and update ids
 are incremented to the largest observed value during synchronization.
 As a result, any two versions generated on \texttt{Put} are comparable such
@@ -123,7 +123,7 @@ without forks.
 
 \subsection*{Anti-Entropy}
 
-Anti-Entropy sessions are conducted in a pairwise fashion at a routine
+Anti-entropy sessions are conducted in a pairwise fashion at a routine
 interval to ensure that the network is not saturated with synchronization
 requests.
 There are two basic forms of synchronization: \textit{push} synchronization
@@ -138,7 +138,7 @@ the latest local versions of all keys currently stored (this can be optimized
 with Merkel trees to make comparisons faster).
 The remote replica compares the versions sent by the initiating replica with
 its current state and responds with any objects whose version is \textit{later} than
-the initiating replicas's as well as another version vector of requested
+the initiating replica's as well as another version vector of requested
 objects that are earlier on the remote.
 The initiating remote then replies with the requested objects, completing the
 synchronization.
@@ -164,10 +164,10 @@ synchronization partners, this latency is never practically achieved.
 
 \section*{Bandit Approaches}
 
-Multi-armed bandits refer to a statistical optimization procedure that is
+Often used in active and reinforcement machine learning, multi-armed bandits
+refer to a statistical optimization procedure that is
 designed to find the optimal payout of several choices that each have
-different probabilities of reward and are often used in active and
-reinforcement machine learning.
+different probabilities of reward.
 A bandit problem is designed by identifying several ``arms'', so called
 because multi-armed bandit refers to pulling slot machine arms, as well as a
 reward function that determines how successful the selection of an arm is.
@@ -263,7 +263,7 @@ greedy bandits using $\epsilon \in \{0.1, 0.2, 0.5\}$ as well as an annealing
 greedy epsilon bandit.
 The total system rewards as a rolling mean over a time window of 15
 synchronizations are shown in Figure~\ref{fig:system_rewards}.
-The rewards ramp up from zero as the clients come online and starting
+The rewards ramp up from zero as the clients come online and start
 creating work to be synchronized.
 All of the bandit algorithms improve over the baseline of uniform selection,
 not only generating more total reward across the system, but also introducing
@@ -323,7 +323,7 @@ lines represent extremely successful synchronization connections between
 replicas, while light lines represent synchronization pairs that are
 selected less frequently.
 We posit that fewer edges in the graph represents a more stable network;
-the fewer synchronization pairs that are selected the less noise that
+the fewer synchronization pairs that are selected, the less noise that
 occurs from selecting a peer that is in a similar state.
 
 \section*{Discussion}
@@ -399,12 +399,12 @@ and the latency of synchronization, when making a selection.
 Bandits balance the exploitation of a known high value synchronization
 peer with the exploration of possibly better peers or the impact of
 failures or partitions.
-The end result is a replication network that is not impacted by noise
-due to randomness, but more efficiently propagates updates.
+The end result is a replication network that is not only unperturbed by noise
+due to randomness, but also capable of more efficiently propagating updates.
 
 In an eventually consistent system, efficient propagation of updates is
 directly tied to higher consistency.
-By reducing visibility latency, the likelihood of a stale read decreases,
+By reducing visibility latency, the likelihood of a stale read decreases, which is
 the primary source of inconsistency in a highly available system.
 We believe that the results presented show a promising start to a renewed
 investigation of highly available distributed storage systems in novel
