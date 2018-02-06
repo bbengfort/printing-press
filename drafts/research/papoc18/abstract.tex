@@ -1,10 +1,10 @@
-Eventual consistency systems can be made more consistent by improving the
-visibility of a write, that is the time until a write is fully replicated.
-Gossip based anti-entropy methods scale well but random selection of
-anti-entropy partners results in less than efficient replication.
-We propose a simple improvement to pairwise, bilateral anti-entropy; instead
-of uniform random selection we introduce reinforcement learning mechanisms
-which assign selection probabilities to replicas most likely to have
+Eventual consistency systems can be made more consistent by reducing the time
+until a write is fully replicated, improving their visibility.
+While gossip-based anti-entropy methods scale well, random selection of
+anti-entropy partners is less than efficient.
+We propose an improvement to pairwise, bilateral anti-entropy; instead
+of uniform random selection, we introduce reinforcement learning mechanisms
+to assign selection probabilities to replicas most likely to have
 information.
-The result is efficient replication, faster visibility, and higher
-consistency, while still providing high availability and partition tolerance.
+The result is more efficient replication, faster visibility, and higher
+consistency, while maintaining high availability and partition tolerance.
