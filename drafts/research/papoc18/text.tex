@@ -1,8 +1,9 @@
 \section*{Introduction}
 
 A distributed system is made highly available when individual servers are
-allowed to operate independently \sout{without coordination}, which can be prone to
-failure and high latency \pjk{Why?}.
+allowed to operate independently,
+%  \sout{without coordination}, 
+which can be prone to failure and high latency \pjk{Why?}.
 The independent nature of the server's behavior means that it can immediately
 respond to client requests, but that it does so from a limited, local
 perspective which may be inconsistent with another server's response.
@@ -102,8 +103,9 @@ As a result, any two versions generated on \texttt{Put} are comparable such
 that the \textit{latest} version of the key-value pair is the version with the
 largest update id, and in the case of ties, the largest precedence id.
 
-Additional version metadata, including the parent version \sout{that object was
-created from}, implements a virtual object history that allows us to reason
+Additional version metadata, including the parent version,
+ \sout{that object was created from}, 
+implements a virtual object history that allows us to reason
 about consistency.
 Keys can be managed independently, e.g. each key has its own update id
 sequence, or all objects can be managed together with a single sequence; in
