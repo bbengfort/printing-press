@@ -1,9 +1,8 @@
 \section*{Introduction}
 
 A distributed system is made highly available when individual servers are
-allowed to operate independently,
-%  \sout{without coordination}, 
-which can be prone to failure and high latency \pjk{Why?}.
+allowed to operate independently without failure-prone, high latency
+coordination.
 The independent nature of the server's behavior means that it can immediately
 respond to client requests, but that it does so from a limited, local
 perspective which may be inconsistent with another server's response.
@@ -14,9 +13,6 @@ system would experience \textit{entropy}.
 To combat the effect of entropy while still remaining highly available,
 servers engage in periodic background \textit{anti-entropy
   sessions}~\cite{terry_session_1994}.
-% at
-% a routine interval, a process that occurs in the background of client
-% requests.
 
 Anti-entropy sessions synchronize the state between servers ensuring that,
 at least briefly, the local state is consistent with a portion of the global
@@ -39,32 +35,36 @@ the rate of client requests, leading to practically strong consistency.
 
 Recently there have been two important changes in considerations for the
 design of such systems that have led us to re-evaluate propagation speed:
-systems are growing and becoming geographically distributed
+systems are growing, while simultaneously becoming geographically distributed
 outside of the datacenter.
 Scaling an eventually consistent system to dozens or even hundreds of nodes
 increases the radius of the network, which leads to increased noise during
 anti-entropy; e.g. the possibility that an anti-entropy session will be
 between two already synchronized nodes.
 Geographic distribution and extra-datacenter networks increase the latency of
-anti-entropy sessions so that inconsistencies become more apparent.
-Large, geographically-distributed systems are becoming the norm -- from
-content delivery systems that span the globe, to mobile applications, to
-future systems such as automated vehicular networks, and all will require
+anti-entropy sessions so that inconsistencies become more apparent to
+external observers.
+Large, geographically-distributed systems are becoming the norm.
+From content delivery systems that span the globe, to mobile applications, to
+future systems such as automated vehicular networks, all will require
 additional consistency guarantees without sacrificing availability.
 
-We propose a new class of adaptive distributed data systems whose replicas monitor their
-environment and modify their behavior to optimize consistency.
+We propose a new class of adaptive distributed data systems whose replicas
+monitor their environment and modify their behavior to optimize consistency.
 Anti-entropy uses gossip and rumor spreading to efficiently propagate updates
 deterministically without saturating the
 network~\cite{haeupler_simple_2015,karp_randomized_2000,moreno_dynamics_2004}.
-These protocols use uniform random selection to choose synchronization peers, which means
-that a write occurring at one replica is not efficiently propagated across the network.
+These protocols use uniform random selection to choose synchronization peers,
+which means that a write occurring at one replica is not efficiently
+propagated across the network.
 We propose the use of \textit{multi-armed bandit}
-algorithms~\cite{langford_epoch-greedy_2008,luo_efficient_2017} to optimize for fast,
-successful synchronizations by modifying peer selection probabilities.
-The result is a synchronization topology that emerges according to access patterns and network
-latency, often localizing communicating replicas to produce efficient synchronization,
-lower visibility latency, and increased consistency.
+algorithms~\cite{langford_epoch-greedy_2008,luo_efficient_2017} to optimize
+for fast, successful synchronizations by modifying peer selection
+probabilities.
+The result is a synchronization topology that emerges according to access
+patterns and network latency, often localizing communicating replicas to
+produce efficient synchronization, lower visibility latency, and increased
+consistency.
 
 \section*{System Description}
 
@@ -103,14 +103,12 @@ As a result, any two versions generated on \texttt{Put} are comparable such
 that the \textit{latest} version of the key-value pair is the version with the
 largest update id, and in the case of ties, the largest precedence id.
 
-Additional version metadata, including the parent version,
- \sout{that object was created from}, 
-implements a virtual object history that allows us to reason
-about consistency.
+Additional version metadata, including the write's parent version, implements
+a virtual object history that allows us to reason about consistency.
 Keys can be managed independently, e.g. each key has its own update id
 sequence, or all objects can be managed together with a single sequence; in
-the latter case, one can construct an ordering history of
-operations to all objects.
+the latter case, one can construct an ordering history of operations to all
+objects.
 
 There are two primary inconsistencies that can occur in this system:
 \textit{stale reads} and \textit{forked writes}.
@@ -139,16 +137,17 @@ Bilateral anti-entropy starts with the initiating replica sending a vector of
 the latest local versions of all keys currently stored (this can be optimized
 with Merkel trees to make comparisons faster).
 The remote replica compares the versions sent by the initiating replica with
-its current state and responds with any objects whose version is \textit{later} than
-the initiating replica's as well as another version vector of requested
-objects that are earlier on the remote.
+its current state and responds with any objects whose version is
+\textit{later} than the initiating replica's as well as another version
+vector of requested objects that are earlier on the remote.
 The initiating remote then replies with the requested objects, completing the
 synchronization.
 We refer to the first stage of requesting later objects from the remote as
 the pull phase, and the second stage of responding to the remote the push
 phase.
 
-There are two important things to note about this form of synchronization.
+There are two important things to note about this form of anti-entropy
+exchange.
 First, this type of synchronization implements a \textit{latest writer wins}
 policy.
 This means that not all versions are guaranteed to become fully replicated
@@ -222,7 +221,7 @@ Our reward function favors synchronizations to replicas where the most writes
 are occurring by giving higher rewards to anti-entropy sessions that exchange
 later versions in either a push or a pull as well as additional rewards if
 more than one object is exchanged.
-Additionally, the latency of the synchronization RPC is computed to reward
+Additionally, the latency of the synchronization RPCs is computed to reward
 replicas that are near each other.
 The complete reward function is given in Table~\ref{tab:rewards}: for each
 phase of synchronization (push and pull), compute the reward as the sum of the
@@ -262,7 +261,7 @@ offset by one minute from the start.
 
 Our first experiments compared uniform random peer selection with epsilon
 greedy bandits using $\epsilon \in \{0.1, 0.2, 0.5\}$ as well as an annealing
-greedy epsilon bandit.
+epsilon greedy bandit.
 The total system rewards as a rolling mean over a time window of 15
 synchronizations are shown in Figure~\ref{fig:system_rewards}.
 The rewards ramp up from zero as the clients come online and start
@@ -294,7 +293,7 @@ arms, while higher $\epsilon$ values take longer to find optimal topologies.
   \endminipage\hfill
   \minipage{0.5\textwidth}%
     \includegraphics[width=\linewidth]{figures/b-annealing-epsilon-greedy-e5}
-    \caption{Annealing Epsilon}\label{fig:annealing_epsilon}
+    \caption{Annealing Epsilon Greedy}\label{fig:annealing_epsilon}
   \endminipage
 \end{figure*}
 
@@ -304,7 +303,7 @@ Figure~\ref{fig:epsilon_greedy_e1} (epsilon greedy $\epsilon=0.1$),
 Figure~\ref{fig:epsilon_greedy_e2} (epsilon greedy $\epsilon=0.2$), and
 Figure~\ref{fig:annealing_epsilon} (annealing epsilon).
 Each network diagram shows each replica as a vertex, colored by region e.g.
-purple is California, light blue is Sao Paulo, Brazil.
+purple is California, light blue is Sao Paulo, Brazil, etc.
 Each vertex is also labeled with the 2-character UN country or US state
 abbreviation as well as the replica's precedence id.
 The size of the vertex represents the number of \texttt{Put} requests that
@@ -397,7 +396,7 @@ In this paper we have presented a novel approach to peer selection during
 anti-entropy by replacing uniform random selection with multi-armed bandits.
 Multi-armed bandits consider the historical reward obtained from
 synchronization with a peer, defined by the number of objects synchronized
-and the latency of synchronization, when making a selection.
+and the latency of RPCs, when making a selection.
 Bandits balance the exploitation of a known high-value synchronization
 peer with the exploration of possibly better peers or the impact of
 failures or partitions.
@@ -406,17 +405,29 @@ due to randomness, but also capable of more efficiently propagating updates.
 
 In an eventually consistent system, efficient propagation of updates is
 directly tied to higher consistency.
-By reducing visibility latency, the likelihood of a stale read decreases, which is
-the primary source of inconsistency in a highly available system.
+By reducing visibility latency, the likelihood of a stale read decreases,
+which is the primary source of inconsistency in a highly available system.
+Future work will consider different reward functions, different selection
+strategies, dynamic environments, and how the priorities of system designers
+can be embedded into rewards.
+We will also specifically explore in detail the effect of adaptive systems
+on consistency.
+
 We believe that the results presented show a promising start to a renewed
 investigation of highly available distributed storage systems in novel
 network environments, particularly those that span the globe.
-Future work will consider different reward functions and how the priorities
-of system designers can be embedded into rewards.
-We will also explore dynamic environments and how reinforcement learning
-algorithms can maintain optimal replication behavior, exploring other
-strategies for selection such as upper confidence bounds, softmax, or
-Bayesian approaches.
+Specifically, this work is part of a larger exploration of adaptive,
+globally distributed data systems that federate consistency levels to provide
+stronger guarantees~\cite{bengfort_federating_2017}.
+Federated consistency combines adaptive eventually consistent systems such as
+the one presented in this paper with scaling geo-replicated consensus such as
+Hierarchical Consensus~\cite{bengfort_brief_2017} in order to create robust
+data systems that are automatically tuned to provide the best availability
+and consistency.
+Distributed systems that adapt to and learn from their environments and
+access patterns, such as the emerging synchronization topologies we observed
+in this paper, may form the foundation for the extremely large, extremely
+efficient networks of the future.
 
 All code for the key-value store and bandit-based entropy as well as
 experimental results is open source and available on GitHub at
