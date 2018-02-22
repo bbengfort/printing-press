@@ -1,0 +1,85 @@
+Dear Benjamin,
+
+We are sorry to inform you that your submission (Anti-Entropy Bandits for Geo-Replicated Consistency) was not selected for inclusion into the regular program at PaPoC 2018.
+
+Reviews and comments on your paper are appended to this email, and available at the submission site. While we know this is not welcome news, we sincerely hope that the reviews prove useful in helping you revise your paper for future submission.
+
+We know that the peer reviewing process is not perfect, and do not wish to silence anyone. Thus, you are cordially invited to present your work during the open session (16.30-18.00). As we do not have a fixed number of participants for this session yet, we don't know the exact duration of the talks, but we can guarantee you at least 10 minutes of presentation time, and 5 minutes of discussion time. If you are interested in this opportunity to present your work, please let us know.
+
+Thank you,
+Sebastian Burckhardt & Marko Vukolic
+
+
+----------------------- REVIEW 1 ---------------------
+PAPER: 1
+TITLE: Anti-Entropy Bandits for Geo-Replicated Consistency
+AUTHORS: Benjamin Bengfort and Pete Keleher
+
+Overall evaluation: 0 (borderline paper)
+
+----------- Overall evaluation -----------
+The paper presents an anti-entropy algorithm for propagating updates in a replicated system, which addresses the issue of replicas storing stale values because their choice of synchronization partners is not optimal. The idea is to use a statistical optimization procedure, called multi-armed bandits, to guide the choice of synchronization partners. This procedure is parametrized by a reward function which for instance, assigns higher rewards to replicas that in previous anti-entropy sessions have provided newer values, or to replicas which are "closer" in the network. The approach was implemented and evaluated in some realistic environment.
+
+The ideas in this paper are interesting, but it's not clear why this specific optimization procedure was chosen. One can agree that it works better than uniform random choice, but it's not clear whether this is the only option. It would have been interesting to show how it behaves in comparison with other approaches.
+
+
+----------------------- REVIEW 2 ---------------------
+PAPER: 1
+TITLE: Anti-Entropy Bandits for Geo-Replicated Consistency
+AUTHORS: Benjamin Bengfort and Pete Keleher
+
+Overall evaluation: 1 (weak accept)
+
+----------- Overall evaluation -----------
+This paper proposes to use multiple-armed bandit algorithm to optimize anti-entropy among geographically distributed replicas. Authors claim that using bandits algorithms lead to more efficient synchronization, lower visibility latency, and increased consistency.
+
+I liked reading this paper, and I am sure that it will lead to very interesting discussions during the workshop.
+
+Some notes:
+Authors need to better explain the reward function, and why those parameters were selected. For instance, why cost (e.g., inter-dc vs intra-dc communication) or object size were not considered.
+
+There is no explanation why authors chose those 2 specific bandit algorithms. There is a body of theoretical work on good algorithms for the bandit problem with theoretical guarantees on how good the reward from using them is. E.g., https://www.nowpublishers.com/article/Details/MAL-024
+
+I expected authors to present more experiment data than topologies. For instance, improvements over latency or consistency.
+
+
+----------------------- REVIEW 3 ---------------------
+PAPER: 1
+TITLE: Anti-Entropy Bandits for Geo-Replicated Consistency
+AUTHORS: Benjamin Bengfort and Pete Keleher
+
+Overall evaluation: 0 (borderline paper)
+
+----------- Overall evaluation -----------
+The paper proposes a strategy for peer selection in geo-replicated eventually consistent systems. The argument is that using uniform random selection causes more redundant synchronizations... WIth Bandit reinforcement machine learning approach the authors propose, one can reduce the number of redundant syncs and give more emphasis to regional syncs...
+
+I liked the idea of using machine learning to optimize synchronizations, but the paper is not very well written to show this, though the paper may enrich the discussion at the venue.
+
+Major issues:
+- The data consistency model was not clearly presented, I had to figure out that you are talking about quorum systems, but the eventual part doesn't appear in the model. Please adjust this.
+- It is not clear what is the contribution, technically. In a two-pages paper, I shall not wait until page 3 to understand the technique. I propose to talk about the problem and solution from technical/theoretical perspective before giving 3 sections to your "implementation".
+- I didn't see a lot of improvement in Fig 2. Also Figures 4, 5, and 6 are visually similar and redundant so one can't figure out the difference—but I really liked the quality of these figures.
+- One point shall not be discarded is where Writes are being done? How could you consider them in the model? In general, I expect more parameters to do peer selection, it would be nice to discuss these.
+
+
+Minor issues:
+
+Intro:
+
+- No comma is needed here " Large, geographically-distributed systems are becoming the norm."
+- Reference missing here "From content delivery systems that span the globe, to mobile applications, to future systems such as au- tomated vehicular networks, all will require additional consistency guarantees without sacri cing availability."
+- You say "We propose a new class of adaptive distributed data systems whose replicas" anf then "Our system implements "... Please be consistent and accurate about what you provide.
+- PLease refer to the Figure "a brief sketch of our implementation follows."
+
+SYSTEM DESCRIPTION section
+- DO you have some text missing here?
+
+
+- Put to, Get from: "Clients can Put (write) and Get (read) key-value pairs to one or more replicas in a single operation"
+
+BANDIT APPROACHES
+- One and three must be in letters "For example if a synchronization results in 3 objects being pulled in 250ms, and 1 object being pushed in 250ms, the reward is 0.75."
+
+DISCUSSION
+- Remove one "the": "increasing the number of successful synchronizations and maximizing the the number of local "
+
