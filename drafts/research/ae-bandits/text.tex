@@ -18,9 +18,9 @@ Anti-entropy sessions synchronize the state between servers ensuring that,
 at least briefly, the local state is consistent with a portion of the global
 state of the system.
 If all servers engage in anti-entropy sessions, the system is able to make
-some reasonable guarantees about the timeliness of responses; the most famous
+some reasonable guarantees about consistent replication; the most famous
 of which is that without requests the system will become
-consistent, eventually.
+globally consistent, eventually.
 More specifically, inconsistencies in the form of stale reads can be bound by
 likelihoods that are informed by the latency of anti-entropy sessions and the
 size of the system~\cite{bailis_quantifying_2014}.
@@ -39,7 +39,7 @@ systems are growing, while simultaneously becoming geographically distributed
 outside of the datacenter.
 Scaling an eventually consistent system to dozens or even hundreds of nodes
 increases the radius of the network, which leads to increased noise during
-anti-entropy; e.g. the possibility that an anti-entropy session will be
+anti-entropy e.g. the possibility that an anti-entropy session will be
 between two already synchronized nodes.
 Geographic distribution and extra-datacenter networks increase the latency of
 anti-entropy sessions so that inconsistencies become more apparent to
@@ -132,6 +132,9 @@ latest version of all objects, whereas \textit{pull} synchronization requests
 the latest version of objects and minimizes the size of data transfer.
 We have implemented \textit{bilateral} synchronization which combines push
 and pull in a two-phase exchange.
+Bilateral synchronization increases the effect of anti-entropy during each
+exchange because it ensures that in the common case each replica is
+synchronized with two other replicas instead of one.
 
 Bilateral anti-entropy starts with the initiating replica sending a vector of
 the latest local versions of all keys currently stored (this can be optimized
@@ -165,13 +168,18 @@ synchronization partners, this latency is never practically achieved.
 
 \section*{Bandit Approaches}
 
-Often used in active and reinforcement machine learning, multi-armed bandits
-refer to a statistical optimization procedure that is
+We employ a technique commonly used in active and reinforcement learning,
+multi-armed bandits, to improve uniform random selection of peers so that
+replicas choose synchronization partners that are most likely to exchange
+information.
+Multi-armed bandits refer to a statistical optimization procedure that is
 designed to find the optimal payout of several choices that each have
 different probabilities of reward.
-A bandit problem is designed by identifying several ``arms'', so called
-because multi-armed bandit refers to pulling slot machine arms, as well as a
-reward function that determines how successful the selection of an arm is.
+A bandit problem is designed by identifying several (usually more than two)
+competing choices called ``arms''\footnote{Arms refer to the pulling
+mechanism of a slot machine, the metaphor generally used to motivate the
+multi-armed bandit problem.}, as well as a reward function that determines how
+successful the selection of an arm is.
 During operation, the bandit uses a \textit{strategy} to select an arm -- the
 most common of which is epsilon greedy -- then updates the rewards of the
 selected arm, normalized by the number of selections.
@@ -185,7 +193,7 @@ arms with uniform probability.
 The smaller $\epsilon$ is, the more the bandit favors exploitation of known
 good arms, the larger $\epsilon$ is, the more it favors exploration.
 If $\epsilon=1$ then the algorithm is just uniform random selection.
-A simple extension of this is annealing epsilon greedy, which starts with a large $\epsilon$, then as the number of trials increases, steadily decreases
+A simple extension of this is a strategy called \emph{annealing epsilon greedy}, which starts with a large $\epsilon$, then as the number of trials increases, steadily decreases
 $\epsilon$ on a logarithmic scale.
 
 \begin{table}[]
@@ -340,6 +348,7 @@ fault and partition tolerance, a deterministic anti-entropy solution that
 ensures the system will become consistent eventually, and load balancing
 the synchronization workload evenly across all replicas.
 
+% be more clear about what the benefits are
 Bandit based approaches to peer selection clearly reduce noise inherent
 in uniform random selection as shown in Figure~\ref{fig:system_rewards},
 the bandit algorithms achieve better rewards over time because peers
@@ -385,7 +394,7 @@ to changing conditions, the epsilon greedy strategy can be slow to change
 since it prefers to exploit high-value arms.
 Contextual bandits use side information in addition to rewards to make
 selection decisions, and there is current research in exploring contextual
-bandits in dynamic worlds that may be applicable.
+bandits in dynamic worlds that may be applicable~\cite{luo_efficient_2017}.
 Other strategies such as periodic reseting of the values may incur a small
 cost to explore the best anti-entropy topology, but could respond to changing
 access patterns or conditions in a meaningful way.

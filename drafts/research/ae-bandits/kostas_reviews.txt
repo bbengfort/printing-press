@@ -1,0 +1,39 @@
+"If all servers engage in anti-entropy sessions, the system is able to make some reasonable guarantees about the timeliness of responses; " : Instead of timeliness of responses did you maybe want to say “guarantees about consistency?”. Does anti entropy have an effect on response time?
+
+"the possibility that an anti-entropy session will be between two already synchronized nodes" : This isn’t obvious to me maybe explain why this is the case?
+
+"must agree on the state of the operation at its conclusion." : If the quorum must agree at the conclusion of every client’s request that means that state at this quorum of machines is not eventually consistent but strongly consistent right?
+
+"Bilateral anti-entropy starts with the initiating replica sending": You might want to expand on what the pros and cons of bilateral sync are versus the traditional way of doing things.
+
+"BANDIT APPROACHES section" : I would start this section by very briefly describing exactly what the bandit algorithm will do in your context (i.e. it will help you make a more informed decision during anti-entropy instead of being uniformly random). This may sound redundant by I think it could be important to remind the reader why its important that he reads about bandits here.
+
+"several "arms", so called ": -> several, so called “arms”?. Also, I’d put a period here and explain in a next sentence
+
+"is annealing epsilon greedy": -> a strategy called _annealing epsilon greedy_
+
+"Bandit based approaches to peer selection clearly reduce noise inherent in uniform random selection as shown in Figure 2" : Be very clear about what the benefits of the reduction in noise are.
+
+"there is current research in exploring contextual bandits in dynamic worlds that may be applicable." : Maybe add a reference or two here for this research
+
+
+TODOs from comments in the reviews:
+----------------------------------
+
+- Authors need to better explain the reward function, and why those parameters were selected. For instance, why cost (e.g., inter-dc vs intra-dc communication) or object size were not considered.
+
+- Explain why you chose those 2 specific bandit algorithms
+
+- Present more experiment data than topologies. For instance, improvements over latency or consistency.
+
+- The data consistency model was not clearly presented
+
+- Talk about the problem and solution from technical/theoretical perspective before giving 3 sections to your "implementation".
+
+-  Where are Writes being done? How could you consider them in the model? In general, I expect more parameters to do peer selection, it would be nice to discuss these.
+
+-  In general, they expect more parameters to do peer selection, it would be nice to discuss these.
+
+- Reference missing here "From content delivery systems that span the globe, to mobile applications, to future systems such as automated vehicular networks, all will require additional consistency guarantees without sacrificing availability."
+
+- You say "We propose a new class of adaptive distributed data systems whose replicas" and then "Our system implements "... Please be consistent and accurate about what you provide.
