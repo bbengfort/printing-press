@@ -1,7 +1,14 @@
 % Stripped down document format for reviewers.
-\documentclass[sigconf]{acmart}
+\documentclass[10pt,conference,letterpaper]{IEEEtran}
 \usepackage{booktabs} % For formal tables
 \usepackage{caption}
+\usepackage{graphicx}
+\usepackage{soul}
+\usepackage{balance}
+
+% pete's adds
+\usepackage{color}
+\usepackage{hyperref}
 
 % Pete's annotations
 \usepackage[normalem]{ulem}
@@ -9,47 +16,57 @@
 \newcommand{\pjk}[1]{{\textcolor{red}{PJK: #1}}}
 
 % Don't print any ACM extra stuff, just a plain paper
-\setcopyright{none}
-\settopmatter{printccs=false, printacmref=false}
+% \setcopyright{none}
+% \settopmatter{printccs=false, printacmref=false}
 
 % Conference
-\acmConference[PaPoC'18 Worshop Proposal]{5th Workshop on Principles and Practice of Consistency for Distributed Data}{April 2018}{Porto, Portugal}
-\acmYear{}
-\copyrightyear{}
+% \acmConference[PaPoC'18 Worshop Proposal]{5th Workshop on Principles and Practice of Consistency for Distributed Data}{April 2018}{Porto, Portugal}
+% \acmYear{}
+% \copyrightyear{}
 
 
-\acmDOI{}
-\acmISBN{}
+% \acmDOI{}
+% \acmISBN{}
 
 
 \begin{document}
+% \dspace
 % \title{Improved Anti-Entropy with Reinforcement Learning}
 % \title{Improving Consistency with Anti-Entropy Bandits}
 % \title{Geo-Replicated Anti-Entropy Bandits}
 \title{Anti-Entropy Bandits for Geo-Replicated Consistency}
 
-\author{Benjamin Bengfort}
-\affiliation{%
-  \institution{University of Maryland}
-}
-\email{bengfort@cs.umd.edu}
+\author{\IEEEauthorblockN{Benjamin Bengfort and Pete Keleher}
+\IEEEauthorblockA{Department of Computer Science\\
+University of Maryland, College Park, MD, USA\\
+\{bengfort,keleher\}@cs.umd.edu}}
+% \author{Benjamin Bengfort}
+% \affiliation{%
+%   \institution{University of Maryland}
+% }
+% \email{bengfort@cs.umd.edu}
+%
+% \author{Pete Keleher}
+% \affiliation{%
+%   \institution{University of Maryland}
+% }
+% \email{keleher@cs.umd.edu}
 
-\author{Pete Keleher}
-\affiliation{%
-  \institution{University of Maryland}
-}
-\email{keleher@cs.umd.edu}
+\date{March 15, 2018}
 
-
+\IEEEtitleabstractindextext{%
 \begin{abstract}
     \input{abstract}
-\end{abstract}
+\end{abstract}}
 
 \maketitle
 
+\IEEEdisplaynotcompsoctitleabstractindextext
+
 \input{text}
 
-\bibliographystyle{ACM-Reference-Format}
+% \bibliographystyle{ACM-Reference-Format}
+\bibliographystyle{plain}
 \bibliography{papers}
 
 \end{document}

@@ -44,7 +44,7 @@ between two already synchronized nodes.
 Geographic distribution and extra-datacenter networks increase the latency of
 anti-entropy sessions so that inconsistencies become more apparent to
 external observers.
-Large, geographically-distributed systems are becoming the norm.
+Large geographically-distributed systems are becoming the norm.
 From content delivery systems that span the globe, to mobile applications, to
 future systems such as automated vehicular networks, all will require
 additional consistency guarantees without sacrificing availability.
@@ -82,7 +82,7 @@ a brief sketch of our implementation follows.
 \subsection*{Accesses and Consistency}
 
 Clients can \texttt{Put} (write) and \texttt{Get} (read) key-value pairs to
-one or more replicas in a single operation.
+ and from one or more replicas in a single operation.
 The set of replicas that responds to a client creates a quorum that must
 agree on the state of the operation at its conclusion.
 Clients can vary read and write quorum sizes to improve consistency or
@@ -226,8 +226,8 @@ replicas that are near each other.
 The complete reward function is given in Table~\ref{tab:rewards}: for each
 phase of synchronization (push and pull), compute the reward as the sum of the
 propositions given.
-For example if a synchronization results in 3 objects being pulled in 250ms,
-and 1 object being pushed in 250ms, the reward is 0.75.
+For example if a synchronization results in three objects being pulled in 250ms,
+and one object being pushed in 250ms, the reward is 0.75.
 
 \section*{Experiments}
 
@@ -332,7 +332,7 @@ occurs from selecting a peer that is in a similar state.
 To achieve stronger eventual consistency, the visibility latency
 of a system replicated with anti-entropy must be reduced.
 We believe that this can be achieved with two primary goals: increasing
-the number of successful synchronizations and maximizing the the number
+the number of successful synchronizations and maximizing the number
 of local and regional synchronizations such that the average latency of
 anti-entropy sessions is as low as possible.
 These goals must also be tempered against other requirements, such as
