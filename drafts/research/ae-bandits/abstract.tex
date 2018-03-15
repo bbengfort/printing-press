@@ -1,10 +1,14 @@
 Eventually consistent systems can be made more consistent by reducing the time
-until a write is fully replicated, improving their visibility.
+until a write is fully replicated, improving global visibility of updates.
 While gossip-based anti-entropy methods scale well, random selection of
 anti-entropy partners is less than efficient.
-We propose an improvement to pairwise, bilateral anti-entropy; instead
-of uniform random selection, we introduce reinforcement learning mechanisms
-to assign selection probabilities to replicas most likely to have
+Moreover, while eventual consistency may be consistent enough in a single data
+center, geographic replication increases visibility latency and leads to
+externally observable inconsistencies.
+In this paper, we explore an improvement to pairwise, bilateral anti-entropy;
+instead of uniform random selection, we introduce reinforcement learning
+mechanisms to assign selection probabilities to replicas most likely to have
 information.
-The result is more efficient replication, faster visibility, and higher
-consistency, while maintaining high availability and partition tolerance.
+The result is more efficient replication, faster visibility, and stronger
+eventual consistency while maintaining high availability and partition
+tolerance.
