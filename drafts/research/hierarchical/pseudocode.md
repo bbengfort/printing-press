@@ -19,7 +19,7 @@ Still to do/explore:
 
 ## Definitions
 
-**epoch**: a monotonically increasing logical time element that defines subquorums and their assigned tags. We've further optimized the root quorum to also consider the epoch as the term of the root leader (* **this implies we need to elect a new leader for every command!** *). The epoch is equivalent to a _configuration_ in VP
+**epoch**: a monotonically increasing logical time element that defines subquorums and their assigned tags. We've further optimized the root quorum to also consider the epoch as the term of the root leader (**PJK: this implies we need to elect a new leader for every command!**). The epoch is equivalent to a _configuration_ in VP.
 
 **command**: In Vertical Paxos (VP) a command is identified by three dimensions: the configuration id, the the ballot number, and the log index. In HC, a command is identified by: epoch, subquorum term, and log index.
 
@@ -33,8 +33,8 @@ At the root leader:
     q = the subquorum id
     t = the subquorum term
     v = the number of yes votes (1 for self, >1 is delegations)
-3. If there is a (q,t) conflict - e.g. the root receives two batches of delegated votes from the same subquorum, it resolves the number of votes by selecting the delegation with the highest subquorum term in case a failure in the subquorum caused a new leader election.
-4. If sum(v) > n/2+1 where n is the number of replicas, the command is committed. The root quorum broadcasts the commit to all replicas
+3. If there is a (q,t) conflict - e.g. the root receives two batches of delegated votes from the same subquorum, it resolves the number of votes by selecting the delegation with the highest subquorum term in case a failure in the subquorum caused a new leader election. (**PJK: What happens when these two distinct SQ leaders send delegated votes to distinct candidates of a RQ election? If the SQ leader failed before telling it's people what it was about to do, new SQ leader (of same SQ) doesn't know that the vote has happened. The two RQ leaders are unaware of each other, and the one contested SQ might be enough to tilt the election one way or another. I don't know a straightforward way of fixing this other than requiring candidates to use undelegated votes only, i.e. it's a nuclear timeout w/o waiting for the nuclear timeout**)
+4. If sum(v) > n/2+1 where n is the number of replicas, the command is committed. The root quorum broadcasts the commit to all replicas (**PJK: thrifty**).
 
 At root followers:
 
