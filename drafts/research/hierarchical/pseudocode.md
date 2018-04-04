@@ -19,7 +19,7 @@ Still to do/explore:
 
 ## Definitions
 
-**epoch**: a monotonically increasing logical time element that defines subquorums and their assigned tags. We've further optimized the root quorum to also consider the epoch as the term of the root leader (** *this implies we need to elect a new leader for every command!* **). The epoch is equivalent to a _configuration_ in VP
+**epoch**: a monotonically increasing logical time element that defines subquorums and their assigned tags. We've further optimized the root quorum to also consider the epoch as the term of the root leader (***this implies we need to elect a new leader for every command!***). The epoch is equivalent to a _configuration_ in VP
 
 **command**: In Vertical Paxos (VP) a command is identified by three dimensions: the configuration id, the the ballot number, and the log index. In HC, a command is identified by: epoch, subquorum term, and log index.
 
