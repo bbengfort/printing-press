@@ -33,7 +33,7 @@ At the root leader:
     q = the subquorum id
     t = the subquorum term
     v = the number of yes votes (1 for self, >1 is delegations)
-3. If there is a (q,t) conflict - e.g. the root receives two batches of delegated votes from the same subquorum, it resolves the number of votes by selecting the delegation with the highest subquorum term in case a failure in the subquorum caused a new leader election. (**PJK: What happens when these two distinct SQ leaders send delegated votes to distinct candidates of a RQ election? If the SQ leader failed before telling it's people what it was about to do, new SQ leader (of same SQ) doesn't know that the vote has happened. The two RQ leaders are unaware of each other, and the one contested SQ might be enough to tilt the election one way or another. I don't know a straightforward way of fixing this other than requiring candidates to use undelegated votes only, i.e. it's a nuclear timeout w/o waiting for the nuclear timeout**)
+3. If there is a (q,t) conflict - e.g. the root receives two batches of delegated votes from the same subquorum, it resolves the number of votes by selecting the delegation with the highest subquorum term in case a failure in the subquorum caused a new leader election. (**PJK: What happens when these two distinct SQ leaders send delegated votes to distinct candidates of a RQ election? If the SQ leader failed before telling it's people what it was about to do, new SQ leader (of same SQ) doesn't know that the vote has happened. The two RQ leaders are unaware of each other, and the one contested SQ might be enough to tilt the election one way or another. I don't know a straightforward way of fixing this other than requiring candidates to use undelegated votes only, i.e. it's a nuclear timeout w/o waiting for the nuclear timeout**)(**PJK: example: 3 SQ of three each. Root election in progress w/ two candidates. SQ 1 votes for candidate A, SQ 2 votes for B. SQ 3 votes for A, fails, and then votes for B.**)
 4. If sum(v) > n/2+1 where n is the number of replicas, the command is committed. The root quorum broadcasts the commit to all replicas (**PJK: thrifty**).
 
 At root followers:
@@ -69,7 +69,7 @@ In the timeout-based delegation, a replica delegates it's vote for a term limite
 
 See the assassination scenario for the worst case scenario for this.
 
-In the book-keeping mechanism, replicas can delegate their votes to anyone. All root votes must be accompanied by the term, epoch, and ID of the delegation. The root leader tracks votes as follows:
+(**PJK: Again, I think this fails if delegation can be used for root votes.**) In the book-keeping mechanism, replicas can delegate their votes to anyone. All root votes must be accompanied by the term, epoch, and ID of the delegation. The root leader tracks votes as follows:
 
 - If the delegated vote is not in the current epoch, it is discarded
 - Otherwise the leader accepts only the vote with the highest term (e.g. the
