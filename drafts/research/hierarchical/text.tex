@@ -66,7 +66,8 @@ We conclude with an evaluation and a discussion of related works ...
 \begin{itemize}
     \item hierarchies already exist in applications
     \item geo-replication requires adaptivity
-    \item transactions don't work well with tablet structures
+    \item transactions don't work well with tablet structures \pjk{We
+        don't discuss them in this paper.  Do we?}
 \end{itemize}
 
 \strong{claims}:
@@ -102,7 +103,7 @@ Vertical Paxos \texttt{(Configuration, Ballot, Index)} structure.
 Consistency: there must be a single, externalized ordering across all
 objects.
 
-Figure: grid ordering consistency.
+Figure: grid ordering consistency.  \pjk{??}
 
 \subsection*{Related Work}
 
@@ -111,7 +112,7 @@ Figure: grid ordering consistency.
     scale.
     \item MDCC~\cite{mdcc}, Spanner~\cite{spanner} are big systems across
     multiple data centers but isolate objects into tablets that aren't
-    coordinated.
+    coordinated. \pjk{In what sense?  Does MDCC not re-configure tablets?}
     \item Niobe~\cite{niobe} and Boxwood~\cite{boxwood} are Vertical Paxos
     for primary replication but treat configuration as an independent master
     quorum and have independent object management.
@@ -119,7 +120,11 @@ Figure: grid ordering consistency.
 
 \subsection*{HC Goals/Claims/Intuitions}
 
-\strong{consistency claims:} We claim that for a current epoch, $E_i$, this externalized ordering exists
+\strong{consistency claims:} We claim that for a current epoch, $E_i$,
+this externalized ordering\footnote{\pjk{Hmm.. Externalized implies
+    linearizability. Accesses will observe this, but that does not
+    mean that we can rebuild it later on.  This comment seems to be
+    more true for SC.}} exists
 for all epochs $\leq E_{i-j}$ such that $j\geq1$ and $E_{i-j}$ is
 \emph{closed}, e.g. a tombstone has been written to the logs of all \subs,
 $S_{i-j}$.
@@ -129,7 +134,9 @@ ordering of all objects.
 
 \strong{performance claims:} we should make some.
 
-\section*{Design}
+\section*{Design}\footnote{\pjk{I'd make this a straw-man design, along the
+  lines of SUNDR. We can then add delegation and generalized
+  delegation later.}}
 
 Preliminaries: a system is composed of a set of replicas, $R$, initially we
 assume that this set is fixed, later we discuss adding or removing to this
@@ -165,7 +172,9 @@ Later we relax this so that any replica can be a member of of the \roo.
 
 \begin{itemize}
     \item key/value store
-    \item read then write updates
+    \item read then write updates \pjk{We assume all writes
+        implemented w/ read then write, or do we implement writes this
+        way? And to what purpose?}
     \item accesses: get, put, delete
 \end{itemize}
 
