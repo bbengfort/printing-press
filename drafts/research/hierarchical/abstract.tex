@@ -1,0 +1,14 @@
+We introduce Hierarchical Consensus (HC), an understandable implementation
+and extension of Vertical Paxos designed to create large,
+strongly-consistent geo-replicated distributed systems.
+HC uses partitions across multiple independent \subs to increase overall
+availability, localize decision-making, and improve throughput.
+\Subs can be lightweight and chosen from hosts with low mutual communication
+latencies such that co-location and balanced load allow them to reach
+decisions quickly.
+Globally, a \roo maintains the decision-space and provides linearizable
+guarantees across the entire system by intersecting with \subs using a novel
+delegation approach to voting.
+We demonstrate HC's advantages through an implementation scaling to hundreds
+of replicas across more than a dozen availability zones around the world
+using Amazon EC2.
