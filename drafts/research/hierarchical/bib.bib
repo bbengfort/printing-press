@@ -11,6 +11,15 @@
   author = {Corbett, James C. and Dean, Jeffrey and Epstein, Michael and Fikes, Andrew and Frost, Christopher and Furman, J. J. and Ghemawat, Sanjay and Gubarev, Andrey and Heiser, Christopher and Hochschild, Peter and {others}}
 }
 
+@inproceedings{alvaro2013consistency,
+  title = {Consistency without Borders},
+  booktitle = {Proceedings of the 4th Annual {{Symposium}} on {{Cloud Computing}}},
+  publisher = {{ACM}},
+  date = {2013},
+  pages = {23},
+  author = {Alvaro, Peter and Bailis, Peter and Conway, Neil and Hellerstein, Joseph M}
+}
+
 @inproceedings{mdcc,
   title = {{{MDCC}}: {{Multi}}-{{Data Center Consistency}}},
   booktitle = {Proceedings of the 8th {{ACM European Conference}} on {{Computer Systems}}},
@@ -81,7 +90,7 @@
   author = {Hupfeld, Felix and Kolbeck, Bj{\"o}rn and Stender, Jan and H{\"o}gqvist, Mikael and Cortes, Toni and Mart{\'\i}, Jonathan and Malo, Jes{\'u}s}
 }
 
-@article{mazieres_paxos_2007,
+@article{paxos_practical,
   title = {Paxos Made Practical},
   url = {http://read.seas.harvard.edu/~kohler/class/08w-dsi/mazieres07paxos.pdf},
   journaltitle = {Unpublished manuscript},
@@ -90,7 +99,7 @@
   author = {Mazieres, David}
 }
 
-@report{lamport_generalized_2005,
+@report{generalized_paxos,
   title = {Generalized Consensus and {{Paxos}}},
   url = {http://zoo.cs.yale.edu/classes/cs426/2012/lab/bib/lamport05generalized.pdf},
   institution = {{Technical Report MSR-TR-2005-33, Microsoft Research}},
@@ -98,10 +107,10 @@
   date = {2005},
   author = {Lamport, Leslie}
 }
-% == BibLateX quality report for lamport_generalized_2005:
+% == BibLateX quality report for generalized_paxos:
 % Missing required field 'type'
 
-@inproceedings{camargos_multicoordinated_2007,
+@inproceedings{multicoordinated_paxos,
   title = {Multicoordinated Paxos},
   url = {http://dl.acm.org/citation.cfm?id=1281150},
   booktitle = {Proceedings of the Twenty-Sixth Annual {{ACM}} Symposium on {{Principles}} of Distributed Computing},
@@ -111,7 +120,7 @@
   pages = {316--317},
   author = {Camargos, L{\'a}saro Jonas and Schmidt, Rodrigo Malta and Pedone, Fernando}
 }
-% == BibLateX quality report for camargos_multicoordinated_2007:
+% == BibLateX quality report for multicoordinated_paxos:
 % ? Unsure about the formatting of the booktitle
 
 @inproceedings{spaxos,
@@ -141,7 +150,7 @@
 % ? Unsure about the formatting of the booktitle
 % ? Title looks like it was stored in title-case in Zotero
 
-@article{paxos_simple,
+@article{paxos,
   title = {Paxos Made Simple},
   volume = {32},
   url = {http://www.cs.utexas.edu/users/lorenzo/corsi/cs380d/past/03F/notes/paxos-simple.pdf},
@@ -180,6 +189,19 @@
 % Unexpected field 'version'
 % Unexpected field 'publisher'
 % Unexpected field 'author'
+
+@inproceedings{mencius,
+  title = {Mencius: Building Efficient Replicated State Machines for {{WANs}}},
+  volume = {8},
+  url = {https://www.usenix.org/legacy/event/osdi08/tech/full_papers/mao/mao_html/},
+  booktitle = {{{OSDI}}},
+  urldate = {2016-05-01},
+  date = {2008},
+  pages = {369--384},
+  author = {Mao, Yanhua and Junqueira, Flavio Paiva and Marzullo, Keith}
+}
+% == BibLateX quality report for mencius:
+% ? Unsure about the formatting of the booktitle
 
 @inproceedings{epaxos,
   title = {There Is More Consensus in Egalitarian Parliaments},
@@ -245,3 +267,5 @@
   pages = {1},
   author = {MacCormick, John and Thekkath, Chandramohan A. and Jager, Marcus and Roomp, Kristof and Zhou, Lidong and Peterson, Ryan}
 }
+
+

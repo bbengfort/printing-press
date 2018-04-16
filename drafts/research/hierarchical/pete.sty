@@ -7,10 +7,27 @@
 \ProvidesPackage{pete}[2018/04/01 v0.02 Pete's editing special sauce]
 
 \usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
-\newcommand{\todo}[1]{{\textcolor{red}{#1}}}
-\newcommand{\pjk}[1]{{\textcolor{red}{PJK: #1}}}
-\newcommand{\ben}[1]{{\textcolor{orange}{Ben: #1}}}
-\newcommand{\bobby}[1]{{\textcolor{cyan}{Bobby: #1}}}
+
+% UMD Color Scheme
+\definecolor{red}{RGB}{224,58,62}
+\definecolor{gold}{RGB}{255,213,32}
+\definecolor{blue}{RGB}{36,83,169}
+\definecolor{purple}{RGB}{114,31,171}
+\definecolor{Purple}{RGB}{90,10,145}
+\definecolor{green}{RGB}{54,183,47}
+\definecolor{cyan}{RGB}{36,137,133}
+
+% annotations
+\newcommand{\todo}[1]{{\textcolor{purple}{TODO: #1}}}
+\newcommand{\note}[1]{{\textcolor{Purple}{NOTE: #1}}}
+\newcommand{\pjk}[1]{{\textbf{\textcolor{red}{PJK: #1}}}}
+\newcommand{\ben}[1]{{\textbf{\textcolor{blue}{BJB: #1}}}}
+\newcommand{\bobby}[1]{{\textbf{\textcolor{green}{Bobby: #1}}}}
+
+% a fuzzy claim is something I'd like to say but I'm not sure of and needs
+% to be reviewed more closely or have a source cited.
+\newcommand{\fuzzy}[1]{{\textcolor{cyan}{#1}}}
+
 
 \newcommand{\sub}{subquorum\xspace}
 \newcommand{\Sub}{Subquorum\xspace}

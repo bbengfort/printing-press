@@ -30,6 +30,27 @@ with Hierarchical Consensus}
 
 \section*{Introduction}
 
+Distributed consensus algorithms are \fuzzy{the primary mechanism} that
+coordinate independent machines inside a computing cluster.
+% emphasis on independent
+Coordination is essential to large-scale software systems, particularly
+modern systems that span globe~\cite{spanner,}, therefore the demanding requirements for
+consensus include high throughput, low latency, fault tolerance, durability,
+and consistent replication.
+
+
+
+Consensus design has traditionally considered progress in the face of one or
+two node failures.
+As a result, current
+approaches~\cite{mencius,epaxos,multicoordinated_paxos,spaxos,mdcc}
+assume a small number of replicas in a co-located consensus group, each
+centrally located on a powerful and reliable host.
+
+Many consensus algorithms have their roots in the Paxos~\cite{paxos}
+
+Move from a single leader to a democratic system. Now to representative government. 
+
 In this paper we tell the story of HC, a framework to create consensus across
 hundreds of replicas making decisions across an object space that is not
 independent and therefore requires strong consistency.
