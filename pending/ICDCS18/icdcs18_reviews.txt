@@ -1,0 +1,123 @@
+Dear Benjamin Bengfort,
+
+Congratulations! We are delighted to inform you that your short paper 716 has been accepted for presentation at the short papers track of the 38th IEEE International Conference on Distributed Computing Systems (ICDCS).
+
+       Paper: 716
+       Title: Anti-Entropy Bandits for Geo-Replicated Consistency
+
+All papers went through a rigorous review process, which was led by the track chairs. The reviews for your paper are available below and through the submission site. Please make the effort to take the comments into account when preparing the camera-ready version of your paper. A separate e-mail from the proceedings chair will provide further information regarding the preparation and submission of your camera-ready paper. Although your camera-ready paper should be limited to 6 pages, please note that up to 2 over-length pages may be purchased. The deadline for your camera-ready manuscript is May 3, 2018.
+
+In addition, we warmly invite you to present a poster during the poster session. This is usually an excellent way to engage in active and informal discussions, and receive direct feedback about your work. The poster chairs will get in touch with you in a separate email to arrange the logistics.
+
+Please note that the policy of ICDCS 2018 requires that at least one co-author of each accepted paper attends the conference. If nobody registers for the conference, the paper will be excluded from the proceedings.
+
+Congratulations, again, and we look forward to welcoming you at ICDCS 2018!
+
+Kind regards,
+
+Lydia Chen and Guillaume Pierre
+
+
+----------------------- REVIEW 1 ---------------------
+PAPER: 716
+TITLE: Anti-Entropy Bandits for Geo-Replicated Consistency
+AUTHORS: Benjamin Bengfort and Pete Keleher
+
+Overall evaluation: 1 (weak accept)
+How innovative is this paper?: 4 (good (some novel ideas here))
+How impactful is the paper likely to be?: 3 (fair (typical paper, will have some followup and citations))
+Is the paper technically correct?: 3 (Correct)
+
+----------- List strong points of the paper (at least three) -----------
+- This paper is well written and easy to follow
+- The research problem is of great importance and the proposed approach looks innovative.
+- Although still preliminary, the experiment results are promising.
+
+----------- List weak points of the paper (at least three) -----------
+- The reference section is not well-formatted
+- A bit more explanations about what the reinforcement learning reward function looks like and how it is solved would make the submission easier to follow for readers who are not familiar with reinforcement learning.
+- practicality concerns: see detailed comments.
+
+----------- Please provide a detailed review: summary, justification, major and minor comments and suggestions -----------
+This paper investigates the problem of achieving stronger eventual consistency for geo-replicated systems by reducing the visibility latency and the anti-entropy latency. In contrary to the state-of-the-art where a random selection of anti-entropy partners is conducted, the authors apply reinforcement learning mechanisms to the selection algorithm such that local/regional synchronization partners are preferred over inter-regional partners, which makes the anti-entropy sessions more efficient. The experiments developed on AWS demonstrate that the proposed approach could achieve faster visibility and stronger eventually consistency than the random selection algorithm.
+
+Overall I enjoyed reading this paper. It is informative and easy to follow. Although preliminary, the research idea is innovative, and the experiment results are promising. Especially I like the visualization of the results, e.g., Figures 4~6. The final discussion also introduces possible enhancements and research directions for subsequent larger submission.
+
+Here are some minor comments:
+
+1. The references need to be re-formatted. Many of the refs are missing "year" and `book/proceedings`.
+
+2. In table I, why is "synchronize at least 1 object" assigned higher rewards than "synchronize multiple objects"?
+
+3. In Fig 3, there are two y-axis but only one set of bar chart.
+
+4. Practicality: As future work, the authors mention about a new reward function that captures information such as object size, number of conflicts, or localizing objects, etc. Will this lead to a reward function that's over-complicated and may take too long to make a selection? What's the time complexity of solving such a reward maximization problem? What if you want to do that in an online manner (resolving the same problem periodically)?
+
+5. How do you guarantee that there are no isolated regions? I.e., it's possible that a region is so faraway from all others that it no other regions choose to send updates to it based on the outcome of the algorithm.
+
+
+----------------------- REVIEW 2 ---------------------
+PAPER: 716
+TITLE: Anti-Entropy Bandits for Geo-Replicated Consistency
+AUTHORS: Benjamin Bengfort and Pete Keleher
+
+Overall evaluation: 1 (weak accept)
+How innovative is this paper?: 4 (good (some novel ideas here))
+How impactful is the paper likely to be?: 3 (fair (typical paper, will have some followup and citations))
+Is the paper technically correct?: 3 (Correct)
+
+----------- List strong points of the paper (at least three) -----------
+* interesting application of reinforcement learning techniques to distributed systems
+* very well written paper
+
+----------- List weak points of the paper (at least three) -----------
+* lack of discussion and quantitative evaluation with existing gossip-based techniques that do not rely exclusively on uniform-sampling
+* doubts regarding the scalability of the proposed technique to hundreds or thousands of nodes
+
+----------- Please provide a detailed review: summary, justification, major and minor comments and suggestions -----------
+The paper presents preliminary results of a research project aimed at exploring the idea of exploiting reinforcement learning techniques to identify the target nodes of anti-entropy/asynchronous replication in eventually consistent data stores.
+
+The idea of borrowing techniques from the bandit-related reinforcement learning literature and of applying them for the automatic optimization of this class of distributed systems appears to be novel and interesting. The current paper makes a first step in this direction and, although it does not address many questions (e.g., how to deal with dynamic workloads), it does identify and reckon its limitations.
+
+I have two main criticisms that motivate my less than enthusiastic reccommendation:
+1- the paper does not evaluate, nor mentions, works that propose gossip techniques not based on purely random sampling, e.g.:
+
+HyParView: a membership protocol for reliable gossip-based broadcast
+J. Leitão, J. Pereira and L. Rodrigues
+Proceedings of the 37th Annual IEEE/IFIP International Conference on Dependable Systems and Networks, Edinburgh, UK, June, 2007.
+
+Tölgyesi N., Jelasity M. (2009) Adaptive Peer Sampling with Newscast. In: Sips H., Epema D., Lin HX. (eds) Euro-Par 2009 Parallel Processing. Euro-Par 2009. Lecture Notes in Computer Science, vol 5704. Springer, Berlin, Heidelberg
+
+Besides lacking a comparison with state of the art solutions in this area, the paper seems also to overlook another important aspect.
+The literature on P2P systems has long studied the trade-offs associated with adding some form of structure (based, e.g., on link quality/network distance between pair of nodes) to unstructured overlay networks based on pure random gossip strategies. One aspect that is crucial here is that the introduction of biases in the sampling process, i.e., of some form of structure in the network, can make the network less robust to failures/churn. The solution proposed in this work uses bandits to infer an efficient network structure, yet, the evaluation only focuses on failure free scenario.
+
+
+2- Bandits require sampling all options (i.e., all other nodes in the system) more than once and, as such, do not scale very well to scenarios where hundreds or thousand of options exist. Since asynchronous/gossip-based replication strategies target very large scale systems, this leaves me with some concerns regarding whether bandits are the best reinforcement learning technique one may want to apply to this domain.
+
+
+----------------------- REVIEW 3 ---------------------
+PAPER: 716
+TITLE: Anti-Entropy Bandits for Geo-Replicated Consistency
+AUTHORS: Benjamin Bengfort and Pete Keleher
+
+Overall evaluation: 1 (weak accept)
+How innovative is this paper?: 4 (good (some novel ideas here))
+How impactful is the paper likely to be?: 3 (fair (typical paper, will have some followup and citations))
+Is the paper technically correct?: 3 (Correct)
+
+----------- List strong points of the paper (at least three) -----------
+- The problem is relevant for ICDCS
+
+- The use of multi-armed bandits to select nodes is novel and interesting
+
+- The preliminary results are promising
+
+- The paper is clear an well written
+
+----------- List weak points of the paper (at least three) -----------
+- The gains obtained with the method are fairly limited
+
+- Further study of the proposed reward function is needed
+
+----------- Please provide a detailed review: summary, justification, major and minor comments and suggestions -----------
+This paper presents an early stage study on the impact of using multi-armed bandits to select node peers in anti-entropy sessions, instead of the more traditional uniform selection rule. The multi-armed bandit approach improves the chances of selecting a good peer given previous interactions among node peers. The paper shows some preliminary results that illustrate how the propose approach reduces the visibility latency and therefore increases the system consistency. I find the idea of multi-armed bandits for this selection problem interesting and worthy of discussion at the ICDCS venue, maybe triggering a fruitful discussion. On the down side, the results show limited gains with the proposed approach, which may point to the need of a more detailed study of key elements, such as the proposed reward function.

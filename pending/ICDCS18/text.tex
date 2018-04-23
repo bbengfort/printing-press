@@ -1,4 +1,4 @@
-\section*{Introduction}
+\section{Introduction}
 
 A distributed system is made highly available when individual servers are
 allowed to operate independently without failure-prone, high latency
@@ -12,7 +12,7 @@ order or predictability, a gradual decline into inconsistency, e.g. the
 system would experience \textit{entropy}.
 To combat the effect of entropy while still remaining highly available,
 servers engage in periodic background \textit{anti-entropy
-  sessions}~\cite{terry_session_1994}.
+  sessions}~\cite{anti_entropy}.
 
 Anti-entropy sessions synchronize the state between servers ensuring that,
 at least briefly, the local state is consistent with a portion of the global
@@ -20,10 +20,10 @@ state of the system.
 If all servers engage in anti-entropy sessions, the system is able to make
 some reasonable guarantees about consistent replication; the most famous
 of which is that without requests the system will become
-globally consistent, eventually~\cite{vogels_eventually_2009}.
+globally consistent, eventually~\cite{eventual_consistency}.
 More specifically, inconsistencies in the form of stale reads can be bound by
 likelihoods that are informed by the latency of anti-entropy sessions and the
-size of the system~\cite{bailis_probabilistically_2012,bailis_quantifying_2014}.
+size of the system~\cite{probabilistically_bounded_staleness,quantifying_pbs}.
 Said another way, overall consistency is improved in an eventually consistent
 system by decreasing the likelihood of a stale read, which is tuned by
 improving the \textit{visibility latency} of a write, the speed at which a
@@ -40,7 +40,7 @@ outside of datacenters.
 Large geographically-distributed systems are becoming the norm particularly
 as mobile devices and sensor systems participate in computing and storage at
 the edge of large distributed
-systems~\cite{garcia_lopez_edge-centric_2015,scellato_track_2011}.
+systems~\cite{edge_computing,geo_cdn}.
 From content delivery systems that span the globe, to mobile applications, to
 future systems such as automated vehicular networks, all will require
 additional consistency guarantees without sacrificing availability.
@@ -58,12 +58,12 @@ learning techniques.
 Anti-entropy uses gossip and rumor spreading to propagate updates
 deterministically without saturating the
 network even in the face of network
-outages~\cite{haeupler_simple_2015,karp_randomized_2000,moreno_dynamics_2004}.
+outages~\cite{gossip_protocols,rumor_spreading,rumor_spreading_dynamics}.
 These protocols use uniform random selection to choose synchronization peers,
 which means that a write occurring at one replica is not efficiently
 propagated across the network.
 In this paper we explore the use of \textit{multi-armed bandit}
-algorithms~\cite{langford_epoch-greedy_2008,luo_efficient_2017} to optimize
+algorithms~\cite{epoch_greedy_mab,contextual_bandits} to optimize
 for fast, successful synchronizations by modifying peer selection
 probabilities.
 The result is a synchronization topology that emerges according to access
@@ -82,14 +82,14 @@ simple implementation of adaptivity leads to a pronounced benefit in
 visibility latency, and therefore the overall consistency of the system.
 
 
-\section*{Background}
+\section{Background}
 
 Our investigation considers an eventually consistent, in-memory key-value
 store that is totally replicated using
-anti-entropy~\cite{decandia_dynamo:_2007}.
+anti-entropy~\cite{dynamo}.
 A brief description of the system and consistency considerations follows.
 
-\subsection*{Accesses and Consistency}
+\subsection{Accesses and Consistency}
 
 Clients can \texttt{Put} (write) and \texttt{Get} (read) key-value pairs to
  and from one or more replicas in a single operation.
@@ -105,7 +105,7 @@ wide-area are rare, e.g. that writes are localized but reads are global.
 
 On \texttt{Put}, the instance of the key-value pair created by the update is
 assigned a monotonically increasing, conflict-free \textit{version
-number}~\cite{parker_detection_1983,almeida_version_2002}.
+number}~\cite{version_conflict_detection,version_vectors}.
 For simplicity, we assume a fixed number of replicas, therefore each version
 is made up of two components: the \textit{update} and \textit{precedence ids}.
 Precedence ids are assigned to replicas during configuration, and update ids
@@ -141,14 +141,14 @@ As we will see in the next section, one of these writes will eventually be
 eventual consistency prunes these branches at the cost of losing
 the update.
 The ideal consistency for a system is represented by a linear object history
-without forks~\cite{bernstein_rethinking_2013}, which demonstrates that the
+without forks~\cite{rethinking_eventual}, which demonstrates that the
 system was in a consistent state during all accesses.
 
 Both forms of inconsistency can be primarily attributed to \emph{visibility
 latency}, that is the time it takes for an update to propagate to all
 replicas in the system.
 Visibility latency is directly related to the likelihood of stale reads with
-respect to the frequency of accesses~\cite{bailis_quantifying_2014}; said
+respect to the frequency of accesses~\cite{quantifying_pbs}; said
 another way, decreasing the visibility latency improves the overall
 consistency of a system.
 However, in a system that uses anti-entropy for replication, the propagation
@@ -156,7 +156,7 @@ speed of an update is not governed solely by network connections, it is also
 bound to the number and frequency of anti-entropy sessions conducted and the
 radius of the network.
 
-\subsection*{Anti-Entropy}
+\subsection{Anti-Entropy}
 
 Anti-entropy sessions are conducted in a pairwise fashion on a periodic
 interval to ensure that the network is not saturated with synchronization
@@ -214,7 +214,7 @@ selection of synchronization partners, this latency is never practically
 achieved, and is instead modulated by a noise variable that is
 proportional to the size of the network.
 
-\section*{Bandit Approaches}
+\section{Bandit Approaches}
 
 To combat the effect of noise on visibility latency our initial approach
 employs a technique commonly used in active and reinforcement learning:
@@ -254,7 +254,7 @@ There are many other bandit strategies but we have chosen these two simple
 strategies for our initial research to demonstrate a bolt-on effective
 improvement to existing systems.
 
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \begin{tabular}{@{}l c c c @{}}
 \toprule
@@ -301,16 +301,14 @@ For example, in a system that has workloads with variable sized writes, object
 size could be considered or systems with imbalanced deployments might
 consider a reward function that prioritizes inter-region communication.
 
-\section*{Experiments}
-
-\begin{figure}[b]
+\begin{figure}[hb]
     \centering
     \includegraphics[width=0.5\textwidth]{figures/latency_sync_heatmap}
     \caption{Inter-Region Synchronization Latencies (Push+Pull)}
     \label{fig:latency_sync_heatmap}
 \end{figure}
 
-\begin{figure*}[t]
+\begin{figure*}[t!]
     \centering
     \minipage{0.5\textwidth}
       \includegraphics[width=\linewidth]{figures/rewards}
@@ -323,6 +321,8 @@ consider a reward function that prioritizes inter-region communication.
       \label{fig:visibility_latency}
     \endminipage
 \end{figure*}
+
+\section{Experiments}
 
 We conducted experiments using a distributed key-value store totally
 replicated across 45 replicas in 15 geographic regions on 5 continents
@@ -340,9 +340,10 @@ prefix per-region such that consistency conflicts only occur within a
 single region.
 The average throughput generated per-client was 5620.4 puts/second.
 The mean synchronization latency between each region ranged from 35ms to
-630ms, shown in~\ref{fig:latency_sync_heatmap}, because of this we set the
-anti-entropy interval to 1 second to train the system, then set the interval
-to 125ms to measure visibility latency.
+630ms as shown in Figure~\ref{fig:latency_sync_heatmap}.
+To ensure at least one synchronization per anti-entropy session, we set the
+anti-entropy interval to 1 second to train the system, then reduced the
+interval to 125ms while measuring visibility latency.
 To account for lag between commands sent to replicas in different regions,
 each experiment was run for 11 minutes, the bandit learning period was 4
 minutes then visibility latency was observed for 6 minutes, buffered by 30
@@ -371,27 +372,14 @@ network.
 During the visibility measurement period, replicas logged the timestamp the
 write was pushed or pulled, and the visibility latency is computed as the
 difference between the minimum and maximum timestamp.
-Both the visibility latency and the average number of anti-entropy sessions
-are shown in Figure~\ref{fig:visibility_latency}.
+The average visibility latency per region is shown in
+Figure~\ref{fig:visibility_latency} measured by the left y-axis.
+Because the anti-entropy delay is a fixed interval, the estimated number of
+required anti-entropy sessions associated with the visibility delay is shown
+on the right y-axis of the same figure.
 Employing bandit strategies reduces the visibility latency from 2360ms on
 average in the uniform case to 1870ms, reducing the number of required
 anti-entropy intervals by approximately 4.
-
-\begin{figure*}[t]
-    \centering
-    \minipage{0.33\textwidth}
-      \includegraphics[width=\linewidth]{figures/b-uniform-selection-e1}
-      \caption{Uniform Selection}\label{fig:uniform_selection}
-    \endminipage\hfill
-    \minipage{0.33\textwidth}%
-      \includegraphics[width=\linewidth]{figures/b-annealing-epsilon-greedy-e5}
-      \caption{Annealing Epsilon Greedy}\label{fig:annealing_epsilon}
-    \endminipage\hfill
-    \minipage{0.33\textwidth}%
-      \includegraphics[width=\linewidth]{figures/b-epsilon-greedy-0-1-e2}
-      \caption{Epsilon Greedy $\epsilon=0.1$}\label{fig:epsilon_greedy_e1}
-    \endminipage
-\end{figure*}
 
 To show the emergent behavior of bandits, we have visualized the resulting
 topologies as network diagrams in Figure~\ref{fig:uniform_selection} (uniform
@@ -422,7 +410,23 @@ We posit that fewer edges in the graph represents a more stable network;
 the fewer synchronization pairs that are selected, the less noise that
 occurs from selecting a peer that is in a similar state.
 
-\section*{Discussion}
+\begin{figure*}[t]
+    \centering
+    \minipage{0.33\textwidth}
+      \includegraphics[width=\linewidth]{figures/b-uniform-selection-e1}
+      \caption{Uniform Selection}\label{fig:uniform_selection}
+    \endminipage\hfill
+    \minipage{0.33\textwidth}%
+      \includegraphics[width=\linewidth]{figures/b-annealing-epsilon-greedy-e5}
+      \caption{Annealing Epsilon Greedy}\label{fig:annealing_epsilon}
+    \endminipage\hfill
+    \minipage{0.33\textwidth}%
+      \includegraphics[width=\linewidth]{figures/b-epsilon-greedy-0-1-e2}
+      \caption{Epsilon Greedy $\epsilon=0.1$}\label{fig:epsilon_greedy_e1}
+    \endminipage
+\end{figure*}
+
+\section{Discussion}
 
 To achieve stronger eventual consistency, the visibility latency
 of a system replicated with anti-entropy must be reduced.
@@ -483,12 +487,12 @@ to changing conditions, the epsilon greedy strategy can be slow to change
 since it prefers to exploit high-value arms.
 Contextual bandits use side information in addition to rewards to make
 selection decisions, and there is current research in exploring contextual
-bandits in dynamic worlds that may be applicable~\cite{luo_efficient_2017}.
+bandits in dynamic worlds that may be applicable~\cite{contextual_bandits}.
 Other strategies such as periodic reseting of the values may incur a small
 cost to explore the best anti-entropy topology, but could respond to changing
 access patterns or conditions in a meaningful way.
 
-\section*{Conclusion}
+\section{Conclusion}
 
 In this paper we have presented a demonstration of adaptive consistency in
 the geo-replicated eventually consistent systems by employing a novel
@@ -537,10 +541,10 @@ investigation of highly available distributed storage systems in novel
 network environments, particularly those that span the globe.
 Specifically, this work is part of a larger exploration of adaptive,
 globally distributed data systems that federate consistency levels to provide
-stronger guarantees~\cite{bengfort_federating_2017}.
+stronger guarantees~\cite{federated_consistency_poster}.
 Federated consistency combines adaptive eventually consistent systems such as
 the one presented in this paper with scaling geo-replicated consensus such as
-Hierarchical Consensus~\cite{bengfort_brief_2017} in order to create robust
+Hierarchical Consensus~\cite{hc_brief_announcement} in order to create robust
 data systems that are automatically tuned to provide the best availability
 and consistency.
 Distributed systems that adapt to and learn from their environments and
@@ -548,6 +552,6 @@ access patterns, such as the emerging synchronization topologies we observed
 in this paper, may form the foundation for the extremely large, extremely
 efficient networks of the future.
 
-All code for the key-value store and bandit-based entropy as well as
+All code for the key-value store and bandit-based anti-entropy as well as
 experimental results is open source and available on GitHub at
 \url{https://github.com/bbengfort/honu}.
