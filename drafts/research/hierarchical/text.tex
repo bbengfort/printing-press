@@ -30,80 +30,120 @@ with Hierarchical Consensus}
 
 \section*{Introduction}
 
-Distributed consensus algorithms are \fuzzy{the primary mechanism} that
-coordinate independent machines inside a computing cluster.
-% emphasis on independent
-Coordination is essential to large-scale software systems, particularly
-modern systems that span globe~\cite{spanner,}, therefore the demanding requirements for
-consensus include high throughput, low latency, fault tolerance, durability,
-and consistent replication.
-
-
-
-Consensus design has traditionally considered progress in the face of one or
-two node failures.
-As a result, current
-approaches~\cite{mencius,epaxos,multicoordinated_paxos,spaxos,mdcc}
-assume a small number of replicas in a co-located consensus group, each
+Coordination to ensure consistent behavior is essential to large-scale
+distributed software systems, particularly modern systems that span
+globe~\cite{spanner,mdcc,calvinfs,alvaro2013consistency}.
+A range of mechanisms exist to provide varying levels of consistency, but
+for systems that require strong guarantees, distributed consensus algorithms
+are the primary technique for maintaining a correct global state across
+independent machines in a computing cluster.
+Consensus design traditionally considers primarily the requirement of
+fault tolerance: progress in the face of one or two node failures.
+Current approaches~\cite{mencius,epaxos,multicoordinated_paxos,spaxos}
+therefore assume a small number of replicas in a co-located group, each
 centrally located on a powerful and reliable host.
+As a result, to scale modern systems that also have demanding requirements
+for high throughput, low latency, and durability, consensus is typically used
+in layers to manage smaller subsets of the system, trading performance for
+reliability where possible.
 
-Many consensus algorithms have their roots in the Paxos~\cite{paxos}
+% problem:
+% - standard consensus doesn't scale well
+% - it gets even worse across the wide area
+% - current systems assume object-independence
+% - current systems use fixed topographies and do not adapt
 
-Move from a single leader to a democratic system. Now to representative government. 
+Systems that implement many small quorums of
+coordination~\cite{mdcc,scatter,spanner} avoid the centralization bottleneck
+and reliability concerns of master-service
+systems~\cite{gray_dangers_1996,gfs} but create silos of independent
+operation that are not coordinated with respect to each other.
+Recently there has been increasing interest in dynamic and flexible quorums
+to maintain decentralized ledgers~\cite{stellar} \fuzzy{but practical
+experience shows that this results in the instantiation of a large number of
+intersecting quorums}, which is not practical for a dedicated system that
+does not have to worry about byzantine failure.
 
-In this paper we tell the story of HC, a framework to create consensus across
-hundreds of replicas making decisions across an object space that is not
-independent and therefore requires strong consistency.
-We note that like in human societies, democracy works well in small groups
-but does not scale well to large groups, even for binary decisions (the e.g.
-the kind of decisions that distributed systems make).
+Most consensus algorithms have their roots in the Paxos~\cite{paxos}
+algorithm, originally described in parliamentary terms.
+The metaphor of government still applies well as we look at the evolution of
+distributed coordination as systems have grown to include large numbers of
+processes and geographies.
+Systems that use a dedicated leader are easy to reason about and implement,
+however, like chess, if the leader goes down the system cannot make any
+progress.
+Simple democracies for small groups solve this problem but do not scale, and
+as the system grows, it fragments into tribes.
 Inspired by modern governments, we propose a representative system of
 consensus, such that replicas elect leaders to participate in a \roo that
 makes decisions about the global state of the system.
 Local decision making, the kind that effects only a subset of clients and
 objects is handled locally by \subs as efficiently as possible.
+The result is a a hierarchy of decision making that takes advantage of
+hierarchies that already exist in applications.
 
-As always, the devil is in the details.
-In this paper we first walk through the consistency model, then discuss the
-components of the system in an understandable way by using Raft as our base
-consensus algorithm and a key/value store as our primary application.
-Most of the rest of a paper is a discussion of safety.
-How can things go wrong in such a system? What are the implications? How can
-the system adapt, remain resilient, and even outperform other fault tolerant
-distributed consensus?
-We conclude with an evaluation and a discussion of related works ...
+% motivation:
+% - hierarchies already exist in applications
+% - geo-replication requires adaptivity
+% - transactions don't work well with tablet structures
+%   \pjk{We don't discuss them in this paper. Do we?}
 
-\strong{problem}:
+In this paper, we describe \emph{Hierarchical Consensus (HC)}, an
+implementation and extension of Vertical Paxos~\cite{vertical_paxos}.
+Like Vertical Paxos, HC reasons about consistency across all objects by
+identifying commands with a grid ordering (rather than a log ordering) and is
+reconfigurable to adapt to dynamic environments that exist in geo-replicated
+systems.
+Adaptability allows HC to exploit locality of access, allowing for high
+performance coordination, even with replication across the wide area.
+HC extends Vertical Paxos to ensure that intersections exist between the
+\subs and the \roo to ensure coordination exists between \subs and to ensure
+that the system operates as a coordinated whole.
+To scale the consensus protocol of the \roo, we propose a novel approach,
+\emph{delegation}, to ensure that all replicas participate in consensus but
+limit the number and frequency of messages required to achieve majority.
+Finally, we generalize HC from primary-backup replication to describe more
+general online replication required by distributed databases and file
+systems.
 
-\begin{itemize}
-    \item standard consensus doesn't scale well
-    \item it gets even worse across the wide area
-    \item current systems assume object-independence
-    \item current systems use fixed topographies and do not adapt
-\end{itemize}
+% As always, the devil is in the details.
+% In this paper we first walk through the consistency model, then discuss the
+% components of the system in an understandable way by using Raft as our base
+% consensus algorithm and a key/value store as our primary application.
+% Most of the rest of a paper is a discussion of safety.
+% How can things go wrong in such a system? What are the implications? How can
+% the system adapt, remain resilient, and even outperform other fault tolerant
+% distributed consensus?
+% We conclude with an evaluation and a discussion of related works ...
 
-\strong{motivation}:
+The rest of the paper is organized as follows: we first describe the
+background context that led to the intuition and motivations for HC,
+primarily describing Raft~\cite{raft}, our consensus algorithm of choice and
+a vertical consistency model.
+We then describe the design of the system in detail and describe failure-free
+operation of HC in a normal environment.
+We follow the failure-free description with a description of how HC handles
+various forms of failure and make an argument for the safety of the protocol,
+including several specific cases of failure.
+Finally we evaluate the performance of HC implemented as a distributed
+key-value database, distributed across 15 geographic regions around the
+world.
 
-\begin{itemize}
-    \item hierarchies already exist in applications
-    \item geo-replication requires adaptivity
-    \item transactions don't work well with tablet structures \pjk{We
-        don't discuss them in this paper.  Do we?}
-\end{itemize}
-
-\strong{claims}:
-
-\begin{itemize}
-    \item HC is an implementation and extension of Vertical Paxos~\cite{vertical_paxos} that organizes consensus hierarchically.
-    \item Use Raft~\cite{raft} for understandability
-    \item No requirement for SQ protocol to be Raft, however there must be \roo and \sub intersections.
-    \item we assert that leader-oriented protocols work best.
-    \item generalized framework for scaling consensus
-\end{itemize}
+% claims:
+% - HC is an implementation and extension of Vertical
+%   Paxos~\cite{vertical_paxos} that organizes consensus hierarchically.
+% - Use Raft~\cite{raft} for understandability
+% - No requirement for SQ protocol to be Raft, however there must be \roo and
+%   \sub intersections.
+% - we assert that leader-oriented protocols work best.
+% - generalized framework for scaling consensus
 
 \section*{Background}
 
-Paxos~\cite{fast_paxos,camargos_multicoordinated_2007,lamport_generalized_2005,epaxos,spaxos}
+
+
+Paxos~\cite{fast_paxos,multicoordinated_paxos,generalized_paxos,epaxos,spaxos}
+has two primary optimizations - fast path/slow path and leaders.
 
 We implement and extend Vertical Paxos~\cite{vertical_paxos} but go beyond
 primary backup replication to creating a key/value store (and soon a file
@@ -155,6 +195,15 @@ ordering of all objects.
 
 \strong{performance claims:} we should make some.
 
+\begin{figure*}[hbtp]
+  \centering
+  \minipage{\textwidth}
+      \includegraphics[width=\linewidth]{figures/hc_operation_summary}
+      \caption{A condensed summary of the hierarchical consensus protocol. Operations are described in a top-to-bottom fashion where the top level is \roo operations, the bottom is \sub operations, and the middle is transition and intersection. Section numbers such as §5.2 indicate where particular features are discussed.}
+      \label{fig:hc_operation_summary}
+  \endminipage
+\end{figure*}
+
 \section*{Design}\footnote{\pjk{I'd make this a straw-man design, along the
   lines of SUNDR. We can then add delegation and generalized
   delegation later.}}
@@ -176,6 +225,33 @@ During operation, a Replica can be \emph{one} of the following.
 Replicas that are leaders can simultaneously be a \sub leader and a \roo
 leader.
 Later we relax this so that any replica can be a member of of the \roo.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/simple_example_topology}
+    \caption{Simple Example: 12x3 HC Topology}
+    \label{fig:simple_example_topology}
+\end{figure}
+
+\begin{figure*}
+    \centering
+    \minipage{\textwidth}
+    \includegraphics[width=\linewidth]{figures/simple_example_epochs_terms}
+    \caption{Simple Example: Epochs and Terms Timeline}
+    \label{fig:simple_example_epochs_terms}
+    \endminipage
+\end{figure*}
+
+Another simple example
+
+\begin{figure*}
+    \centering
+    \minipage{\textwidth}
+    \includegraphics[width=\linewidth]{figures/simple_example_log_ordering}
+    \caption{Simple Example: Log Ordering}
+    \label{fig:simple_example_log_ordering}
+    \endminipage
+\end{figure*}
 
 \subsection*{Elections and Delegation}
 
@@ -216,6 +292,58 @@ Later we relax this so that any replica can be a member of of the \roo.
     \item partitions of the network (big faults)
     \item safety argument
 \end{itemize}
+
+\subsection*{Delegation Safety}
+
+We have implemented two mechanisms for delegation safety: the first is
+timeout based, and the second is a simple book-keeping mechanism.
+
+In the timeout-based delegation, a replica delegates it's vote for a term
+limited logical period, usually at least two epochs. This means that the
+delegated vote lasts through at most 1 root leader election. The nuclear
+timeout option is longer than the root election timeout, therefore in order
+for the nuclear option to occur at least one failed root leader election also
+must have occurred. Because the nuclear option is triggered after a root
+leader election the delegation is reset on the nuclear option, and every
+replica must vote for themselves (ensuring that the nuclear option contains
+no delegations at all).
+
+\pjk{Again, I think this fails if delegation can be used for root votes} In
+the book-keeping mechanism, replicas can delegate their votes to anyone. All
+root votes must be accompanied by the term, epoch, and ID of the delegation.
+The root leader tracks votes as follows:
+
+\begin{itemize}
+\item If the delegated vote is not in the current epoch, it is discarded
+\item Otherwise the leader accepts only the vote with the highest term (e.g.
+the current subquorum leader).
+\item If the leader receives a vote from the replica, then it accepts that
+vote no matter what.
+\end{itemize}
+
+In this way, it is possible for duplicate votes to be received by the leader, but only a single vote per replica will be counted.
+
+\subsection*{Assassination}
+
+Scenario:
+
+System size of 18, HC 5x3 (5 subquourms of size three, 3 hot spares) in 3 regions - 6 replicas per region. In epoch e there is a configuration such that all 5 subquorum leaders and the root leader are in a single region, which loses it's connectivity to the rest of the world. All followers have delegated their votes to their subquorum leaders, except the hot spares which haven't delegated to anyone.
+
+Just a note here, we've been calling it "assassination" but it's actually very difficult to create a scenario where this occurs if replicas are evenly distributed over all regions without violating the principle of localization. In the above example, every single subquourm is geo-replicated.
+
+6 replicas with 16 votes can communicate and 12 replicas with 2 votes cannot.
+
+Step one: all subquorums elect a leader for the next term; they continue to handle requests.
+
+Step two: group of 6 attempts an epoch change to repair the poor progress, they assign all work to two subquorums of 3 (best scenario if there is total failure).
+
+Step three: group of 12 attempts a root leader election, it fails because they only have 2 votes.
+
+Step four: group of 12 initiates nuclear option, taking back delegations, moves into an epoch after the group of 6.
+
+We now have the scenario where we have concurrent writes to objects in two partitioned regions, however because of the epoch ordering, we know that all writes that happen in the group of 6 happen before the writes that happen in the group of 12.
+
+The group of 6 cannot make another epoch change because their delegations have expired and they cannot re-acquire them.
 
 \section*{Implementation and Evaluation}
 

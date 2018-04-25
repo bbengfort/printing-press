@@ -1,0 +1,10 @@
+| Color   | Hex     | Name           |
+|:--------|:--------|:---------------|
+| Red     | #E34426 | "Gingy"        |
+| Cyan    | #96D4D3 | "Already Home" |
+| White   | #FDFDFB | "Shirt"        |
+| Yellow  | #E1C43C | "For the Kids" |
+| Blue    | #133A65 | "Nautical"     |
+
+Source:
+http://www.colourlovers.com/palette/2487097/Nautical_Bits
