@@ -225,7 +225,7 @@ designed to find the optimal payout of several choices that each have
 different probabilities of reward.
 In this case, we use bandits to improve uniform random selection of peers so
 that replicas choose synchronization partners that are most likely to exchange
-information and thus more quickly propagate updates, while still maintaining
+information, and thus more quickly propagate updates, while still maintaining
 the properties of full replication and fault tolerance.
 
 A bandit problem is designed by identifying several (usually more than two)
@@ -262,7 +262,7 @@ improvement to existing systems.
 & \textbf{Pull} & \textbf{Push} & \textbf{Total} \\
 \midrule
 Synchronize at least 1 object & 0.25 & 0.25 & 0.50 \\
-Synchronize multiple objects  & 0.05 & 0.05 & 0.10 \\
+Additional for multiple objects  & 0.05 & 0.05 & 0.10 \\
 Latency $\leq$ 5ms (local)        & 0.10 & 0.10 & 0.20 \\
 Latency $\leq$ 100ms (regional)   & 0.10 & 0.10 & 0.20 \\
 \midrule
@@ -286,7 +286,7 @@ the same data center) and regional (e.g. on the same continent) connections.
 
 Our initial reward function favors synchronizations to replicas where the
 most writes are occurring by giving higher rewards to anti-entropy sessions
-that exchange later versions in either a push or a pull as well as additional
+that exchange later versions in either a push or a pull, as well as additional
 rewards if more than one object is exchanged.
 Additionally, the latency of the synchronization RPCs is computed to reward
 replicas that are near each other.
@@ -474,6 +474,7 @@ specialize in cross-region collaboration.
 Unfortunately there does also seem to be an isolating effect, for example
 Sydney (grey) appears to have no significant out of region synchronization
 partners.
+However, non-zero epsilons make this extremely unlikely in the long run.
 Multi-stage bandits might be used to create a tiered reward system to
 specifically adjust the selection of local, regional, and global peers.
 Other strategies such as upper confidence bounds, softmax, or Bayesian
