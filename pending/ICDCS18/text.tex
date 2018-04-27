@@ -20,7 +20,7 @@ state of the system.
 If all servers engage in anti-entropy sessions, the system is able to make
 some reasonable guarantees about consistent replication; the most famous
 of which is that without requests the system will become
-globally consistent, eventually~\cite{eventual_consistency}.
+globally consistent, eventually~\cite{anti_entropy}.
 More specifically, inconsistencies in the form of stale reads can be bound by
 likelihoods that are informed by the latency of anti-entropy sessions and the
 size of the system~\cite{probabilistically_bounded_staleness,quantifying_pbs}.
@@ -33,9 +33,8 @@ is ``consistent enough''~\cite{bermbach_eventual_2011,wada_data_2011},
 particularly in a data center context where visibility latency is far below
 the rate of client requests, leading to practically strong consistency.
 
-However, there has been an important change in considerations for the
-design of such systems that have led us to re-evaluate propagation speed:
-systems are growing, while simultaneously becoming geographically distributed
+However, propagation rates need to be re-evaluated because
+distributed systems are growing, while simultaneously becoming geographically distributed
 outside of datacenters.
 Large geographically-distributed systems are becoming the norm particularly
 as mobile devices and sensor systems participate in computing and storage at
@@ -67,17 +66,19 @@ algorithms~\cite{epoch_greedy_mab,contextual_bandits} to optimize
 for fast, successful synchronizations by modifying peer selection
 probabilities.
 The result is a synchronization topology that emerges according to access
-patterns and network latency which produces efficient synchronization,
-localizes most data exchange, lowers visibility latency and increases
+patterns and network latencies.
+Such topologies produce efficient synchronization,
+localize most data exchanges, lower visibility latency, and increase
 consistency.
 
 Our contribution for this early stage work is a demonstration of the
 potential for replicas to meaningfully influence global consistency by
 modifying local behavior in response to their computing environment.
-This potential has been motivated by our larger work which investigates the
+This potential has been motivated by our larger work, which investigates the
 effect of scaling systems, both in terms of size and distance, on consistency.
 We show this potential though experiments run on a system with dozens of
-replica distributed across 5 continents which show that even a relatively
+replica distributed across five continents.
+Our results show that even a relatively
 simple implementation of adaptivity leads to a pronounced benefit in
 visibility latency, and therefore the overall consistency of the system.
 
