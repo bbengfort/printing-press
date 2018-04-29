@@ -474,7 +474,8 @@ specialize in cross-region collaboration.
 Unfortunately there does also seem to be an isolating effect, for example
 Sydney (grey) appears to have no significant out of region synchronization
 partners.
-However, non-zero epsilons make this extremely unlikely in the long run.
+Isolated regions could probably be eliminated by scaling rewards with
+the number of transmitted updates, or by using larger epsilons.
 Multi-stage bandits might be used to create a tiered reward system to
 specifically adjust the selection of local, regional, and global peers.
 Other strategies such as upper confidence bounds, softmax, or Bayesian
