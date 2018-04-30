@@ -8,7 +8,7 @@ respond to client requests, but that it does so from a limited, local
 perspective which may be inconsistent with another server's response.
 If individual servers in a system were allowed to remain wholly independent,
 individual requests from clients to different servers would create a lack of
-order or predictability, a gradual decline into inconsistency, e.g. the
+order or predictability, a gradual decline into inconsistency, i.e. the
 system would experience \textit{entropy}.
 To combat the effect of entropy while still remaining highly available,
 servers engage in periodic background \textit{anti-entropy
@@ -154,8 +154,8 @@ another way, decreasing the visibility latency improves the overall
 consistency of a system.
 However, in a system that uses anti-entropy for replication, the propagation
 speed of an update is not governed solely by network connections, it is also
-bound to the number and frequency of anti-entropy sessions conducted and the
-radius of the network.
+bound to the number and frequency of anti-entropy sessions conducted as well
+as the radius of the network.
 
 \subsection{Anti-Entropy}
 
@@ -172,9 +172,10 @@ to synchronization, and once the failure is repaired synchronization will
 occur without reconfiguration.
 
 There are two basic forms of synchronization: \textit{push} synchronization
-is a fire-and-forget form of synchronization where the remote is sent the
-latest version of all objects, whereas \textit{pull} synchronization requests
-the latest version of objects and minimizes the size of data transfer.
+is a fire-and-forget form of synchronization where the remote replica is sent
+the latest version of all objects, whereas \textit{pull} synchronization
+requests the latest version of objects and minimizes the size of data
+transfer.
 To get the benefit of both, we consider \textit{bilateral} synchronization
 which combines push and pull in a two-phase exchange.
 Bilateral synchronization increases the effect of anti-entropy during each
@@ -255,7 +256,7 @@ There are many other bandit strategies but we have chosen these two simple
 strategies for our initial research to demonstrate a bolt-on effective
 improvement to existing systems.
 
-\begin{table}[ht]
+\begin{table}[t]
 \centering
 \begin{tabular}{@{}l c c c @{}}
 \toprule
@@ -272,6 +273,27 @@ Latency $\leq$ 100ms (regional)   & 0.10 & 0.10 & 0.20 \\
 \caption{Reward Function}
 \label{tab:rewards}
 \end{table}
+
+\begin{figure}[b]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/latency_sync_heatmap}
+    \caption{Inter-Region Synchronization Latencies (Push+Pull)}
+    \label{fig:latency_sync_heatmap}
+\end{figure}
+
+\begin{figure*}[t]
+    \centering
+    \minipage{0.5\textwidth}
+      \includegraphics[width=\linewidth]{figures/rewards}
+      \caption{Total system rewards over time}
+      \label{fig:system_rewards}
+    \endminipage\hfill
+    \minipage{0.5\textwidth}%
+      \includegraphics[width=\linewidth]{figures/visibility_latency}
+      \caption{Visibility Latency by Region}
+      \label{fig:visibility_latency}
+    \endminipage
+\end{figure*}
 
 Peer selection for anti-entropy is usually conducted with uniform random
 selection to guarantee complete replication.
@@ -301,27 +323,6 @@ system.
 For example, in a system that has workloads with variable sized writes, object
 size could be considered or systems with imbalanced deployments might
 consider a reward function that prioritizes inter-region communication.
-
-\begin{figure}[hb]
-    \centering
-    \includegraphics[width=0.5\textwidth]{figures/latency_sync_heatmap}
-    \caption{Inter-Region Synchronization Latencies (Push+Pull)}
-    \label{fig:latency_sync_heatmap}
-\end{figure}
-
-\begin{figure*}[t!]
-    \centering
-    \minipage{0.5\textwidth}
-      \includegraphics[width=\linewidth]{figures/rewards}
-      \caption{Total system rewards over time}
-      \label{fig:system_rewards}
-    \endminipage\hfill
-    \minipage{0.5\textwidth}%
-      \includegraphics[width=\linewidth]{figures/visibility_latency}
-      \caption{Visibility Latency by Region}
-      \label{fig:visibility_latency}
-    \endminipage
-\end{figure*}
 
 \section{Experiments}
 
@@ -370,9 +371,9 @@ converge more quickly to the optimal reward.
 Visibility latencies were computed by reducing the workload rate to once
 every 4 seconds to ensure the write becomes fully visible across the entire
 network.
-During the visibility measurement period, replicas logged the timestamp the
-write was pushed or pulled, and the visibility latency is computed as the
-difference between the minimum and maximum timestamp.
+During the visibility measurement period, replicas locally logged the
+timestamp the write was pushed or pulled; visibility latency is computed as
+the difference between the minimum and maximum timestamp.
 The average visibility latency per region is shown in
 Figure~\ref{fig:visibility_latency} measured by the left y-axis.
 Because the anti-entropy delay is a fixed interval, the estimated number of
@@ -381,6 +382,22 @@ on the right y-axis of the same figure.
 Employing bandit strategies reduces the visibility latency from 2360ms on
 average in the uniform case to 1870ms, reducing the number of required
 anti-entropy intervals by approximately 4.
+
+\begin{figure*}[t]
+    \centering
+    \minipage{0.33\textwidth}
+      \includegraphics[width=\linewidth]{figures/b-uniform-selection-e1}
+      \caption{Uniform Selection}\label{fig:uniform_selection}
+    \endminipage\hfill
+    \minipage{0.33\textwidth}%
+      \includegraphics[width=\linewidth]{figures/b-annealing-epsilon-greedy-e5}
+      \caption{Annealing Epsilon Greedy}\label{fig:annealing_epsilon}
+    \endminipage\hfill
+    \minipage{0.33\textwidth}%
+      \includegraphics[width=\linewidth]{figures/b-epsilon-greedy-0-1-e2}
+      \caption{Epsilon Greedy $\epsilon=0.1$}\label{fig:epsilon_greedy_e1}
+    \endminipage
+\end{figure*}
 
 To show the emergent behavior of bandits, we have visualized the resulting
 topologies as network diagrams in Figure~\ref{fig:uniform_selection} (uniform
@@ -410,22 +427,6 @@ selected less frequently.
 We posit that fewer edges in the graph represents a more stable network;
 the fewer synchronization pairs that are selected, the less noise that
 occurs from selecting a peer that is in a similar state.
-
-\begin{figure*}[t]
-    \centering
-    \minipage{0.33\textwidth}
-      \includegraphics[width=\linewidth]{figures/b-uniform-selection-e1}
-      \caption{Uniform Selection}\label{fig:uniform_selection}
-    \endminipage\hfill
-    \minipage{0.33\textwidth}%
-      \includegraphics[width=\linewidth]{figures/b-annealing-epsilon-greedy-e5}
-      \caption{Annealing Epsilon Greedy}\label{fig:annealing_epsilon}
-    \endminipage\hfill
-    \minipage{0.33\textwidth}%
-      \includegraphics[width=\linewidth]{figures/b-epsilon-greedy-0-1-e2}
-      \caption{Epsilon Greedy $\epsilon=0.1$}\label{fig:epsilon_greedy_e1}
-    \endminipage
-\end{figure*}
 
 \section{Discussion}
 
