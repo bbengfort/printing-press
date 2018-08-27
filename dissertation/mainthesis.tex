@@ -90,21 +90,23 @@
 \setcounter{page}{1}
 \pagenumbering{arabic}
 \include{Chapter1}
-%\include{Chapter2}
+\include{Chapter2}
+\include{Chapter3}
+\include{Chapter4}
 \titleformat{\chapter}
 {\normalfont\large}{Appendix \thechapter:}{1em}{}
-%\include{AppendixA}
+\include{AppendixA}
+\include{AppendixB}
 
 \renewcommand{\baselinestretch}{1}
 \small\normalsize
-\include{Bibliography} %Delete this line if using Bibtex or Natbib
+% \include{Bibliography} %Delete this line if using Bibtex or Natbib
 
 %When using Bibtex, delete the previous line and use the following
 %three lines:
-%\newpage
-%\bibliographystyle{unsrt}
-%\bibliography{Galactic,Dottie} %replace "Galactic,Dottie" with the
-%                 file name(s) of your bib file(s)
+\newpage
+\bibliographystyle{unsrt}
+\bibliography{Bibliography}
 
 %When using Natbib, use the following three lines:
 %\newpage
