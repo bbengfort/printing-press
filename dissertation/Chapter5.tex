@@ -1,0 +1,77 @@
+%Chapter 5
+
+\renewcommand{\thechapter}{5}
+
+%TODO: Add better title
+\chapter{System Implementation}
+
+Given its grandiose title, it may seem that the engineering behind the development of a planetary scale data storage system would require thousands of man-hours of professional software engineers and a highly structured development process.
+In fact, this is not necessarily the case for two reasons.
+First, data systems benefit from an existing global network topology and commercial frameworks for deploying applications.
+This means that both the foundation and motivation for creating large geo-replicated systems exists, as described earlier.
+Second, like the internet, complex global systems emerge through the composition of many simpler components following straight forward rules~\cite{internet}.
+Instead of architecting a monolithic system, the design process is decomposed to reasoning about the behavior of single processes.
+Rather than being built, a robust planetary data system evolves from its network environment.
+
+To facilitate system evolution, the consistency models we have described thus far have been \emph{composable} to allow heterogeneous replicas to participate in the same system.
+However, while composability allows us to reason about consistency expectations, it does not necessarily mean interoperability.
+In order to ensure reason about system expectations we must outline our assumptions for communication, security, processing, and data storage.
+In this chapter, we describe the implementation of the replicas and applications of our experimental system and the assumptions we made.
+
+%TODO: make this opening section better when we figure out where it fits.
+
+\section{System Model}
+
+A \emph{replica} is an independent process that maintains a portion of the objects stored as well as a \emph{view} of the state of the entire system.
+Replicas must be able to communicate with one another and may also \emph{serve} requests from clients.
+A system is composed of multiple communicating replicas and is defined by the behavior the replicas.
+For example, a totally replicated system is one where each replica stores a complete copy of all objects as in the primary-backup approach~\cite{primary_backup}, whereas a partially replicated system ensures durability such that multiple replicas store the same object but not all replicas store all objects as in the Google File System~\cite{gfs}.
+At the scale of a multi-region, globally deployed system, we assume that total replication is impractical and primarily consider the partial replication case.
+
+Let's unpack some of the assumptions made by the seemingly simple statements made in the previous paragraph.
+First, independence means replicas have a shared-nothing architecture~\cite{shared_nothing} and cannot share either memory or disk space.
+For practical purposes of fault tolerance, we generally assume that there is a one-to-one relationship between a replica and a disk so that a disk failure means only a single replica failure.
+Second, that each replica must maintain a view of the state of the entire system means both that replicas must be aware of their peers on the network and that they should know the locations of objects stored on the network.
+A strict interpretation of this requirement would necessarily make system membership brittle as it would be difficult to add or remove replicas.
+Alternatively, a centralized interpretation of the view requirement would allow for
+
+
+Second, the ability to communicate with replicas and serve requests from clients means that the replica must be addressable.
+
+
+This requirement is seemingly innocuous when taken by itself, however when we also describe a replica as requiring a view of the state of the entire system, it means that a replica must know about the existence of all other replicas in the system.
+A strict interpretation of having a complete view would necessarily make the system composition brittle, unable to add or remove replicas.
+Instead we take a less strict view
+
+
+- networking
+- actors
+- event loop
+- reasons why the above are important
+-
+
+\section{Applications}
+
+\subsection{Distributed Log}
+
+\subsection{Key-Value Database}
+
+\subsection{File System}
+
+\section{Consistency Model}
+
+Client-side vs. system-side consistency
+
+Log model of consistency
+
+Continuous consistency scale
+
+Grid consistency model
+
+
+\section{Conclusion}
+
+We did not optimize our research for the minimum set of assumptions required to facilitate interoperability between heterogeneous replicas.
+However, we hope that the assumptions we did make shed light on what is required to achieve the minimum set of assumptions.
+
+Further research is required to ...

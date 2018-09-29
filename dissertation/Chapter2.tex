@@ -2,8 +2,61 @@
 
 \renewcommand{\thechapter}{2}
 
-\chapter{Hierarchical Consensus}
+\chapter{Challenges and Motivations}
 
-\section{Overview}
+Is a planetary-scale data system really necessary?
 
-Let's start by discussing the core of my work, Hierarchical Consensus. 
+What challenges to these systems face?
+
+What does consistency mean in this model?
+
+
+\section{Building Geo-Replicated Services: Case Studies}
+
+What they didn't do and what we do better.
+
+BigTable \& Spanner
+
+S3
+
+Aurora \& Cockroach DB
+
+Approaches: sharding, independent objects, buckets, slow reads
+
+\section{Requirements for Data Systems}
+
+Failure is common
+    Disk failure/replica failure (ODS)
+    Network failure (when repaired, replica comes back online)
+    Unreliability: messages have highly variable latency, out of order messaging
+    Partitions, part of the system cannot speak to the rest of the system
+
+In geo-systems large latency is not the issue!
+    There is a physical limit to message traffic
+    Writes must be applied in order, reads can reason about staleness
+    Access patterns are also location-dependent
+
+Durability
+    Normally 3 disk replication ensures 2 failures
+    We need to ensure zone+1 disk failures (re Aurora)
+    User-specific data should be accessible everywhere
+
+Fault-Tolerance \& availability
+    System should still be available if nodes fail
+    Should be available if zones fail (e.g. hurricane or disaster) at higher latency
+    System should be available at lower consistency if even one replica is available
+
+Adaptability
+    Should respond to changes in user access patterns
+    Should be able to add and remove nodes from the system
+    Should scale with more regions and more replicas
+
+\section{System Architecture}
+
+Describe the architecture of tier 1: HC, tier 2: Federated Fog
+
+Describe the consistency guarantees we claim
+
+Base application is a key/value store
+
+File-system is built upon the key/value store as an object FS

@@ -1,9 +1,40 @@
-%Chapter 3
+%Chapter 4
 
 \renewcommand{\thechapter}{4}
 
-\chapter{Adaptive Consistency}
+\chapter{Federated Consistency}
+% Overview, details, consistency, performance, lessons learned.
+
+Hybrid consistency model
 
 \section{Overview}
 
-Applying machine learning techniques such as multi-armed bandits to consistency problems.
+\section{Eventual Consistency}
+
+Read/Write Quorums
+
+Anti-Entropy Sessions and Synchronization
+
+Policies: latest writer wins
+
+Bilateral anti-entropy
+
+\subsection{Consistency Failures}
+
+Forks
+
+Stale Reads
+
+\section{Integration}
+
+\subsection{Communication Integration}
+
+\subsection{Consistency Integration}
+
+- Forte Number
+
+\section{Performance Evaluation}
+
+Communication Topology
+Inconsistencies due to outages
+Inconsistency due to system latency

@@ -2,8 +2,69 @@
 
 \renewcommand{\thechapter}{3}
 
-\chapter{Federated Consistency}
+\chapter{Hierarchical Consensus}
+% Overview, details, consistency, performance, lessons learned.
+
+A strong consistency foundation is required - usually implemented with state machine consensus
+
+Paxos/Raft/ePaxos don’t scale
+
+Sharding and tablets don’t allow for inter-object dependence and the point of failure is the management quorum, which is also not geo-replicated.
+
+HC extends and implements Vertical Paxos such that there is an intersection between quorums that manage objects and a root quorum
+The result is a grid consistency
+
 
 \section{Overview}
 
-Moving on to federating consistency between strong and eventually consistent systems. 
+Root quorum manages object space
+
+Sub quorums manage accesses
+
+Hot spares
+
+
+\section{Consensus}
+
+\subsection{Root Consensus}
+
+\subsection{Delegation}
+
+\subsection{Epoch Transitions}
+
+- tagspace (prefix-trie)
+- fuzzy transitions
+- anti-entropy and tombstones
+
+\subsection{Subquorum Consensus}
+
+\section{Client Operations}
+
+- Sessions
+- Connect to closest available replica, redirected to closest available leader.
+
+\subsection{Consistency}
+
+\subsection{Remote Writes}
+
+\subsection{Read Leases}
+
+\section{Fault Tolerance}
+
+\subsection{Failures}
+
+\subsection{Obligations Timeout}
+
+\subsection{The Nuclear Option}
+
+\section{performance Evaluation}
+
+Throughput for different cluster sizes
+
+Throughput of Alia vs. Raft
+
+Client cumulative latency distribution
+
+Sawtooth graph
+
+Repartition

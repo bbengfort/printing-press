@@ -3,7 +3,42 @@
 \renewcommand{\thechapter}{1}
 
 \chapter{Introduction}
+% Going for about 5 pages or so here.
 
-\section{Georeplication of Data Storage}
+Ubiquitous computing is becoming the norm.
+    More users are mobile
+    Non-human users (IoT is generating a lot of data)
+    Applications are global
+    Requires transparent persistence
 
-This is the first chapter. This paper will be a bit about Paxos~\cite{paxos}
+Oceanstore provides a model for untrusted global-scale data
+    Requires connectivity, security, durability (consistency), divorced from location
+    Oceanstore model relies on encryption and async commit with conflict resolution
+    Two tiers for updates: Byzantine quorum and eventual consistency layer
+
+Cloud revolution
+    The model has changed: client-server interactions and siloed data (not files)
+    Trusted replicas are available across the globe (or secured with encryption/SUNDR)
+    Updates are still too fast, however, centralization means that consistency is now the number one issue.
+    FIGURE: locations of cloud computing data centers
+
+Toward Edge and Fog computing
+    Data systems are becoming increasingly complex (many publishers, few subscribers, distributed accesses)
+    Sensor networks, energy platforms, self-driving vehicle networks
+    Greater localization is required
+
+Our vision: planetary-scale data storage
+    First tier: strong, resilient, fast consensus with hierarchical consensus
+    Second tier: highly available eventual consistency federated with strong consistency
+    Adaptiveness: online monitoring and network adaptation
+
+Contributions:
+    Design, implementation, and evaluation of hierarchical consensus
+    Design, implementation, and evaluation of federated consistency
+    Design, implementation, and evaluation of bandit-based anti-entropy
+    Design and implementation of planetary-scale key/value store
+    Design and implementation of a planetary-scale file system
+    Description and discussion of distributed systems in the very wide area
+    Description and discussion of dependent scaling of consensus algorithms
+
+Organization of the rest of the paper
