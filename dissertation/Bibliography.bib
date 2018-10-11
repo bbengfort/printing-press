@@ -45,7 +45,7 @@
   author = {Corbett, James C. and Dean, Jeffrey and Epstein, Michael and Fikes, Andrew and Frost, Christopher and Furman, J. J. and Ghemawat, Sanjay and Gubarev, Andrey and Heiser, Christopher and Hochschild, Peter and {others}}
 }
 
-@inproceedings{lloyd_dont_2011,
+@inproceedings{cops,
   title = {Don't Settle for Eventual: Scalable Causal Consistency for Wide-Area Storage with {{COPS}}},
   url = {http://dl.acm.org/citation.cfm?id=2043593},
   booktitle = {Proceedings of the {{Twenty}}-{{Third ACM Symposium}} on {{Operating Systems Principles}}},
@@ -80,7 +80,7 @@
 % == BibLateX quality report for anti_entropy:
 % ? Unsure about the formatting of the booktitle
 
-@inproceedings{kubiatowicz_oceanstore_2000,
+@inproceedings{oceanstore,
   title = {Oceanstore: {{An}} Architecture for Global-Scale Persistent Storage},
   volume = {35},
   url = {http://dl.acm.org/citation.cfm?id=357007},
@@ -90,8 +90,17 @@
   pages = {190--201},
   author = {Kubiatowicz, John and Bindel, David and Chen, Yan and Czerwinski, Steven and Eaton, Patrick and Geels, Dennis and Gummadi, Ramakrishan and Rhea, Sean and Weatherspoon, Hakim and Weimer, Westley and {others}}
 }
-% == BibLateX quality report for kubiatowicz_oceanstore_2000:
+% == BibLateX quality report for oceanstore:
 % ? Unsure about the formatting of the booktitle
+
+@book{grid_computing,
+  title = {The {{Grid}} 2: {{Blueprint}} for a New Computing Infrastructure},
+  url = {https://books.google.com/books?hl=en&lr=&id=0l5gm6o3vrMC&oi=fnd&pg=PP1&dq=The+Grid++Blueprint+for+a+New+Computing+Infrastructure&ots=hpGgsSKtmk&sig=hzB6BQo4TlG5vQsOKMT0inzqykY},
+  publisher = {{Elsevier}},
+  urldate = {2015-10-07},
+  date = {2003},
+  author = {Foster, Ian and Kesselman, Carl}
+}
 
 @inproceedings{hc_brief_announcement,
   location = {{Washington, D.C.}},
@@ -119,6 +128,29 @@
 % == BibLateX quality report for federated_consistency_poster:
 % ? Title looks like it was stored in title-case in Zotero
 
+@inproceedings{corfu,
+  title = {{{CORFU}}: {{A Shared Log Design}} for {{Flash Clusters}}.},
+  booktitle = {{{NSDI}}},
+  date = {2012},
+  pages = {1-14},
+  author = {Balakrishnan, Mahesh and Malkhi, Dahlia and Prabhakaran, Vijayan and Wobber, Ted and Wei, Michael and Davis, John D}
+}
+% == BibLateX quality report for corfu:
+% ? Unsure about the formatting of the booktitle
+% ? Title looks like it was stored in title-case in Zotero
+
+@inproceedings{van2004chain,
+  title = {Chain {{Replication}} for {{Supporting High Throughput}} and {{Availability}}.},
+  volume = {4},
+  booktitle = {{{OSDI}}},
+  date = {2004},
+  pages = {91-104},
+  author = {Van Renesse, Robbert and Schneider, Fred B}
+}
+% == BibLateX quality report for van2004chain:
+% ? Unsure about the formatting of the booktitle
+% ? Title looks like it was stored in title-case in Zotero
+
 @article{afs,
   title = {Scale and Performance in a Distributed File System},
   volume = {6},
@@ -138,14 +170,14 @@
 % == BibLateX quality report for coda:
 % ? Title looks like it was stored in title-case in Zotero
 
-@article{terry_managing_1995,
+@article{bayou,
   title = {Managing {{Update Conflicts}} in {{Bayou}}, a {{Weakly Connected Replicated Storage System}}},
   volume = {29},
   journaltitle = {ACM},
   date = {1995},
   author = {Terry, Douglas B. and Theimer, Marvin M. and Petersen, Karin and Demers, Alan J. and Spreitzer, Mike J. and Hauser, Carl H.}
 }
-% == BibLateX quality report for terry_managing_1995:
+% == BibLateX quality report for bayou:
 % ? Title looks like it was stored in title-case in Zotero
 
 @article{grpc,
@@ -257,7 +289,7 @@
   author = {Zawirski, Marek and Pregui\c{}ca, Nuno and Duarte, S\'ergio and Bieniusa, Annette and Balegas, Valter and Shapiro, Marc}
 }
 
-@article{bailis2013highly,
+@article{hat,
   title = {Highly Available Transactions: {{Virtues}} and Limitations},
   volume = {7},
   number = {3},
@@ -285,14 +317,6 @@
   date = {2013},
   pages = {23},
   author = {Alvaro, Peter and Bailis, Peter and Conway, Neil and Hellerstein, Joseph M}
-}
-
-@inproceedings{spanner,
-  title = {Spanner: {{Google}}'s Globally-Distributed Database},
-  volume = {1},
-  booktitle = {Proceedings of {{OSDI}}},
-  date = {2012},
-  author = {Corbett, James C and Dean, Jeffrey and Epstein, Michael and Fikes, Andrew and Frost, Christopher and Furman, JJ and Ghemawat, Sanjay and Gubarev, Andrey and Heiser, Christopher and Hochschild, Peter and {others}}
 }
 
 @article{bailis2014coordination,
@@ -382,7 +406,20 @@
 % == BibLateX quality report for calvinfs:
 % ? Unsure about the formatting of the booktitle
 
-@article{lakshman_cassandra_2010,
+@inproceedings{chubby,
+  title = {The {{Chubby}} Lock Service for Loosely-Coupled Distributed Systems},
+  url = {http://dl.acm.org/citation.cfm?id=1298487},
+  booktitle = {Proceedings of the 7th Symposium on {{Operating}} Systems Design and Implementation},
+  publisher = {{USENIX Association}},
+  urldate = {2016-05-01},
+  date = {2006},
+  pages = {335--350},
+  author = {Burrows, Mike}
+}
+% == BibLateX quality report for chubby:
+% ? Unsure about the formatting of the booktitle
+
+@article{cassandra,
   title = {Cassandra: A Decentralized Structured Storage System},
   volume = {44},
   url = {http://dl.acm.org/citation.cfm?id=1773922},
@@ -417,6 +454,18 @@
 }
 % == BibLateX quality report for version_vectors:
 % ? Unsure about the formatting of the booktitle
+
+@article{cap,
+  title = {Brewer's Conjecture and the Feasibility of Consistent, Available, Partition-Tolerant Web Services},
+  volume = {33},
+  url = {http://dl.acm.org/citation.cfm?id=564601},
+  number = {2},
+  journaltitle = {ACM SIGACT News},
+  urldate = {2016-08-29},
+  date = {2002},
+  pages = {51--59},
+  author = {Gilbert, Seth and Lynch, Nancy}
+}
 
 @article{fexible_paxos,
   title = {Flexible {{Paxos}}: {{Quorum}} Intersection Revisited},
@@ -810,6 +859,18 @@
   author = {Mazieres, David}
 }
 
+@article{bigtable,
+  title = {Bigtable: {{A}} Distributed Storage System for Structured Data},
+  volume = {26},
+  url = {http://dl.acm.org/citation.cfm?id=1365816},
+  number = {2},
+  journaltitle = {ACM Transactions on Computer Systems (TOCS)},
+  urldate = {2016-05-03},
+  date = {2008},
+  pages = {4},
+  author = {Chang, Fay and Dean, Jeffrey and Ghemawat, Sanjay and Hsieh, Wilson C. and Wallach, Deborah A. and Burrows, Mike and Chandra, Tushar and Fikes, Andrew and Gruber, Robert E.}
+}
+
 @report{generalized_paxos,
   title = {Generalized Consensus and {{Paxos}}},
   url = {http://zoo.cs.yale.edu/classes/cs426/2012/lab/bib/lamport05generalized.pdf},
@@ -847,6 +908,20 @@
 % == BibLateX quality report for spaxos:
 % ? Unsure about the formatting of the booktitle
 
+@inproceedings{megastore,
+  title = {Megastore: {{Providing Scalable}}, {{Highly Available Storage}} for {{Interactive Services}}.},
+  volume = {11},
+  url = {http://pages.cs.wisc.edu/~akella/CS838/F12/838-CloudPapers/Megastore.pdf},
+  booktitle = {{{CIDR}}},
+  urldate = {2016-05-03},
+  date = {2011},
+  pages = {223--234},
+  author = {Baker, Jason and Bond, Chris and Corbett, James C. and Furman, J. J. and Khorlin, Andrey and Larson, James and Leon, Jean-Michel and Li, Yawei and Lloyd, Alexander and Yushprakh, Vadim}
+}
+% == BibLateX quality report for megastore:
+% ? Unsure about the formatting of the booktitle
+% ? Title looks like it was stored in title-case in Zotero
+
 @inproceedings{boxwood,
   title = {Boxwood: {{Abstractions}} as the {{Foundation}} for {{Storage Infrastructure}}.},
   volume = {4},
@@ -861,7 +936,19 @@
 % ? Unsure about the formatting of the booktitle
 % ? Title looks like it was stored in title-case in Zotero
 
-@article{paxos,
+@inproceedings{bolosky_paxos_2011,
+  title = {Paxos Replicated State Machines as the Basis of a High-Performance Data Store},
+  url = {https://www.usenix.org/legacy/events/nsdi11/tech/nsdi11_proceedings.pdf#page=151},
+  booktitle = {Symposium on {{Networked Systems Design}} and {{Implementation}} ({{NSDI}})},
+  urldate = {2016-05-02},
+  date = {2011},
+  pages = {141--154},
+  author = {Bolosky, William J. and Bradshaw, Dexter and Haagens, Randolph B. and Kusters, Norbert P. and Li, Peng}
+}
+% == BibLateX quality report for bolosky_paxos_2011:
+% ? Unsure about the formatting of the booktitle
+
+@article{paxos_simple,
   title = {Paxos Made Simple},
   volume = {32},
   url = {http://www.cs.utexas.edu/users/lorenzo/corsi/cs380d/past/03F/notes/paxos-simple.pdf},
@@ -994,7 +1081,7 @@
 % == BibLateX quality report for moraru_egalitarian_2012:
 % ? Unsure about the formatting of the booktitle
 
-@article{howard_raft_2015,
+@article{raft_refloated,
   title = {Raft Refloated: Do We Have Consensus?},
   volume = {49},
   url = {http://dl.acm.org/citation.cfm?id=2723876},
@@ -1006,7 +1093,19 @@
   author = {Howard, Heidi and Schwarzkopf, Malte and Madhavapeddy, Anil and Crowcroft, Jon}
 }
 
-@article{attiya_sequential_1994,
+@article{pnuts,
+  title = {{{PNUTS}}: {{Yahoo}}!'s Hosted Data Serving Platform},
+  volume = {1},
+  url = {http://dl.acm.org/citation.cfm?id=1454167},
+  number = {2},
+  journaltitle = {Proceedings of the VLDB Endowment},
+  urldate = {2016-04-29},
+  date = {2008},
+  pages = {1277--1288},
+  author = {Cooper, Brian F. and Ramakrishnan, Raghu and Srivastava, Utkarsh and Silberstein, Adam and Bohannon, Philip and Jacobsen, Hans-Arno and Puz, Nick and Weaver, Daniel and Yerneni, Ramana}
+}
+
+@article{sequential_consistency,
   title = {Sequential Consistency versus Linearizability},
   volume = {12},
   url = {http://dl.acm.org/citation.cfm?id=176576},
@@ -1018,7 +1117,7 @@
   author = {Attiya, Hagit and Welch, Jennifer L.}
 }
 
-@article{herlihy_linearizability_1990,
+@article{linearizability,
   title = {Linearizability: {{A}} Correctness Condition for Concurrent Objects},
   volume = {12},
   url = {http://dl.acm.org/citation.cfm?id=78972},
@@ -1106,6 +1205,28 @@
 }
 % == BibLateX quality report for dynamo:
 % ? Unsure about the formatting of the booktitle
+
+@article{stonebraker_what_2005,
+  title = {What Goes around Comes Around},
+  volume = {4},
+  url = {https://books.google.com/books?hl=en&lr=&id=7a48qSMuVcUC&oi=fnd&pg=PA2&dq=what+goes+around+comes+around&ots=taje6wQt1j&sig=RTT17IrzcZ7yMreChmHBiHHD83c},
+  journaltitle = {Readings in Database Systems},
+  urldate = {2015-03-18},
+  date = {2005},
+  author = {Stonebraker, Michael and Hellerstein, Joey}
+}
+
+@article{stonebraker_mapreduce_2010,
+  title = {{{MapReduce}} and Parallel {{DBMSs}}: Friends or Foes?},
+  volume = {53},
+  url = {http://dl.acm.org/citation.cfm?id=1629197},
+  number = {1},
+  journaltitle = {Communications of the ACM},
+  urldate = {2015-02-23},
+  date = {2010},
+  pages = {64--71},
+  author = {Stonebraker, Michael and Abadi, Daniel and DeWitt, David J. and Madden, Sam and Paulson, Erik and Pavlo, Andrew and Rasin, Alexander}
+}
 
 @inproceedings{li_secure_2004,
   title = {Secure {{Untrusted Data Repository}} ({{SUNDR}}).},
@@ -1271,6 +1392,92 @@
   author = {Muthitacharoen, Athicha and Chen, Benjie and Mazi\`eres, David}
 }
 
+@article{fail-stop,
+  title = {Byzantine {{Generals}} in {{Action}}: {{Implementing Fail}}-Stop {{Processors}}},
+  volume = {2},
+  issn = {0734-2071},
+  doi = {10.1145/190.357399},
+  number = {2},
+  journaltitle = {ACM Trans. Comput. Syst.},
+  date = {1984-05},
+  pages = {145--154},
+  keywords = {Byzantine generals,fail-fast,fail-stop},
+  author = {Schneider, Fred B.}
+}
+% == BibLateX quality report for fail-stop:
+% ? Possibly abbreviated journal title ACM Trans. Comput. Syst.
+
+@article{byzantine-generals,
+  title = {The {{Byzantine}} Generals Problem},
+  volume = {4},
+  number = {3},
+  journaltitle = {ACM Transactions on Programming Languages and Systems (TOPLAS)},
+  date = {1982},
+  pages = {382--401},
+  author = {Lamport, Leslie and Shostak, Robert and Pease, Marshall}
+}
+
+@inproceedings{calvindb,
+  title = {Calvin: Fast Distributed Transactions for Partitioned Database Systems},
+  booktitle = {Proceedings of the 2012 {{ACM SIGMOD International Conference}} on {{Management}} of {{Data}}},
+  publisher = {{ACM}},
+  date = {2012},
+  pages = {1--12},
+  author = {Thomson, Alexander and Diamond, Thaddeus and Weng, Shu-Chun and Ren, Kun and Shao, Philip and Abadi, Daniel J}
+}
+
+@inproceedings{hyder-a,
+  title = {Hyder-{{A Transactional Record Manager}} for {{Shared Flash}}.},
+  volume = {11},
+  booktitle = {{{CIDR}}},
+  date = {2011},
+  pages = {9--12},
+  author = {Bernstein, Philip A and Reid, Colin W and Das, Sudipto}
+}
+% == BibLateX quality report for hyder-a:
+% ? Unsure about the formatting of the booktitle
+% ? Title looks like it was stored in title-case in Zotero
+
+@inproceedings{fawn,
+  title = {{{FAWN}}: {{A}} Fast Array of Wimpy Nodes},
+  booktitle = {Proceedings of the {{ACM SIGOPS}} 22nd Symposium on {{Operating}} Systems Principles},
+  publisher = {{ACM}},
+  date = {2009},
+  pages = {1--14},
+  author = {Andersen, David G and Franklin, Jason and Kaminsky, Michael and Phanishayee, Amar and Tan, Lawrence and Vasudevan, Vijay}
+}
+% == BibLateX quality report for fawn:
+% ? Unsure about the formatting of the booktitle
+
+@inproceedings{tango,
+  title = {Tango: {{Distributed}} Data Structures over a Shared Log},
+  booktitle = {Proceedings of the {{Twenty}}-{{Fourth ACM Symposium}} on {{Operating Systems Principles}}},
+  publisher = {{ACM}},
+  date = {2013},
+  pages = {325--340},
+  author = {Balakrishnan, Mahesh and Malkhi, Dahlia and Wobber, Ted and Wu, Ming and Prabhakaran, Vijayan and Wei, Michael and Davis, John D and Rao, Sriram and Zou, Tao and Zuck, Aviad}
+}
+
+@inproceedings{vcorfu,
+  title = {{{vCorfu}}: {{A Cloud}}-{{Scale Object Store}} on a {{Shared Log}}.},
+  booktitle = {{{NSDI}}},
+  date = {2017},
+  pages = {35--49},
+  author = {Wei, Michael and Tai, Amy and Rossbach, Christopher J and Abraham, Ittai and Munshed, Maithem and Dhawan, Medhavi and Stabile, Jim and Wieder, Udi and Fritchie, Scott and Swanson, Steven and {others}}
+}
+% == BibLateX quality report for vcorfu:
+% ? Unsure about the formatting of the booktitle
+
+@report{externalizable,
+  title = {Information {{Storage}} in a {{Decentralized Computer System}}.},
+  institution = {{Xerox PARC}},
+  date = {1982},
+  author = {Gifford, David K.}
+}
+% == BibLateX quality report for externalizable:
+% Missing required field 'type'
+% ? Title looks like it was stored in title-case in Zotero
+
 @inproceedings{leitao_hyparview_2007,
   title = {{{HyParView}}: {{A}} Membership Protocol for Reliable Gossip-Based Broadcast},
   booktitle = {Dependable {{Systems}} and {{Networks}}, 2007. {{DSN}}'07. 37th {{Annual IEEE}}/{{IFIP International Conference}} On},
@@ -1315,6 +1522,26 @@
 % == BibLateX quality report for silaghi_multi-dimensional_2004:
 % ? Unsure about the formatting of the booktitle
 
+@inproceedings{btrdb,
+  title = {{{BTrDB}}: {{Optimizing Storage System Design}} for {{Timeseries Processing}}.},
+  booktitle = {{{FAST}}},
+  date = {2016},
+  pages = {39--52},
+  author = {Andersen, Michael P. and Culler, David E.}
+}
+% == BibLateX quality report for btrdb:
+% ? Unsure about the formatting of the booktitle
+% ? Title looks like it was stored in title-case in Zotero
+
+@inproceedings{aurora,
+  title = {Amazon Aurora: {{Design}} Considerations for High Throughput Cloud-Native Relational Databases},
+  booktitle = {Proceedings of the 2017 {{ACM International Conference}} on {{Management}} of {{Data}}},
+  publisher = {{ACM}},
+  date = {2017},
+  pages = {1041--1052},
+  author = {Verbitski, Alexandre and Gupta, Anurag and Saha, Debanjan and Brahmadesam, Murali and Gupta, Kamal and Mittal, Raman and Krishnamurthy, Sailesh and Maurice, Sandor and Kharatishvili, Tengiz and Bao, Xiaofeng}
+}
+
 @article{internet,
   title = {A Brief History of the {{Internet}}},
   volume = {39},
@@ -1346,14 +1573,14 @@
 % == BibLateX quality report for shared_nothing:
 % ? Possibly abbreviated journal title IEEE Database Eng. Bull.
 
-@online{gjengset_jonthesquareplanet.com_students_nodate,
+@online{raft_students_guide,
   langid = {english},
   title = {Students' {{Guide}} to {{Raft}} :: {{Jon Gjengset}}},
   url = {https://thesquareplanet.com/blog/students-guide-to-raft/},
   urldate = {2018-09-24},
   author = {Gjengset $<$jon@thesquareplanet.com$>$, Jon}
 }
-% == BibLateX quality report for gjengset_jonthesquareplanet.com_students_nodate:
+% == BibLateX quality report for raft_students_guide:
 % Exactly one of 'date' / 'year' must be present
 % ? Title looks like it was stored in title-case in Zotero
 
@@ -1366,6 +1593,335 @@
   author = {Weil, Sage A. and Brandt, Scott A. and Miller, Ethan L. and Long, Darrell DE and Maltzahn, Carlos}
 }
 % == BibLateX quality report for ceph:
+% ? Unsure about the formatting of the booktitle
+
+@article{cisco_internet_trends,
+  title = {The Zettabyte Era\textendash{}Trends and Analysis},
+  journaltitle = {Cisco white paper},
+  date = {2017},
+  author = {Index, Cisco Visual Networking}
+}
+
+@article{yamazaki_developer_2016,
+  entrysubtype = {newspaper},
+  langid = {english},
+  title = {Developer of {{Nintendo}}'s {{Pokemon GO}} Aiming for Rollout to 200...},
+  url = {https://www.reuters.com/article/us-nintendo-pokemon-niantic/developer-of-nintendos-pokemon-go-aiming-for-rollout-to-200-markets-soon-idUSKCN0ZV0I2},
+  journaltitle = {Reuters},
+  urldate = {2018-10-01},
+  date = {2016-07-15},
+  keywords = {Arts / Culture / Entertainment,Asia / Pacific,China (PRC),Company News,Corporate Events,Europe,Germany,Government Borrowing Requirement,Internet / World Wide Web,Japan,John Hanke,Major News,NIANTIC,NINTENDO,North Korea,Pictures,POKEMON,Science,Social Media,Software and IT Services (TRBC),South Korea,Technology Equipment (TRBC),Telecommunications Services (TRBC),Toys and Games (TRBC),United Kingdom,United States,US,Volatile Shares / Hot Stocks},
+  author = {Yamazaki, Makiko}
+}
+
+@article{cloud_computing,
+  title = {A View of Cloud Computing},
+  volume = {53},
+  number = {4},
+  journaltitle = {Communications of the ACM},
+  date = {2010},
+  pages = {50--58},
+  author = {Armbrust, Michael and Fox, Armando and Griffith, Rean and Joseph, Anthony D. and Katz, Randy and Konwinski, Andy and Lee, Gunho and Patterson, David and Rabkin, Ariel and Stoica, Ion}
+}
+
+@inproceedings{eucalyptus,
+  title = {The Eucalyptus Open-Source Cloud-Computing System},
+  booktitle = {Cluster {{Computing}} and the {{Grid}}, 2009. {{CCGRID}}'09. 9th {{IEEE}}/{{ACM International Symposium}} On},
+  publisher = {{IEEE}},
+  date = {2009},
+  pages = {124--131},
+  author = {Nurmi, Daniel and Wolski, Rich and Grzegorczyk, Chris and Obertelli, Graziano and Soman, Sunil and Youseff, Lamia and Zagorodnov, Dmitrii}
+}
+% == BibLateX quality report for eucalyptus:
+% ? Unsure about the formatting of the booktitle
+
+@article{docker,
+  title = {Docker: Lightweight Linux Containers for Consistent Development and Deployment},
+  volume = {2014},
+  number = {239},
+  journaltitle = {Linux Journal},
+  date = {2014},
+  pages = {2},
+  author = {Merkel, Dirk}
+}
+
+@article{casey_blockchain_2018,
+  title = {In Blockchain We Trust},
+  volume = {15},
+  url = {https://www.technologyreview.com/s/610781/in-blockchain-we-trust/},
+  issue = {May/June 2018},
+  journaltitle = {MIT Technology Review},
+  date = {2018-04-09},
+  pages = {2018},
+  author = {Casey, Michael J. and Vigna, Paul}
+}
+
+@article{hbase,
+  title = {{{HBase}} and {{Hypertable}} for Large Scale Distributed Storage Systems},
+  journaltitle = {Dept. of Computer Science, Purdue University},
+  date = {2006},
+  pages = {22--28},
+  author = {Khetrapal, Ankur and Ganesh, Vinay}
+}
+% == BibLateX quality report for hbase:
+% ? Possibly abbreviated journal title Dept. of Computer Science, Purdue University
+
+@software{faunadb,
+  title = {{{FaunaDB}}: {{An Architectural Overview}}},
+  url = {https://fauna.com/},
+  author = {Freels, Matt}
+}
+% == BibLateX quality report for faunadb:
+% Unexpected field 'title'
+% Unexpected field 'author'
+% ? Title looks like it was stored in title-case in Zotero
+
+@article{alvisi_writes_2017,
+  title = {Writes: The Dirty Secret of Causal Consistency},
+  date = {2017},
+  author = {Alvisi, Lorenzo and Crooks, Natacha and Mehdi, Syed Akbar}
+}
+% == BibLateX quality report for alvisi_writes_2017:
+% Missing required field 'journaltitle'
+
+@inproceedings{mohan_history_2013,
+  title = {History Repeats Itself: Sensible and {{NonsenSQL}} Aspects of the {{NoSQL}} Hoopla},
+  booktitle = {Proceedings of the 16th {{International Conference}} on {{Extending Database Technology}}},
+  publisher = {{ACM}},
+  date = {2013},
+  pages = {11--16},
+  author = {Mohan, C.}
+}
+
+@article{consistency_tradeoffs,
+  title = {Consistency Tradeoffs in Modern Distributed Database System Design: {{CAP}} Is Only Part of the Story},
+  volume = {45},
+  number = {2},
+  journaltitle = {Computer},
+  date = {2012},
+  pages = {37--42},
+  author = {Abadi, Daniel J.}
+}
+
+@inproceedings{where_world_data,
+  title = {Where in the World Is My Data},
+  booktitle = {Proceedings {{International Conference}} on {{Very Large Data Bases}} ({{VLDB}})},
+  date = {2011},
+  author = {Kadambi, Sudarshan and Chen, Jianjun and Cooper, Brian F. and Lomax, David and Ramakrishnan, Raghu and Silberstein, Adam and Tam, Erwin and Garcia-Molina, Hector}
+}
+
+@software{cockroachdb,
+  title = {{{CockroachDB}}},
+  url = {https://www.cockroachlabs.com/},
+  author = {Kimball, Spencer and Mattis, Peter and Darnell, Ben}
+}
+% == BibLateX quality report for cockroachdb:
+% Unexpected field 'title'
+% Unexpected field 'author'
+
+@software{vitess,
+  title = {Vitess},
+  url = {https://vitess.io/},
+  date = {2018-10-09},
+  author = {Jobart, Alain and Sougoumarane, Sugu and Berlin, Michael and Yeh, Anthony}
+}
+% == BibLateX quality report for vitess:
+% Unexpected field 'title'
+% Unexpected field 'author'
+
+@online{azure_sql_database,
+  langid = {american},
+  title = {Scaling out with {{Azure SQL Database}}},
+  url = {https://docs.microsoft.com/en-us/azure/sql-database/sql-database-elastic-scale-introduction},
+  urldate = {2018-10-09},
+  author = {{stevestein}}
+}
+% == BibLateX quality report for azure_sql_database:
+% Exactly one of 'date' / 'year' must be present
+% ? Title looks like it was stored in title-case in Zotero
+
+@online{kain_pokemon_2016,
+  langid = {english},
+  title = {The '{{Pok\'emon GO}}' {{Launch Has Been A Complete Disaster}} [{{Updated}}]},
+  url = {https://www.forbes.com/sites/erikkain/2016/07/08/the-pokemon-go-launch-has-been-a-complete-disaster/},
+  journaltitle = {Forbes},
+  urldate = {2018-10-09},
+  date = {2016-07-08},
+  author = {Kain, Erik}
+}
+% == BibLateX quality report for kain_pokemon_2016:
+% Unexpected field 'journaltitle'
+% ? Title looks like it was stored in title-case in Zotero
+
+@online{stone_bringing_2016,
+  title = {Bringing {{Pok\'emon GO}} to Life on {{Google Cloud}}},
+  url = {https://cloud.google.com/blog/products/gcp/bringing-pokemon-go-to-life-on-google-cloud/},
+  journaltitle = {Google Cloud Blog},
+  urldate = {2018-10-09},
+  date = {2016-09-29},
+  author = {Stone, Luke}
+}
+% == BibLateX quality report for stone_bringing_2016:
+% Unexpected field 'journaltitle'
+
+@software{cloud_datastore,
+  title = {Cloud {{Datastore}}},
+  url = {https://cloud.google.com/datastore/},
+  organization = {{Google Cloud}},
+  date = {2018-10-10}
+}
+% == BibLateX quality report for cloud_datastore:
+% Unexpected field 'title'
+% Unexpected field 'organization'
+% ? Title looks like it was stored in title-case in Zotero
+
+@inproceedings{kubernetes,
+  title = {Kubernetes and the Path to Cloud Native},
+  booktitle = {Proceedings of the {{Sixth ACM Symposium}} on {{Cloud Computing}}},
+  publisher = {{ACM}},
+  date = {2015},
+  pages = {167--167},
+  author = {Brewer, Eric A.}
+}
+
+@inproceedings{oliveira_evaluating_2016,
+  title = {Evaluating Raft in Docker on Kubernetes},
+  booktitle = {International {{Conference}} on {{Systems Science}}},
+  publisher = {{Springer}},
+  date = {2016},
+  pages = {123--130},
+  author = {Oliveira, Caio and Lung, Lau Cheuk and Netto, Hylson and Rech, Luciana}
+}
+% == BibLateX quality report for oliveira_evaluating_2016:
+% ? Unsure about the formatting of the booktitle
+
+@online{region_locking,
+  langid = {american},
+  title = {Nintendo's {{President Discusses Region Locking}}},
+  url = {http://www.ign.com/articles/2013/07/03/nintendos-president-discusses-region-locking},
+  journaltitle = {IGN},
+  urldate = {2018-10-10},
+  date = {2013-07-03},
+  author = {George, Richard}
+}
+% == BibLateX quality report for region_locking:
+% Unexpected field 'journaltitle'
+% ? Title looks like it was stored in title-case in Zotero
+
+@online{runkeeper,
+  langid = {american},
+  title = {{{RunKeeper Scales}} to {{Meet Demand}} from 24 {{Million Global Users}} with {{New Relic}}},
+  url = {https://blog.newrelic.com/product-news/runkeeper-scales-meet-demand/},
+  journaltitle = {New Relic Blog},
+  urldate = {2018-10-10},
+  date = {2013-10-24T04:55:18-07:00},
+  author = {Bandini, Desdemona}
+}
+% == BibLateX quality report for runkeeper:
+% Unexpected field 'journaltitle'
+% ? Title looks like it was stored in title-case in Zotero
+
+@online{wework_global_access,
+  langid = {english},
+  title = {Global {{Access}}},
+  url = {https://www.wework.com/promos/global-access},
+  journaltitle = {WeWork},
+  urldate = {2018-10-10},
+  date = {2018},
+  author = {WeWork}
+}
+% == BibLateX quality report for wework_global_access:
+% Unexpected field 'journaltitle'
+% ? Title looks like it was stored in title-case in Zotero
+
+@online{darksky,
+  langid = {english},
+  title = {Dark {{Sky Weather App}} for {{iOS}} and {{Android}}},
+  url = {http://www.darksky.net/app},
+  journaltitle = {Dark Sky},
+  urldate = {2018-10-10},
+  date = {2018},
+  author = {Grossman, Adam and LaPorte, Jay}
+}
+% == BibLateX quality report for darksky:
+% Unexpected field 'journaltitle'
+
+@online{trello,
+  langid = {american},
+  title = {Lessons {{Learned From Launching Internationally}}},
+  url = {https://blog.trello.com/lessons-learned-from-launching-internationally},
+  urldate = {2018-10-10},
+  date = {2015-10-22},
+  author = {Garber, Stella}
+}
+% == BibLateX quality report for trello:
+% ? Title looks like it was stored in title-case in Zotero
+
+@online{tile,
+  langid = {american},
+  title = {Tile {{About Tile}}},
+  url = {https://www.thetileapp.com/en-us/about-tile},
+  urldate = {2018-10-10}
+}
+% == BibLateX quality report for tile:
+% Exactly one of 'date' / 'year' must be present
+% ? Title looks like it was stored in title-case in Zotero
+
+@online{signal,
+  langid = {american},
+  title = {Signal and {{Telegram}} Are Growing Rapidly in Countries with Corruption Problems},
+  url = {https://thenextweb.com/apps/2018/01/23/signal-and-telegram-are-growing-rapidly-in-countries-with-corruption-problems/},
+  journaltitle = {The Next Web},
+  urldate = {2018-10-10},
+  date = {2018-01-23T16:46:19+00:00},
+  author = {Hughes, Matthew}
+}
+% == BibLateX quality report for signal:
+% Unexpected field 'journaltitle'
+
+@online{slack,
+  langid = {american},
+  title = {Slack {{About Us}}},
+  url = {https://slack.com/about},
+  journaltitle = {Slack},
+  urldate = {2018-10-10},
+  date = {2018},
+  author = {Slack}
+}
+% == BibLateX quality report for slack:
+% Unexpected field 'journaltitle'
+% ? Title looks like it was stored in title-case in Zotero
+
+@online{dropbox,
+  langid = {english},
+  title = {Dropbox | {{Company Info}}},
+  url = {https://www.dropbox.com/news/company-info},
+  urldate = {2018-10-10},
+  date = {2018}
+}
+% == BibLateX quality report for dropbox:
+% ? Title looks like it was stored in title-case in Zotero
+
+@inproceedings{sutra_fast_2011,
+  title = {Fast Genuine Generalized Consensus},
+  booktitle = {Reliable {{Distributed Systems}} ({{SRDS}}), 2011 30th {{IEEE Symposium}} On},
+  publisher = {{IEEE}},
+  date = {2011},
+  pages = {255--264},
+  author = {Sutra, Pierre and Shapiro, Marc}
+}
+% == BibLateX quality report for sutra_fast_2011:
+% ? Unsure about the formatting of the booktitle
+
+@inproceedings{peluso_making_2016,
+  title = {Making Fast Consensus Generally Faster},
+  booktitle = {Dependable {{Systems}} and {{Networks}} ({{DSN}}), 2016 46th {{Annual IEEE}}/{{IFIP International Conference}} On},
+  publisher = {{IEEE}},
+  date = {2016},
+  pages = {156--167},
+  author = {Peluso, Sebastiano and Turcu, Alexandru and Palmieri, Roberto and Losa, Giuliano and Ravindran, Binoy}
+}
+% == BibLateX quality report for peluso_making_2016:
 % ? Unsure about the formatting of the booktitle
 
 

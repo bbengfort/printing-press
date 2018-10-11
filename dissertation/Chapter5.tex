@@ -4,6 +4,7 @@
 
 %TODO: Add better title
 \chapter{System Implementation}
+\label{ch:system_implementation}
 
 Given its grandiose title, it may seem that the engineering behind the development of a planetary scale data storage system would require thousands of man-hours of professional software engineers and a highly structured development process.
 In fact, this is not necessarily the case for two reasons.
@@ -68,6 +69,136 @@ Continuous consistency scale
 
 Grid consistency model
 
+\section{Raft}
+
+Hierarchical Consensus with modified Raft as the underlying consensus
+protocol exports a linearizable order of accesses to the distributed key-value
+store.
+Alia and the HC library are implemented in Golang use gRPC~\cite{grpc} for
+communication.
+The system is implemented in \todo{7,924 lines of code}, not including standard
+libraries or support packages.
+
+An  replica implements multiple instantiations of the Raft protocol, which we have modified in several ways.
+Every replica must run one instantiation of the \textit{root consensus protocol}.
+Replicas may also run one or more instantiations of the \textit{commit consensus protocol} if they are assigned to a subquorum.
+Repartition decisions move the system between epochs with a new configuration and tagspace, and can only be initiated by messages from peers or monitoring processes.
+A successful repartition results in a new epoch, tagspace, and subquorum topology committed to the root log.
+\texttt{Repartition} messages also serve to notify the network about events that do not require an epoch change, such as the election of a new subquorum leader or bringing a failed node back online.
+
+Each replica implements an event loop that responds to timing events,
+client requests, and messages from peers.
+Events may cause the replica to change state, modify a command log, broadcast
+messages to peers, modify the key-value store, or respond to a client.
+% Events must be handled one at a time in the order they arrive at the replica
+% to ensure correct behavior.
+Event
+handlers need to aggressively lock shared state for correctness because Golang and
+gRPC make extensive use of multi-threading.
+% This conflicts with the need to avoid complete serialization by exploiting concurrency.
+The balance between correctness and concurrency-driven performance leads to
+increasing complexity and tighter coupling between components, one that
+foreshadows extra-process consistency concerns that have been noted in other
+work~\cite{paxos_live,raft,raft_students_guide}.
+
+The computing and network environment of a distributed system
+plays a large role in determining not just the performance of the system, but
+also its behavior.
+A simple example is the election timeout parameter of the Raft consensus
+protocol, which must be much greater than the average time to
+broadcast and receive responses, and much less than the mean time
+between failures~\cite{raft,etcd_raft,oliveira_evaluating_2016}.
+If this requirement is not met,
+leader may be displaced before heartbeat messages arrive, or the system will be
+unable to recover when a leader fails.
+As a result, the relationship between timeouts is critically dependent on the mean
+latency ($\lambda_{\mu}$) of the network.
+Howard~\cite{raft_refloated} proposes  $T = \lambda_{\mu} +
+2\lambda_{\sigma}$ to determine timeouts based on the distribution of observed
+latencies, sets the heartbeat as $\frac {T} {2}$, and the election timeout as
+the interval $U(T,2T)$.
+We parameterize our timeouts (Table~\ref{tab:ticks}) on
+latency measurements made before we ran our experiments.
+Monitoring and adapting to network conditions is part of ongoing work.
+
+
+\renewcommand{\baselinestretch}{1}
+\small\normalsize
+ \begin{table}[ht]
+\caption[Parameterized Timeouts of Raft Implementation]{Parameterized timeouts in our implementation. The \emph{obligation} timeout
+  stops a partitioned subquorum after an extended time without contact to the
+  rest of the system. $T=10 msec$ for our experiments on Amazon EC2.}
+\begin{center}
+\begin{tabular}{l|l|l}
+\hline
+Name & Time & Actions \\
+\hline \hline
+sub heartbeat& 1T & sub leader heartbeat\\
+sub leader & 2-4T & new sub election\\ \hline
+root heartbeat & 10T & root leader heartbeat \\
+root election & 20-40T & new root election \\ \hline
+obligation & 50T & root quorum may re- \\
+ &  & allocate the tag \\
+\hline
+\end{tabular}
+\end{center}
+\label{tab:ticks}
+\end{table}
+ \renewcommand{\baselinestretch}{2}
+\small\normalsize
+
+\textbf{Changes to base Raft:} In addition to major changes, such allowing
+replicas to be part of multiple quorums simultaneously, we also made many
+smaller changes that had pervasive effects.
+One change was including the \textit{epoch} number alongside the term in all
+log entries.
+The epoch is evaluated for invariants such as whether or not a replica can
+append an entry or if a log is as up to date as a remote log.
+
+Vote delegation requires changes to vote counting.
+Since our root quorum membership actually consists of the entire system, all replicas
+are messaged during root events.
+All replicas reply, though most with a ``zero votes'' acknowledgment.
+The root uses observed vote distributions to inform the ordering of future
+consensus messages (sending requests first to replicas with votes to cast),
+and uses timeouts to move non-responsive replicas into ``hot spares'' status.
+
+We allow \texttt{AppendEntries} requests in subquorums to aggregate multiple client
+requests into a single consensus round.
+Such requests are collected while an outstanding commit round is ongoing, then
+sent together when that round completes.
+The root quorum also aggregates all requests within a minimum interval into a single
+new epoch-change/reconfiguration operation to minimize disruption.
+
+Commits are observed by the leader once a majority of replicas respond
+positively.
+Other replicas learn about the commit only on the next message or heartbeat.
+Root epoch changes and heartbeats are designed to be rare, meaning that epoch
+change commits are not seen promptly.
+We modified the root protocol to inform subquorums of the change by sending an
+additional heartbeat immediately after it observes a commit.
+
+Replicas may be part of both a subquorum and the root quorum, and across epoch boundaries
+may be part of multiple subquorums.
+In principle, a high performance replica may participate in any number of
+subquorums.
+We therefore allow replicas to accommodate multiple distinct logs with
+different access characteristics.
+
+Peers that are either slow or with unsteady connectivity are occasionally left
+behind at subquorum leader or epoch changes.
+Root heartbeats containing the current system configuration are broadcast to
+all replicas and serve to bring them up to date.
+
+Finally, consensus protocols often synchronously write state to disk before
+responding to remote requests.
+This allows replicas that merely crash to reboot and rejoin the ongoing
+computation after recovering state from disk.
+Otherwise, these replicas need to go through heavyweight leave-and-rejoin
+handshakes.
+Our system avoids these synchronous writes by allowing epochs to re-join a
+subquorum at the next epoch change without any saved state, avoiding these
+handshakes altogether.
 
 \section{Conclusion}
 
