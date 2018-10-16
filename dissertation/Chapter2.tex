@@ -2,7 +2,10 @@
 
 \renewcommand{\thechapter}{2}
 
-\chapter{Challenges and Motivations}
+\chapter{A Geo-Distributed System Architecture}
+\label{ch:architecture}
+
+\section{Challenges and Motivations}
 
 Many of the world's most influential companies grew from the ashes of the dot-com bubble of the 1990s, which paid for an infrastructure of fiber-optic cables, giant server farms, and research into mobile wireless networks~\cite{casey_blockchain_2018}.
 As these companies filled market voids in eCommerce, search, and social networking, they created new database technologies to leverage the potential of underused computational resources and low latency/high bandwidth networks that connected them, eschewing more mature systems that were developed with resource scarcity in mind~\cite{stonebraker_what_2005,stonebraker_mapreduce_2010}.
@@ -23,7 +26,7 @@ First, designing distributed systems to support a large number of users across l
 Second, there exists commercial and practical motivations to build such systems and these motivations have been the impulse toward academic research.
 With this backdrop in mind, we explore in this chapter the question of whether a planetary-scale data system is really necessary, and the challenges that we face when designing such systems.
 
-\section{A New Application Development Paradigm}
+\subsection{A New Application Development Paradigm}
 
 % Point: global scale applications are the new norm, and they require global scale data storage systems.
 
@@ -61,7 +64,7 @@ Not only is there a need for strong consistency semantics, data-location awarene
 
 % this explains the shift back to SQL.
 
-\section{Building Geo-Replicated Services}
+\subsection{Building Geo-Replicated Services}
 
 % Citation for building distributed storage systems?
 Given non-geographic requirements for building a distributed system, a common architecture that provides high write throughput with consistent replication
@@ -94,6 +97,12 @@ Approaches: sharding, independent objects, buckets, slow reads
 \end{figure}
 \renewcommand{\baselinestretch}{2}
 \small\normalsize
+
+
+f4 is built on top of HDFS, BigTable on top of GFS, BTrDB on top of Ceph, and Spanner on top of ?
+
+
+f4~\cite{f4} "learned the importance of heterogeneity in the underlying hardware when a crop of disks started failing at a higher rate than normal. In addition, one of our regions experienced higher than average temperatures that exacerbated the failure rate of bad disks. In the future we plan on using hardware heterogeneity to decrease the likelihood of such correlated failures".
 
 
 \section{Requirements for Data Systems}

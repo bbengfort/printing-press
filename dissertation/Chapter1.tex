@@ -3,6 +3,7 @@
 \renewcommand{\thechapter}{1}
 
 \chapter{Introduction}
+\label{ch:introduction}
 % Going for about 5 pages or so here.
 
 Eighteen years ago the Oceanstore paper~\cite{oceanstore} presented a vision for a data utility infrastructure that spanned the globe.
@@ -12,9 +13,9 @@ To meet these requirements, the Oceanstore architecture was composed of two tier
 This architecture, along with a reliance on encryption and key-based access control, could facilitate grid computing storage, a truly decentralized and independent participation of heterogenous computational resources across the globe~\cite{grid_computing}.
 
 Unforeseen by Oceanstore, however, was a fundamental shift in how companies and users accessed computing infrastructure.
-Improvements in virtualization management~\cite{eucalyptus} and later container computing~\cite{docker} allowed big internet companies to easily lease their unused computational resources and disk capacity to application developers, making cloud computing~\cite{cloud_computing} rather than independent hardware purchasing and hosting the norm.
-Furthermore, from smarter phones to tablets and netbooks that do not have large disk capacities, user devices have become increasingly mobile; from photos to email and contacts, most user data is now stored in cloud silos.
-The cloud economy means that there exists a \emph{trusted infrastructure} of virtual resources that span globe, provisioned by a single provider as shown in Figure~\ref{fig:ch01_cloud_data_centers}.
+Improvements in virtualization management~\cite{eucalyptus} and later container computing~\cite{docker} allowed big Internet companies to easily lease their unused computational resources and disk capacity to application developers, making cloud computing~\cite{cloud_computing} rather than independent hardware purchasing and hosting the norm.
+Furthermore, from smarter phones to tablets and netbooks, user devices have become increasingly mobile with reduced disk capacities, which meant that applications, from photos to email and contacts, primarily store user data in cloud silos.
+The cloud economy means that there is a \emph{trusted infrastructure} of virtual resources that span globe, provisioned by a single provider as shown in Figure~\ref{fig:ch01_cloud_data_centers}.
 
 \begin{figure}
     \begin{center}
@@ -24,7 +25,7 @@ The cloud economy means that there exists a \emph{trusted infrastructure} of vir
     \small\normalsize
 
     \begin{quote}
-        \caption[Global Data Centers of Cloud Providers]{Data center locations of popular cloud providers span the globe.}
+        \caption[Global Data Centers of Cloud Providers]{Data center locations of popular cloud providers span the globe, creating the possibility for the deployment of geo-replicated data storage inside of a trusted infrastructure without Byzantine failure.}
         \label{fig:ch01_cloud_data_centers}
     \end{quote}
 \end{figure}
@@ -32,26 +33,30 @@ The cloud economy means that there exists a \emph{trusted infrastructure} of vir
 \small\normalsize
 
 % Do better at this paragraph
-So what does this mean for the requirements and assumptions of Oceanstore?
-First, the strict requirements for security that meant per-user encryption and byzantine agreement between untrusted servers can be relaxed to application and transport-level encryption and non-byzantine consensus supported by authenticated communication.
+So what does cloud computing mean for the requirements and assumptions of Oceanstore?
+First, Oceanstore's strict requirements for security that meant per-user encryption and byzantine agreement between untrusted servers can be relaxed to application and transport-level encryption and non-byzantine consensus supported by authenticated communication.
 Second, the requirements for performance have dramatically increased as ubiquitous computing has become the norm and as more non-human users are participating in networks.
 Increased capacity, however, cannot come at the cost of correctness or consistency, and the increased rate of requests means that asynchronous commits and conflict resolution become far more difficult.
 For these reasons, we believe that a vision for an Oceanstore today would focus on \emph{consistency} rather than security.
 
 % How do we transition to this paragraph?
 Consistent behavior in distributed systems becomes increasingly complex to implement and reason about as the system size grows and requires increased coordination.
-In 2021, Cisco forecasts over 25 billion devices will contribute to 105,800 GBps of global internet traffic, 26\% of which will be file sharing and application data, and 51\% of which will originate from machine to machine-to-machine applications \cite{cisco_internet_trends}.
-New types of networks including sensor networks, smart grid solutions, self-driving vehicle networks, and an internet of things will mean an update model with many publishers, few subscribers, and increasingly distributed accesses.
-To support this growth and facilitate speed, traffic is consistently moving closer to the edge; Cisco predicts that cross-country delivery will drop from 58\% of traffic in 2016 to 41\% in 2021 and that metro delivery will grow from 22\% to 35\%.
+In 2021, Cisco forecasts over 25 billion devices will contribute to 105,800 GBps of global Internet traffic, 26\% of which will be file sharing and application data, and 51\% of which will originate from machine to machine-to-machine applications \cite{cisco_internet_trends}.
+New types of networks including sensor networks, smart grid solutions, self-driving vehicle networks, and an Internet of Things will mean an update model with many publishers, few subscribers, and increasingly distributed accesses.
+To support this growth and facilitate speed, traffic is consistently moving closer to the edge; Cisco predicts that cross-continent delivery will drop from 58\% of traffic in 2016 to 41\% in 2021 and that metro delivery will grow from 22\% to 35\%.
 Localization means that the cloud will be surrounded by a fog of devices that participate in systems by contributing data storage and computation to an extent greater than access-oriented clients might.
 
-% Do I need to make this point sooner?
-Based on these trends and inspired by the work of Oceanstore, we propose that a consistent planetary-scale data storage system would be made up of a two tier architecture of both cloud and fog infrastructure.
-The first tier, in the cloud, would be a strong consistency, fault tolerant and highly resilient geo-replicated consensus backbone: \emph{hierarchical consensus}.
-The second tier, via the fog, would be a high availability heterogenous network with a hybrid consistency model: \emph{federated consistency}.
-Such a system would be difficult to manually manage, therefore the system would also have to automatically monitor and adapt to changes in access patterns and node and network availability during runtime.
-We believe that the combination of hierarchical consensus, federated consistency, and adaptive monitoring lay out a foundation for truly large scale data storage systems that span the planet.
+Based on these trends and inspired by the work of Oceanstore, we propose that a planetary-scale data storage system would be made up of an adaptable, two tier architecture of both cloud and fog infrastructure.
+The first tier, in the cloud, would be a strong consistency, fault tolerant and highly resilient geo-replicated consensus backbone.
+The second tier, via the fog, would be a high availability heterogenous network with a relaxed consistency model that could quickly disseminate updates.
+Such a system would be difficult to manually manage, therefore both tiers and the system as a whole would also have to automatically monitor and adapt to changes in access patterns and node and network availability during runtime.
+Our proposed design is therefore a flexible data fabric with three facets: geo-replicated consensus, high-availability dissemination and accesses, and online adaptability and optimization.
 
+In this dissertation we explore all three of these facets that comprise a robust geo-distributed data system.
+Because consensus algorithms have not been designed to scale to large quorum sizes we propose \emph{hierarchical consensus}, as the first tier consensus backbone that can scale to hundreds or thousands of nodes while maintaining strong consistency guarantees.
+To implement the second tier, we propose \emph{federated consistency}, a hybrid consistency model that allows heterogenous replicas varying guarantees depending on application requirements by integrating strong and eventual consistency models.
+Finally, we propose \emph{adaptive consistency}, a model for emergent introspection that uses localized machine learning to optimize single-replica behavior which, when taken together, leads to an increase in the overall performance of the system.
+We hypothesize that the combination of hierarchical consensus, federated consistency, and adaptive monitoring lay out a foundation for truly large scale data storage systems that span the planet.
 The contributions of this dissertation are therefore as follows:
 
 \begin{enumerate}
@@ -60,7 +65,6 @@ The contributions of this dissertation are therefore as follows:
     \item We show the possibilities for machine learning-based system adaptation with a reinforcement learning approach to anti-entropy synchronizations based on accesses.
     \item We validate our system by describing the implementation of a planetary-scale key-value data store and file system using both hierarchical consensus and federated consistency.
 \end{enumerate}
-
 
 % Contributions:
 %     Design, implementation, and evaluation of hierarchical consensus
@@ -72,8 +76,8 @@ The contributions of this dissertation are therefore as follows:
 %     Description and discussion of dependent scaling of consensus algorithms
 
 The rest of this dissertation is organized as follows.
-In the next chapter we will more thoroughly describe the motivations and challenges of building geo-replicated data systems as well as explore case-studies of existing systems.
-Next, we will focus on the core backbone of our system: hierarchical consensus and describe a globally fault tolerant approach to managing accesses to objects in the wide area.
-Using hierarchical consensus as a building block, we will next describe federated consistency and how a hybrid, heterogenous consistency model in the fog interacts with the cloud consensus tier.
+In the next chapter we will more thoroughly describe our proposed geo-replicated architecture by describing the motivations and challenges for our work and exploring case-studies of existing systems.
+Next, we will focus on the core backbone of our system, hierarchical consensus, and describe a globally fault tolerant approach to managing accesses to objects in the wide area.
+Using hierarchical consensus as a building block, the next chapter will focus on federated consistency, specifying a hybrid, heterogenous consistency model in the fog that interacts with the cloud consensus tier.
 At this point we will have enough background to introduce our system implementation and describe our file system and key-value store.
 From there, we will explore learning systems that monitor and adapt the performance of the system at runtime, before concluding with related work and a discussion of our future research.
