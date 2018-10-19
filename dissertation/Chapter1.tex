@@ -42,8 +42,8 @@ For these reasons, we believe that a vision for an Oceanstore today would focus 
 % How do we transition to this paragraph?
 Consistent behavior in distributed systems becomes increasingly complex to implement and reason about as the system size grows and requires increased coordination.
 In 2021, Cisco forecasts over 25 billion devices will contribute to 105,800 GBps of global Internet traffic, 26\% of which will be file sharing and application data, and 51\% of which will originate from machine to machine-to-machine applications \cite{cisco_internet_trends}.
-New types of networks including sensor networks, smart grid solutions, self-driving vehicle networks, and an Internet of Things will mean an update model with many publishers, few subscribers, and increasingly distributed accesses.
-To support this growth and facilitate speed, traffic is consistently moving closer to the edge; Cisco predicts that cross-continent delivery will drop from 58\% of traffic in 2016 to 41\% in 2021 and that metro delivery will grow from 22\% to 35\%.
+New types of networks including sensor networks~\cite{sensor_networks}, smart grid solutions~\cite{smart_grid}, self-driving vehicle networks~\cite{sotis}, and an Internet of Things~\cite{iot} will mean an update model with many publishers, few subscribers, and increasingly distributed accesses.
+To support this growth and facilitate speed, traffic is consistently moving closer to the edge; Cisco predicts that cross-continent delivery will drop from 58\% of traffic in 2016 to 41\% in 2021 and that metro delivery will grow from 22\% to 35\% \cite{cisco_internet_trends}.
 Localization means that the cloud will be surrounded by a fog of devices that participate in systems by contributing data storage and computation to an extent greater than access-oriented clients might.
 
 Based on these trends and inspired by the work of Oceanstore, we propose that a planetary-scale data storage system would be made up of an adaptable, two tier architecture of both cloud and fog infrastructure.

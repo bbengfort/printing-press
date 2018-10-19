@@ -33,6 +33,18 @@
   author = {Bailis, Peter and Venkataraman, Shivaram and Franklin, Michael J. and Hellerstein, Joseph M. and Stoica, Ion}
 }
 
+@inproceedings{log_memory,
+  title = {Log-Structured Memory for {{DRAM}}-Based Storage.},
+  url = {https://www.usenix.org/system/files/conference/fast14/fast14-paper_rumble.pdf},
+  booktitle = {{{FAST}}},
+  urldate = {2014-12-03},
+  date = {2014},
+  pages = {1--16},
+  author = {Rumble, Stephen M. and Kejriwal, Ankita and Ousterhout, John K.}
+}
+% == BibLateX quality report for log_memory:
+% ? Unsure about the formatting of the booktitle
+
 @article{spanner,
   title = {Spanner: {{Google}}'s Globally Distributed Database},
   volume = {31},
@@ -56,6 +68,17 @@
   author = {Lloyd, Wyatt and Freedman, Michael J. and Kaminsky, Michael and Andersen, David G.}
 }
 
+@inproceedings{walter,
+  title = {Transactional Storage for Geo-Replicated Systems},
+  url = {http://dl.acm.org/citation.cfm?id=2043592},
+  booktitle = {Proceedings of the {{Twenty}}-{{Third ACM Symposium}} on {{Operating Systems Principles}}},
+  publisher = {{ACM}},
+  urldate = {2014-10-27},
+  date = {2011},
+  pages = {385--400},
+  author = {Sovran, Yair and Power, Russell and Aguilera, Marcos K. and Li, Jinyang}
+}
+
 @inproceedings{scatter,
   title = {Scalable Consistency in {{Scatter}}},
   url = {http://dl.acm.org/citation.cfm?id=2043559},
@@ -66,6 +89,20 @@
   pages = {15--28},
   author = {Glendenning, Lisa and Beschastnikh, Ivan and Krishnamurthy, Arvind and Anderson, Thomas}
 }
+
+@article{hat,
+  title = {Highly {{Available Transactions}}: {{Virtues}} and {{Limitations}} ({{Extended Version}})},
+  volume = {7},
+  url = {http://arxiv.org/abs/1302.0309},
+  number = {3},
+  journaltitle = {Proceedings of the VLDB Endowment},
+  urldate = {2014-10-22},
+  date = {2013},
+  pages = {181-192},
+  author = {Bailis, Peter and Davidson, Aaron and Fekete, Alan and Ghodsi, Ali and Hellerstein, Joseph M. and Stoica, Ion}
+}
+% == BibLateX quality report for hat:
+% ? Title looks like it was stored in title-case in Zotero
 
 @inproceedings{anti_entropy,
   title = {Session Guarantees for Weakly Consistent Replicated Data},
@@ -92,6 +129,18 @@
 }
 % == BibLateX quality report for oceanstore:
 % ? Unsure about the formatting of the booktitle
+
+@article{logfs,
+  title = {The Design and Implementation of a Log-Structured File System},
+  volume = {10},
+  url = {http://dl.acm.org/citation.cfm?id=146943},
+  number = {1},
+  journaltitle = {ACM Transactions on Computer Systems (TOCS)},
+  urldate = {2014-09-23},
+  date = {1992},
+  pages = {26--52},
+  author = {Rosenblum, Mendel and Ousterhout, John K.}
+}
 
 @inproceedings{spark_streaming,
   title = {Discretized Streams: {{Fault}}-Tolerant Streaming Computation at Scale},
@@ -220,7 +269,7 @@
 % == BibLateX quality report for bailis_bolt-causal_2013:
 % ? Title looks like it was stored in title-case in Zotero
 
-@article{sequential-consistency,
+@article{sequential_consistency_2,
   title = {How to Make a Multiprocessor Computer That Correctly Executes Multiprocess Programs},
   volume = {100},
   number = {9},
@@ -230,7 +279,7 @@
   author = {Lamport, Leslie}
 }
 
-@article{miorandi_internet_2012,
+@article{iot,
   title = {Internet of {{Things}}: {{Vision}}, {{Applications}} and {{Research Challenges}}},
   volume = {10},
   number = {7},
@@ -239,7 +288,7 @@
   pages = {1497-1516},
   author = {Miorandi, Daniele and Sicari, Sabrina and De Pellegrini, Francesco and Chlamtac, Imrich}
 }
-% == BibLateX quality report for miorandi_internet_2012:
+% == BibLateX quality report for iot:
 % ? Title looks like it was stored in title-case in Zotero
 
 @inproceedings{zhang_viewbox:_2014,
@@ -300,16 +349,6 @@
   author = {Zawirski, Marek and Pregui\c{}ca, Nuno and Duarte, S\'ergio and Bieniusa, Annette and Balegas, Valter and Shapiro, Marc}
 }
 
-@article{hat,
-  title = {Highly Available Transactions: {{Virtues}} and Limitations},
-  volume = {7},
-  number = {3},
-  journaltitle = {Proceedings of the VLDB Endowment},
-  date = {2013},
-  pages = {181-192},
-  author = {Bailis, Peter and Davidson, Aaron and Fekete, Alan and Ghodsi, Ali and Hellerstein, Joseph M and Stoica, Ion}
-}
-
 @inproceedings{pbft,
   location = {{New Orleans, Louisiana, United States}},
   title = {Practical {{Byzantine}} Fault Tolerance},
@@ -359,7 +398,7 @@
   author = {Mahajan, Prince and Alvisi, Lorenzo and Dahlin, Mike}
 }
 
-@inproceedings{katz-bassett_towards_2006,
+@inproceedings{geoping,
   title = {Towards {{IP Geolocation Using Delay}} and {{Topology Measurements}}},
   booktitle = {Proceedings of the 6th {{ACM SIGCOMM Conference}} on {{Internet Measurement}}},
   publisher = {{ACM}},
@@ -367,7 +406,7 @@
   pages = {71-84},
   author = {Katz-Bassett, Ethan and John, John P. and Krishnamurthy, Arvind and Wetherall, David and Anderson, Thomas and Chawathe, Yatin}
 }
-% == BibLateX quality report for katz-bassett_towards_2006:
+% == BibLateX quality report for geoping:
 % ? Title looks like it was stored in title-case in Zotero
 
 @inproceedings{raft,
@@ -429,6 +468,15 @@
 }
 % == BibLateX quality report for chubby:
 % ? Unsure about the formatting of the booktitle
+
+@book{tanenbaum_distributed_2007,
+  title = {Distributed Systems},
+  url = {http://cds.cern.ch/record/1056310/files/0132392275_TOC.pdf},
+  publisher = {{Prentice-Hall}},
+  urldate = {2016-10-24},
+  date = {2007},
+  author = {Tanenbaum, Andrew S. and Van Steen, Maarten}
+}
 
 @article{cassandra,
   title = {Cassandra: A Decentralized Structured Storage System},
@@ -556,7 +604,7 @@
   author = {Ladin, Rivka and Liskov, Barbara and Shrira, Liuba and Ghemawat, Sanjay}
 }
 
-@inproceedings{li_making_2012,
+@inproceedings{redblue,
   title = {Making Geo-Replicated Systems Fast as Possible, Consistent When Necessary},
   url = {https://www.usenix.org/conference/osdi12/technical-sessions/presentation/li},
   booktitle = {Presented as Part of the 10th {{USENIX Symposium}} on {{Operating Systems Design}} and {{Implementation}} ({{OSDI}} 12)},
@@ -565,7 +613,7 @@
   pages = {265--278},
   author = {Li, Cheng and Porto, Daniel and Clement, Allen and Gehrke, Johannes and Pregui{\c c}a, Nuno and Rodrigues, Rodrigo}
 }
-% == BibLateX quality report for li_making_2012:
+% == BibLateX quality report for redblue:
 % ? Unsure about the formatting of the booktitle
 
 @article{kraska_consistency_2009,
@@ -848,6 +896,18 @@
 % == BibLateX quality report for deno-toc:
 % ? Title looks like it was stored in title-case in Zotero
 
+@article{state_machine_approach,
+  title = {Implementing Fault-Tolerant Services Using the State Machine Approach: {{A}} Tutorial},
+  volume = {22},
+  url = {http://dl.acm.org/citation.cfm?id=98167},
+  number = {4},
+  journaltitle = {ACM Computing Surveys (CSUR)},
+  urldate = {2016-05-27},
+  date = {1990},
+  pages = {299--319},
+  author = {Schneider, Fred B.}
+}
+
 @incollection{li_hierarchical_2014,
   title = {Hierarchical Eventual Leader Election for Dynamic Systems},
   url = {http://link.springer.com/chapter/10.1007/978-3-319-11197-1_26},
@@ -869,6 +929,19 @@
   date = {2007},
   author = {Mazieres, David}
 }
+
+@incollection{lampson_how_1996,
+  title = {How to Build a Highly Available System Using Consensus},
+  url = {http://link.springer.com/chapter/10.1007/3-540-61769-8_1},
+  booktitle = {Distributed {{Algorithms}}},
+  publisher = {{Springer}},
+  urldate = {2016-05-03},
+  date = {1996},
+  pages = {1--17},
+  author = {Lampson, Butler W.}
+}
+% == BibLateX quality report for lampson_how_1996:
+% Missing required field 'editor'
 
 @article{bigtable,
   title = {Bigtable: {{A}} Distributed Storage System for Structured Data},
@@ -892,6 +965,18 @@
 }
 % == BibLateX quality report for generalized_paxos:
 % Missing required field 'type'
+
+@article{fischer_impossibility_1985,
+  title = {Impossibility of Distributed Consensus with One Faulty Process},
+  volume = {32},
+  url = {http://dl.acm.org/citation.cfm?id=214121},
+  number = {2},
+  journaltitle = {Journal of the ACM (JACM)},
+  urldate = {2016-05-03},
+  date = {1985},
+  pages = {374--382},
+  author = {Fischer, Michael J. and Lynch, Nancy A. and Paterson, Michael S.}
+}
 
 @inproceedings{multicoordinated_paxos,
   title = {Multicoordinated Paxos},
@@ -1140,6 +1225,18 @@
   author = {Herlihy, Maurice P. and Wing, Jeannette M.}
 }
 
+@article{chord,
+  title = {Chord: {{A}} Scalable Peer-to-Peer Lookup Service for Internet Applications},
+  volume = {31},
+  url = {http://dl.acm.org/citation.cfm?id=383071},
+  number = {4},
+  journaltitle = {ACM SIGCOMM Computer Communication Review},
+  urldate = {2014-09-23},
+  date = {2001},
+  pages = {149--160},
+  author = {Stoica, Ion and Morris, Robert and Karger, David and Kaashoek, M. Frans and Balakrishnan, Hari}
+}
+
 @inproceedings{demers_epidemic_1987,
   title = {Epidemic Algorithms for Replicated Database Maintenance},
   url = {http://dl.acm.org/citation.cfm?id=41841},
@@ -1161,6 +1258,17 @@
   date = {2009},
   pages = {40--44},
   author = {Vogels, Werner}
+}
+
+@article{causal_2,
+  title = {Causal Memory: {{Definitions}}, Implementation and Programming},
+  volume = {1},
+  url = {http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.88.4039&rep=rep1&type=pdf},
+  journaltitle = {IEEE Transactions on Parallel and Distributed Systems},
+  urldate = {2016-04-27},
+  date = {1990},
+  pages = {6--16},
+  author = {Ahamad, Mustaque and Neiger, Gil and Kohli, Prince and Burns, James and Hutto, Phil and Anderson, T. E.}
 }
 
 @inproceedings{gfs,
@@ -1378,6 +1486,15 @@
 % == BibLateX quality report for wada_data_2011:
 % ? Unsure about the formatting of the booktitle
 
+@report{wren,
+  title = {The Design of {{Wren}}, a {{Fast}} and {{Scalable Transactional Causally Consistent Geo}}-{{Replicated Key}}-{{Value Store}}},
+  date = {2017},
+  author = {Didona, Diego and Spirovska, Kristina and Zwaenepoel, Willy}
+}
+% == BibLateX quality report for wren:
+% Missing required field 'type'
+% Missing required field 'institution'
+
 @inproceedings{rethinking_eventual,
   title = {Rethinking Eventual Consistency},
   booktitle = {Proceedings of the 2013 {{ACM SIGMOD International Conference}} on {{Management}} of {{Data}}},
@@ -1420,6 +1537,13 @@
 % == BibLateX quality report for bengfort_anti-entropy_2018:
 % ? Title looks like it was stored in title-case in Zotero
 
+@inproceedings{eiger,
+  title = {Stronger Semantics for Low-Latency Geo-Replicated Storage},
+  booktitle = {Proceedings of the 10th {{USENIX Symposium}} on {{Networked Systems Design}} and {{Implementation}} ({{NSDI}}'13), {{Lombard}}, {{IL}}},
+  date = {2013},
+  author = {Lloyd, Wyatt and Freedman, Michael J and Kaminsky, Michael and Andersen, David G}
+}
+
 @inproceedings{muthitacharoen_low-bandwidth_2001,
   title = {A {{Low}}-Bandwidth {{Network File System}}},
   booktitle = {Proceedings of the 18th {{ACM Symposium}} on {{Operating Systems Principles}} ({{SOSP}} '01)},
@@ -1427,6 +1551,14 @@
   pages = {174--187},
   author = {Muthitacharoen, Athicha and Chen, Benjie and Mazi\`eres, David}
 }
+
+@software{s3,
+  title = {Amazon {{Simple Storage Service}} ({{Amazon S3}})},
+  url = {http://aws.amazon.com/s3}
+}
+% == BibLateX quality report for s3:
+% Unexpected field 'title'
+% ? Title looks like it was stored in title-case in Zotero
 
 @article{fail-stop,
   title = {Byzantine {{Generals}} in {{Action}}: {{Implementing Fail}}-Stop {{Processors}}},
@@ -1568,6 +1700,18 @@
 % == BibLateX quality report for btrdb:
 % ? Unsure about the formatting of the booktitle
 % ? Title looks like it was stored in title-case in Zotero
+
+@inproceedings{smart_grid,
+  title = {{{DISTIL}}: {{Design}} and Implementation of a Scalable Synchrophasor Data Processing System},
+  booktitle = {Smart {{Grid Communications}} ({{SmartGridComm}}), 2015 {{IEEE International Conference}} On},
+  publisher = {{IEEE}},
+  date = {2015},
+  pages = {271--277},
+  author = {Andersen, Michael P. and Kumar, Sam and Brooks, Connor and von Meier, Alexandra and Culler, David E.},
+  options = {useprefix=true}
+}
+% == BibLateX quality report for smart_grid:
+% ? Unsure about the formatting of the booktitle
 
 @inproceedings{aurora,
   title = {Amazon Aurora: {{Design}} Considerations for High Throughput Cloud-Native Relational Databases},
@@ -1969,5 +2113,169 @@
 }
 % == BibLateX quality report for f4:
 % ? Unsure about the formatting of the booktitle
+
+@inproceedings{sotis,
+  title = {{{SOTIS}}-a Self-Organizing Traffic Information System},
+  volume = {4},
+  booktitle = {Vehicular {{Technology Conference}}, 2003. {{VTC}} 2003-{{Spring}}. {{The}} 57th {{IEEE Semiannual}}},
+  date = {2003},
+  pages = {2442-2446},
+  author = {Wischoff, Lars and Ebner, Andr\'e and Rohling, Hermann and Lott, Matthias and Halfmann, R\"udiger}
+}
+% == BibLateX quality report for sotis:
+% ? Unsure about the formatting of the booktitle
+
+@inproceedings{sensor_networks,
+  title = {Enabling Large-Scale Storage in Sensor Networks with the Coffee File System},
+  booktitle = {Information {{Processing}} in {{Sensor Networks}}, 2009. {{IPSN}} 2009. {{International Conference}} On},
+  date = {2009},
+  pages = {349-360},
+  author = {Tsiftes, Nicolas and Dunkels, Adam and He, Zhitao and Voigt, Thiemo}
+}
+% == BibLateX quality report for sensor_networks:
+% ? Unsure about the formatting of the booktitle
+
+@inproceedings{node_failure,
+  title = {Quality-of-Service for Consistency of Data Geo-Replication in Cloud Computing},
+  booktitle = {European {{Conference}} on {{Parallel Processing}}},
+  date = {2012},
+  pages = {285-297},
+  author = {Esteves, S\'ergio and Silva, Joao and Veiga, Lu\'is}
+}
+% == BibLateX quality report for node_failure:
+% ? Unsure about the formatting of the booktitle
+
+@inproceedings{cloud_deployments,
+  title = {Next Stop, the Cloud: {{Understanding}} Modern Web Service Deployment in Ec2 and Azure},
+  booktitle = {Proceedings of the 2013 Conference on {{Internet}} Measurement Conference},
+  date = {2013},
+  pages = {177-190},
+  author = {He, Keqiang and Fisher, Alexis and Wang, Liang and Gember, Aaron and Akella, Aditya and Ristenpart, Thomas}
+}
+% == BibLateX quality report for cloud_deployments:
+% ? Unsure about the formatting of the booktitle
+
+@article{jhawar_fault_2013,
+  title = {Fault Tolerance Management in Cloud Computing: {{A}} System-Level Perspective},
+  volume = {7},
+  number = {2},
+  journaltitle = {IEEE Systems Journal},
+  date = {2013},
+  pages = {288--297},
+  author = {Jhawar, Ravi and Piuri, Vincenzo and Santambrogio, Marco}
+}
+
+@article{pushing_cap,
+  title = {Pushing the Cap: {{Strategies}} for Consistency and Availability},
+  volume = {45},
+  number = {2},
+  journaltitle = {Computer},
+  date = {2012},
+  pages = {23--29},
+  author = {Brewer, Eric}
+}
+
+@article{cap_rules_change,
+  title = {{{CAP}} Twelve Years Later: {{How}} the" Rules" Have Changed},
+  volume = {45},
+  number = {2},
+  journaltitle = {Computer},
+  date = {2012},
+  pages = {23--29},
+  author = {Brewer, Eric}
+}
+
+@inproceedings{pedersen_analysis_2018,
+  location = {{New York, NY, USA}},
+  title = {An {{Analysis}} of {{Quorum}}-Based {{Abstractions}}: {{A Case Study Using Gorums}} to {{Implement Raft}}},
+  isbn = {978-1-4503-5775-3},
+  doi = {10.1145/3231104.3231957},
+  booktitle = {Proceedings of the 2018 {{Workshop}} on {{Advanced Tools}}, {{Programming Languages}}, and {{PLatforms}} for {{Implementing}} and {{Evaluating Algorithms}} for {{Distributed Systems}}},
+  series = {ApPLIED '18},
+  publisher = {{ACM}},
+  date = {2018},
+  pages = {29--35},
+  keywords = {quorum systems,raft algorithm,state machine replication},
+  author = {Pedersen, Sebastian and Meling, Hein and Jehl, Leander}
+}
+
+@inproceedings{zhao_sdpaxos_2018,
+  location = {{New York, NY, USA}},
+  title = {{{SDPaxos}}: {{Building Efficient Semi}}-{{Decentralized Geo}}-Replicated {{State Machines}}},
+  isbn = {978-1-4503-6011-1},
+  doi = {10.1145/3267809.3267837},
+  booktitle = {Proceedings of the {{ACM Symposium}} on {{Cloud Computing}}},
+  series = {SoCC '18},
+  publisher = {{ACM}},
+  date = {2018},
+  pages = {68--81},
+  keywords = {Contention,Geo-replication,Heterogeneity,Latency,Performance,State machine replication},
+  author = {Zhao, Hanyu and Zhang, Quanlu and Yang, Zhi and Wu, Ming and Dai, Yafei}
+}
+
+@inproceedings{load_balancing,
+  title = {Load Balancing Cloud Computing: State of Art},
+  booktitle = {Network {{Security}} and {{Systems}} ({{JNS2}}), 2012 {{National Days}} Of},
+  publisher = {{IEEE}},
+  date = {2012},
+  pages = {106--109},
+  author = {Khiyaita, A. and El Bakkali, H. and Zbakh, M. and El Kettani, Dafir}
+}
+% == BibLateX quality report for load_balancing:
+% ? Unsure about the formatting of the booktitle
+
+@article{logbase,
+  title = {{{LogBase}}: A Scalable Log-Structured Database System in the Cloud},
+  volume = {5},
+  number = {10},
+  journaltitle = {Proceedings of the VLDB Endowment},
+  date = {2012},
+  pages = {1004--1015},
+  author = {Vo, Hoang Tam and Wang, Sheng and Agrawal, Divyakant and Chen, Gang and Ooi, Beng Chin}
+}
+
+@article{hdfs,
+  title = {{{HDFS}} Architecture Guide},
+  volume = {53},
+  journaltitle = {Hadoop Apache Project},
+  date = {2008},
+  pages = {1--13},
+  author = {Borthakur, Dhruba}
+}
+
+@article{colossus,
+  title = {Storage Architecture and Challenges},
+  journaltitle = {Talk at the Google Faculty Summit},
+  date = {2010},
+  author = {Fikes, Andrew}
+}
+
+@article{raid,
+  title = {Redundant Disk Arrays: {{Reliable}}, Parallel Secondary Storage},
+  date = {1992},
+  author = {Gibson, Garth Alan}
+}
+% == BibLateX quality report for raid:
+% Missing required field 'journaltitle'
+
+@incollection{ambari,
+  title = {Apache Ambari},
+  booktitle = {Pro {{Apache Hadoop}}},
+  publisher = {{Springer}},
+  date = {2014},
+  pages = {399--401},
+  author = {Wadkar, Sameer and Siddalingaiah, Madhu}
+}
+% == BibLateX quality report for ambari:
+% Missing required field 'editor'
+
+@inproceedings{fruitchains,
+  title = {Fruitchains: {{A}} Fair Blockchain},
+  booktitle = {Proceedings of the {{ACM Symposium}} on {{Principles}} of {{Distributed Computing}}},
+  publisher = {{ACM}},
+  date = {2017},
+  pages = {315--324},
+  author = {Pass, Rafael and Shi, Elaine}
+}
 
 
