@@ -6,43 +6,50 @@
 \label{ch:hierarchical_consensus}
 % Overview, details, consistency, performance, lessons learned.
 
-% This paragraph sucks.
 The backbone of our planetary scale data system is \emph{hierarchical consensus}~\cite{hc_brief_announcement}.
 Hierarchical consensus provides a strong consistency foundation that totally orders critical accesses and arbitrates the eventual consistency layer in the fog, which raises the overall consistency of the system.
 To be effective, an externalizable view of consistency ordering must be available to the entire system.
 This means that strong consistency must be provided across geographic links rather than provided as localized, independent decision making with periodic synchronization.
-The problem that hierarchical consensus is therefore designed to solve is that of distributed consensus.
+The problem that hierarchical consensus is therefore designed to solve is that of geographically distributed consensus.
 
-Solutions to distributed consensus primarily focus on providing high throughput, low latency, fault tolerance, and durability.
+Solutions to geo-distributed consensus primarily focus on providing high throughput, low latency, fault tolerance, and durability.
 Current approaches \cite{epaxos,mencius,calvindb,spaxos,sutra_fast_2011,peluso_making_2016} usually assume a small number of replicas, each centrally located on a highly available, powerful, and reliable host.
 These assumptions are justified by the environments in which they run: highly curated environments of individual data centers connected by dedicated networks.
-Although replicas in these environments may participate in global consensus, our data model requires us to accommodate replicas with heterogenous capabilities and usage modalities.
+Although replicas in these environments may participate in global consensus, our architecture requires us to accommodate replicas with heterogenous capabilities and usage modalities.
 Widely distributed replicas might have neither high bandwidth nor low latency and might suffer partitions of varying durations.
 Such systems of replicas might also be dynamic in membership, in relative locations, and have relative workloads.
-Most importantly, to provide a backbone for a planetary scale data system, the consistency backbone must scale to include potentially hundreds of replicas around the world.
+Most importantly, to provide a backbone for a planetary scale data system, the consistency backbone must scale to include potentially thousands of replicas around the world.
 
-As a result, straightforward approaches of running variants of Paxos~\cite{paxos}, ePaxos~\cite{epaxos}, or Raft~\cite{raft} across the wide area, even for individual objects will perform poorly for several reasons.
+As a result, straightforward approaches of running variants of Paxos~\cite{paxos,paxos_simple}, ePaxos~\cite{epaxos}, or Raft~\cite{raft} across the wide area, even for individual objects will perform poorly for several reasons.
 First, distance (in network connectivity) between consensus replicas and the most active replicas decrease the performance of the entire system, consensus is only as fast as the final vote required to make a decision, even when making thrifty requests.
 Second, network partitions are common, which cause consensus algorithms to fail-stop~\cite{fail-stop} if they cannot receive a majority, a criticism that is often used to justify eventual consistency systems for high availability.
 Finally, the fault tolerance of small quorum algorithms can be disrupted by a small number of unreliable hosts and given the scale of the system and the heterogenous nature of replicas, the likelihood of individual failure is so high so as to be considered inevitable.
 
-% what about spanner, mdcc, and calvin?
-
-We propose another approach to building large systems.
+We propose another approach to building large consensus systems.
 Rather than relying on a few replicas to provide consensus to many clients, we propose to run a consensus protocol across replicas running at or near all of these locations.
 The key insight is that large problem spaces can often be partitioned into mostly disjoint sets of activity without violating consistency.
 We exploit this decomposition property by making our consensus protocol hierarchical and individual consensus groups fast by ensuring they are small.
 We exploit locality by building subquorums from colocated replicas, and locating subquorums near clients they serve.
 
-In this chapter we describe hierarchical consensus, a two-tiered consensus structure that allows high throughput, localization, agility, and linearizable access to a shared namespace. We show how to use \emph{delegation} to build large consensus groups that retain their fault tolerance properties while performing like small groups. We describe the use of \emph{fuzzy epoch transitions} to allow global re-configurations across multiple consensus groups without forcing them into lockstep. Finally, we describe how we reason about consistency by describing the structure of grid consistency.
+In this chapter we describe hierarchical consensus, a tiered consensus structure that allows high throughput, localization, agility, and linearizable access to a shared namespace.
+We show how to use \emph{delegation} (\S~\ref{ch03_delegation})  to build large consensus groups that retain their fault tolerance properties while performing like small groups.
+We describe the use of \emph{fuzzy epoch transitions} (\S~\ref{ch03_fuzzy_transitions}) to allow global re-configurations across multiple consensus groups without forcing them into lockstep.
+Finally, we describe how we reason about consistency by describing the structure of \emph{grid consistency} (\S~\ref{ch03_grid_consistency}).
 
 \section{Overview}
+\label{ch03_overview}
 
-Hierarchical Consensus (HC) is an implementation and extension of Vertical Paxos~\cite{vertical_paxos,boxwood,niobe} designed to scale to hundreds of nodes geo-replicated around the world.
+Hierarchical Consensus (HC) is a leader-oriented implementation and extension of Vertical Paxos~\cite{vertical_paxos,boxwood,niobe} designed to scale to hundreds of nodes geo-replicated around the world.
 Vertical Paxos divides consensus decisions both horizontally, as sequences of consensus instances, and vertically as individual consensus decisions are made.
-Spanner~\cite{spanner}, MDCC~\cite{mdcc}, and Calvin~\cite{calvindb}, can all be thought of as implementations of Vertical Paxos, in that they shard the namespace of the objects they manage into individual consensus groups (the vertical division).
-In these cases, however, sharding does not allow for inter-object dependence (the horizontal division) without either a management quorum which is either not geo-replicated, suffers from the same problems in scaling, or without the use of extremely accurate timestamps.
-The challenge is therefore in building a multi-group coordination protocol that configures and mediates the subquorums with the same level of consistency and fault tolerance of the entire system.
+Spanner~\cite{spanner}, MDCC~\cite{mdcc}, and Calvin~\cite{calvindb}, can all be thought of as implementations of Vertical Paxos.
+These systems shard the namespace of the objects they manage into individual consensus groups (the horizontal division) each independently reaching consensus about accesses (the vertical division).
+A general implementation of Vertical Paxos therefore requires multiple independent quorums, one to manage the namespace and keep track of the health of all replicas in the system, and many other subquorums to independently manage tablets or objects.
+
+In a geo-replicated context, there are two problems with with this scheme.
+First, sharding does not allow for inter-object dependence (in the horizontal division) without relying on coordination from the management quorum.
+Second, the management quorum must be geo-replicated and able to scale to handle monitoring of the entire system.
+In both cases, the management quorum becomes a bottleneck and current solutions such as batching decisions or using specialized hardware for extremely accurate timestamps are outside of the scope of the safety properties provided by Vertical Paxos.
+The challenge is therefore in constructing a multi-group coordination protocol that configures and mediates per-object quorums with the same level of consistency and fault tolerance as the entire system.
 
 \begin{figure}
     \begin{center}
@@ -59,26 +66,21 @@ The challenge is therefore in building a multi-group coordination protocol that 
 \renewcommand{\baselinestretch}{2}
 \small\normalsize
 
-Hierarchical consensus therefore organizes \emph{all} participating replicas to participate in a root quorum as shown in Figure~\ref{fig:ch03_hierarchical_topology}.
-The root quorum guarantees correctness by pivoting the overall system through two primary functions.
-First, the root quorum reconfigures subquorum memberships on replica failures and system membership changes (allocating hot-spares as needed).
-Second, the root quorum adjusts the mapping of the object namespace to the underlying partitions.
+Hierarchical consensus organizes \emph{all} participating replicas into a single root quorum that manages the namespace across all regions as shown in Figure~\ref{fig:ch03_hierarchical_topology}.
+The root quorum guarantees correctness and failure-free operation by pivoting the overall system through two primary functions.
+First, the root quorum reconfigures its membership into subquorums, reserving extra members as hot-spares if needed.
+Second, the root quorum adjusts the mapping of the object namespace to the underlying partitions, which subquorums are responsible for managing.
+These adjustments adapt the system to replica failures, system membership changes, varying access patterns, and ensure that related objects are coordinated together.
 Much of the system's complexity comes from handshaking between the root quorum and the lower-level subquorums during reconfigurations.
+
+% The root quorum elects a leader which partitions the namespace amongst its members into multiple subquorums, reserving extra members as hot-spares if needed.
+% Subquorums elect their own leaders, which then coordinate accesses to the objects which they are assigned.
 
 These handshakes are made easier, and much more efficient, by using \emph{fuzzy transitions}.
 Fuzzy transitions allow individual subquorum to move through reconfiguration at their own pace, allowing portions of the system to transition to decisions made by the root quorum before others.
-Given out heterogenous, wide-area environment, forcing the entire system to transition to new configurations in lockstep would be unacceptably slow.
+Given our heterogenous, wide-area environment, forcing the entire system to transition to new configurations in lockstep would be unacceptably slow.
 Fuzzy transitions also ensure that there is no dedicated shard-master that has to synchronize all namespace allocations: at the cost of possibly multiple  redirections, clients can be redirected by any member of the root quorum to replicas who should be participating in consensus decisions for the requested objects.
-
 Fuzzy transitions ensure that root quorum decisions need not be timely since those decisions do not disrupt accesses of clients.
-Though root quorum decisions are rare with respect to the throughput of accesses inside the entire system, they still do require the participation of all members of the system, which could lead to extremely large quorum sizes, and therefore extremely slow consensus operations that may be extremely sensitive to partitions.
-Because all subquorums make disjoint decisions and because all members of the system are part of the root quorum, we propose a safe relaxation of the participation requirements for the root quorum such that subquorum followers can \emph{delegate} their root quorum votes to their leader.
-Delegation ensures that only a small number of replicas participate in most root quorum decisions, though decisions are made for the entire system.
-
-In brief, the resulting system is local, in that replicas serving clients can be located near them.
-The system is fast because individual operations are served by small groups of replicas, regardless of the total size of the system.
-The system is nimble in that it can dynamically reconfigure the number, membership, and responsibilities of subquorums in response to failures, phase changes in the driving applications, or mobility among the member replicas.
-Finally, the system is consistent, supporting the strongest form of per-object consistency without relying on special-purpose hardware~\cite{fawn,corfu,vcorfu,tango,spanner}.
 
 \begin{figure}
     \begin{center}
@@ -96,28 +98,48 @@ Finally, the system is consistent, supporting the strongest form of per-object c
 \renewcommand{\baselinestretch}{2}
 \small\normalsize
 
+Though root quorum decisions are rare with respect to the throughput of accesses inside the entire system, they still do require the participation of all members of the system, which could lead to extremely large quorum sizes, and therefore extremely slow consensus operations that may be extremely sensitive to partitions.
+Because all subquorums make disjoint decisions and because all members of the system are part of the root quorum, we propose a safe relaxation of the participation requirements for the root quorum such that subquorum followers can \emph{delegate} their root quorum votes to their leader.
+Delegation ensures that only a small number of replicas participate in most root quorum decisions, though decisions are made for the entire system.
+
+In brief, the resulting system is local, in that replicas serving clients can be located near them.
+The system is fast because individual operations are served by small groups of replicas, regardless of the total size of the system.
+The system is nimble in that it can dynamically reconfigure the number, membership, and responsibilities of subquorums in response to failures, phase changes in the driving applications, or mobility among the member replicas.
+Finally, the system is consistent, supporting the strongest form of per-object consistency without relying on special-purpose hardware~\cite{fawn,corfu,vcorfu,tango,spanner}.
+
 A complete summary of hierarchical consensus is described in Figure~\ref{fig:ch03_hc_operation_summary}.
 
 \section{Consensus}
+\label{ch03_consensus}
 
 The canonical distributed consensus used by systems today is Paxos~\cite{paxos,paxos_simple}.
 Paxos is provably safe and designed to make progress even when a portion of the system fails.
+As described in \S~\ref{ch02_consistency}, consensus operations maintain a single, ordered log of operations that consistently change the state of the replica.
 Raft~\cite{raft} was designed not to improve performance, but to increase understanding of consensus behavior to better allow efficient implementations.
 HC uses Raft as a building block, so we describe the relevant portions of Raft at a high level, referring the reader to the original paper for complete details.
-Though we chose to base our protocol on Raft, a similar approach could be used to modify Paxos into a hierarchical structure.
+Though we chose to base our protocol on Raft, a similar approach could be used to modify Paxos or one of its variants into a hierarchical structure.
 
-Consensus protocols typically have two phases: leader \emph{election} and operations \emph{commit}\renewcommand{\baselinestretch}{1} \small\footnotesize\footnote{Election and commit phases correspond to PROPOSE and ACCEPT phases in Paxos}\renewcommand{\baselinestretch}{2} \small\normalsize.
-Raft is a strong-leader consensus protocol, which allows the election phase to be elided while a leader remains available.
-The protocol requires only a single communication round to commit an operation in the common case.
+Consensus protocols have two phases: leader \emph{election} (also known as \texttt{PREPARE}) and operations \emph{commit} (also known as \texttt{ACCEPT}).
+Raft is a strong-leader consensus protocol, a common optimization of Paxos variants called multi-Paxos~\cite{paxos_practical,paxos_live,paxos_systems_builders,spaxos}.
+Multi-Paxos allows the election phase to be elided while a leader remains available, therefore the protocol requires only a single communication round to commit an operation in the common case.
+
 Raft uses timeouts to trigger phase changes and provide fault tolerance.
 Crucially, it relies on timeouts only to provide progress, not safety.
 New elections occur when another replica in the quorum times out waiting for communication from the leader.
-Such a replica increments its \emph{term} until it is greater than the existing leader, and announce its candidacy.
-Other replicas vote for the candidate if they have not seen a competing candidate with a larger term.
-During regular operation, clients send requests to the leader, which broadcasts \texttt{AppendEntries} messages carrying operations to all replicas.
+Such a replica increments its \emph{term} until it is greater than the existing leader, and announces its candidacy by sending a \texttt{VoteRequest}.
+Other replicas vote for the candidate if they have not seen a competing candidate with a larger term and become followers, waiting for entries from the leader to be appended to its log.
+
+During regular operation, clients send requests to the leader, which broadcasts \texttt{AppendEntries} messages carrying operations to all followers.
+Term-invariants guarantee safety, followers will only accept an append entry request from a leader with a term as high or higher than the follower's term.
+Additionally, followers will not append an entry to a log unless the leader can prove that the follower's log is as up to date as its own, determined by the index and term of the leader's previous entry.
 An operation is \emph{committed} and can be executed when the leader receives acknowledgments of the \texttt{AppendEntries} message from more than half the replicas (including itself).
 
-\todo{We describe differences in our Raft implementation from the canonical implementation in Chapter~\ref{ch:system_implementation}}
+HC implements an adapted Raft consensus algorithm at both the root and subquorums.
+We chose Raft both for its understandability in implementation, but also to be able to describe operations in a leader-oriented context -- for example it is easier to understand delegation in the context of voting to elect a leader.
+We describe differences in our Raft implementation from the canonical implementation in Chapter~\ref{ch:system_implementation}
+
+\subsection{Terminology and Assumptions}
+\label{ch03_terminology}
 
 Throughout the rest of this chapter we use the term \emph{root quorum} to refer to the upper, namespace-mapping and configuration-management tier of HC, and \emph{subquorum} to describe a group of replicas (called \emph{peers}) participating in consensus decisions for a section of the namespace.
 The root quorum shepherds subquorums through \emph{epochs}, each with potentially different mappings of the namespace and replicas to subquorums.
@@ -134,6 +156,7 @@ We do not assume that either replica hosts or networks are homogeneous, nor do w
 
 
 \subsection{Root Consensus}
+\label{ch03_root_consensus}
 
 \begin{figure}
     \begin{center}
@@ -167,6 +190,7 @@ If true across the entire system, each client interacts with only one subquorum,
 This \emph{siloing} of client accesses simplifies implementation of strong consistency guarantees and allows better performance.
 
 \subsection{Delegation}
+\label{ch03_delegation}
 
 Fault tolerance scales with increasing system size.
 The root quorum's membership is, at least logically, the set of all system replicas, at all times.
@@ -189,19 +213,20 @@ Delegation is essentially a way to optimistically shortcut contacting every repl
 Subquorum repartitioning merely implies that a given replica's vote might need to be delegated to a different leader.
 
 Delegation does add one complication: the root quorum leader must know all vote delegations to request votes when committing epoch changes.
-We deal with this issue, as well as the requirement for a nuclear option (Section~\ref{sec:nuclear}), by simplifying our protocol.
+We deal with this issue, as well as the requirement for a nuclear option (\S~\ref{ch03_nuclear_option}), by simplifying our protocol.
 Instead of sending vote requests just to subquorum leaders, \textbf{the root quorum leader sends vote requests to all system replicas.}
 This is true even for \emph{hot spares}, which are not currently in any subquorum.
 
 This is correct because vote requests now reach all replicas, and because replicas whose votes have been delegated merely ignore the request.
 We argue that it is also efficient, as a commit's efficiency depends only on receipt of a majority of the votes.
-Large consensus groups are generally slow (see Section~\ref{sec:evaluation}) not just because of communication latency, but because large groups in a heterogeneous setting are more likely to include replicas on very slow hosts or networks.
+Large consensus groups are generally slow (see Section~\ref{ch03_evaluation}) not just because of communication latency, but because large groups in a heterogeneous setting are more likely to include replicas on very slow hosts or networks.
 In the usual case for our protocol, the root leader still only needs to wait for votes from the subquorum leaders.
 Leaders are generally those that respond more quickly to timeouts, so the
 speed of root quorum operations is unchanged.
 % Not generally true, as timeouts are stochastic.
 
 \subsection{Epoch Transitions}
+\label{ch03_epoch_transitions}
 
 % - tagspace (prefix-trie)
 % - fuzzy transitions
@@ -249,6 +274,7 @@ In the common case where a subquorum's membership remains unchanged across the t
 \end{landscape}
 
 \subsection{Fuzzy Handshakes}
+\label{ch03_fuzzy_transitions}
 
 Epoch handshakes are required whenever the namespace-to-subquorum mapping changes across an epoch boundary.
 HC separates epoch transition announcements in the root quorum from implementation in subquorums.
@@ -307,6 +333,7 @@ One of the many changes we made in the base Raft protocol is to allow a replica 
 Smaller changes concern the mapping of requests and responses to the appropriate consensus group.
 
 \subsection{Subquorum Consensus}
+\label{ch03_subquorum_consensus}
 
 \todo{this section is bad}
 
@@ -342,6 +369,7 @@ Flexibility is a problem because HC, and applications built on HC, gain much of 
 We require handoffs to be as lightweight as possible to preserve this advantage.
 
 \subsection{Client Operations}
+\label{ch03_client_operations}
 
 \todo{- Sessions
 - Connect to closest available replica, redirected to closest available leader.}
@@ -353,6 +381,7 @@ Hence, individual- or multiple-client accesses to a single subquorum are totally
 However, creation of a single shared log of all system operations requires remote accesses to be logged.
 
 \section{Consistency}
+\label{ch03_consistency}
 
 Pushing all writes through subquorum commits and serving reads at leaders allows us to guarantee that accesses are linearizable (Lin), which is the strongest non-transactional consistency~\cite{linearizability,sequential_consistency}.
 As a recap, linearizability is a combination of atomicity and timeliness guarantees about accesses to a single object.
@@ -376,6 +405,9 @@ HC \emph{can} be used to build a sequentially consistent (SC) shared log as show
 Like Lin, SC requires all observers to see a single total ordering.
 SC differs in that this total ordering does not have to be externalizable.
 Instead, it merely has to conform to local operation orders and all reads-from dependencies.
+
+\subsection{Grid Consistency}
+\label{ch03_grid_consistency}
 
 \todo{write about grid consistency}
 
@@ -459,7 +491,7 @@ The accused would not be able to prove that his post came first unless there wer
 
 
 \section{Fault Tolerance}
-\label{sec:fault_tolerance}
+\label{ch03_fault_tolerance}
 
 We assert that consensus at the leaf replicas is correct and safe because decisions are implemented using well-known leader-oriented consensus approaches.
 Hierarchical consensus therefore has to demonstrate linearizable correctness and safety between subquorums for a single epoch and between epochs.
@@ -496,6 +528,7 @@ majority of majority of subquorums & (nuclear option) root election after delega
 \end{landscape}
 
 \subsection{Failures}
+\label{ch03_failures}
 
 During failure-free execution, the root quorum partitions the system into\ disjoint subquorums, assigns \emph{subquorum leaders}, and assigns partitions of the tagspace to subquorums.
 Each subquorum coordinates and responds to accesses for objects in its assigned tagspace.
@@ -523,11 +556,12 @@ Total subquorum failure can temporarily cause a portion of the namespace to be u
 However, the root quorum eventually times out and moves into a new epoch with that portion assigned to another subquorum.
 
 \subsection{Obligations Timeout}
+\label{ch03_obligations_timeout}
 
 \todo{write this section}
 
 \subsection{The Nuclear Option}
-\label{sec:nuclear}
+\label{ch03_nuclear_option}
 
 \todo{fix this section}
 
@@ -553,7 +587,7 @@ If that leader fails, none of the peers will be represented.
 We finesse this issue by re-defining such delegations to count root elections, root commits, \emph{and} root heartbeats.
 The latter means that local peers will regain their votes for the next root quorum action if it happens after to the next heartbeat.
 
-Consider the worst-case failure situation discussed in Section~\ref{sec:fault_tolerance}: a majority of the majority of subquorums have failed.
+Consider the worst-case failure situation discussed in \S~\ref{ch03_fault_tolerance}: a majority of the majority of subquorums have failed.
 None of the failed subquorum leaders can be replaced, as none of those subquorums have enough local peers.
 
 The first response is initiated when a replica holding delegations (or its own vote) times out waiting for the root heartbeat.
@@ -572,7 +606,7 @@ The candidate alters its second proposed configuration by recasting all such rep
 Subsequent epoch changes might re-integrate the new hot spares if the replicas regain connectivity.
 
 \section{Performance Evaluation}
-\label{sec:evaluation}
+\label{ch03_evaluation}
 
 HC was designed to adapt both to dynamic workloads as well as variable network conditions.
 We therefore evaluate HC in two distinct environments: a homogeneous data center and a heterogeneous real-world network.
@@ -714,6 +748,7 @@ Gaps in the graph are periods where the subquorums are electing local leaders.
 This may be optimized by having leadership assigned or maintained through root consensus.
 
 \section{Conclusion}
+\label{ch03_conclusion}
 
 Most consensus algorithms have their roots in the Paxos algorithm, originally described in parliamentary terms.
 The metaphor of government still applies well as we look at the evolution of distributed coordination as systems have grown to include large numbers of processes and geographies.

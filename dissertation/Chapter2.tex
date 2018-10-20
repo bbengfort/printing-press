@@ -41,6 +41,7 @@ Second, we argue that existing geo-replicated data stores are not general enough
 We follow these motivations with the challenges of geo-replication described as requirements, which we will then use to present an overview of our system architecture.
 
 \section{Challenges and Motivations}
+\label{ch02_challenges_and_motivations}
 
 Many of the world's most influential companies grew from the ashes of the dot-com bubble of the 1990s, which paid for an infrastructure of fiber-optic cables, giant server farms, and research into mobile wireless networks~\cite{casey_blockchain_2018}.
 As these companies filled market voids in eCommerce, search, and social networking, they created new database technologies to leverage the potential of underused computational resources and low latency/high bandwidth networks that connected them, eschewing more mature systems that were developed with resource scarcity in mind~\cite{stonebraker_what_2005,stonebraker_mapreduce_2010}.
@@ -52,6 +53,7 @@ These systems share common traits, allowing us to describe a general architectur
 More importantly, the prevalence of such systems has led to a new application development paradigm: modern software must be designed as a global services.
 
 \subsection{A New Application Development Paradigm}
+\label{ch02_new_software_paradigm}
 
 The launch of the augmented reality game Pokémon GO in the United States was an unmitigated disaster~\cite{kain_pokemon_2016}.
 Due to extremely overloaded servers from the release's extreme popularity, users could not download the game, login, create avatars, or find augmented reality artifacts in their locales.
@@ -96,6 +98,7 @@ Moreover, as we will see in the next section, the design of provisioned cloud da
 Not only is there a need for strong consistency semantics, data-location awareness, and geo-replication in distributed data storage systems, there is also the need for a familiar and standardized storage API.
 
 \subsection{Building Geo-Replicated Services}
+\label{ch02_systems_background}
 
 The growth of database systems distributed across the wide-area started with large Internet companies like Yahoo~\cite{pnuts}, Google~\cite{bigtable}, and Amazon~\cite{dynamo} but quickly led to academic investigations.
 One reason that the commercial systems enjoyed this academic attention was that at the time, the unique scale of their usage validated the motivation behind their architecture.
@@ -200,6 +203,7 @@ This simplification makes it clear that the core of a fault-tolerant, geo-replic
 In the next section, we will build upon this idea and describe an overview of our proposed architecture along with consistency and failure requirements.
 
 \section{System Architecture}
+\label{ch02_architecture}
 
 We propose a consistency-centric approach to designing distributed data stores, centered on geographically distributed consensus.
 Modern software is developed with international audiences in mind from the outset and requires data services that span oceans, continents, and political regions.
@@ -217,6 +221,7 @@ Next, we will describe the requirements for distributed systems that our archite
 Finally, we will provide an overview of our planet-scale architecture that serves as the foundation for this dissertation.
 
 \subsection{Consistency and Consensus}
+\label{ch02_consistency}
 
 Our consistency model is a \textit{data-centric} model, as opposed to a \textit{client-centric} model~\cite{bermbach_consistency_2013}.
 Client-centric models view the system as a black box and consistency is described as guarantees made to processes or applications that interact with the system such as ``read your writes'' or ``write follows read''~\cite{eventual_consistency}.
@@ -259,6 +264,7 @@ Staleness is entirely dependent on latency, therefore, in a data-center context,
 In a geo-replicated context, however, the requirements for data systems change as the physical properties of networks become more apparent.
 
 \subsection{Requirements for Data Systems}
+\label{ch02_requirements}
 
 We contend that \emph{consistency depends on the network environment}.
 A network with instantaneous and perfectly reliable communications would never be inconsistent because all updates could be applied simultaneously with no latency.
@@ -294,6 +300,7 @@ An adaptable system will also be able to dynamically add and remove nodes and sc
 With these requirements in mind, in the next section we describe our proposed architecture.
 
 \subsection{A Planetary Scale Architecture}
+\label{ch02_planetary_scale_architecture}
 
 We envision a consistency-centric, planetary-scale distributed system as a two tier architecture shown in Figure~\ref{fig:ch02_global_architecture}.
 The first tier resides inside of a data center environment and relies on high-speed backbone connections and high performance machines to implement geo-distributed consensus using the hierarchical consensus protocol, which we describe in Chapter~\ref{ch:hierarchical_consensus}.
@@ -336,6 +343,7 @@ Many high-performance distributed databases rely on an underlying replicated fil
 We believe that a planet-scale file system will therefore provide the best platform to construct a myriad of services that are themselves planet-scale.
 
 \section{Conclusion}
+\label{ch02_conclusion}
 
 In this chapter we have presented the challenges, motivations, and background of today's geo-replicated data systems.
 Modern software systems are now developed with international audiences in mind, largely due to the success of large Internet companies that provide cloud infrastructure around the world.
