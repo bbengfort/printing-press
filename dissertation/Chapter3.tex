@@ -135,8 +135,8 @@ Additionally, followers will not append an entry to a log unless the leader can 
 An operation is \emph{committed} and can be executed when the leader receives acknowledgments of the \texttt{AppendEntries} message from more than half the replicas (including itself).
 
 HC implements an adapted Raft consensus algorithm at both the root and subquorums.
-We chose Raft both for its understandability in implementation, but also to be able to describe operations in a leader-oriented context -- for example it is easier to understand delegation in the context of voting to elect a leader.
-We describe differences in our Raft implementation from the canonical implementation in Chapter~\ref{ch:system_implementation}
+We chose Raft both for its understandability in implementation and to easily describe operations in a leader-oriented context -- for example delegation is more understandable in the context of voting to elect a leader.
+We describe differences in our Raft implementation from the canonical implementation in Chapter~\ref{ch:system_implementation}.
 
 \subsection{Terminology and Assumptions}
 \label{ch03_terminology}
@@ -147,9 +147,13 @@ An epoch corresponds to a single commit phase of the root quorum.
 We use the term Raft only when describing details particular to our current use of Raft as the underlying consensus algorithm.
 We refer to the two phases of the base consensus protocol as the \emph{election phase} and the \emph{commit phase}.
 We use the term \emph{vote} as a general term to describe positive responses in either phase.
-Epoch $x$ is denoted $e_x$.
-Subquorum $i$ of epoch $e_x$ is represented as $q_{i,x}$, or just $q_i$ when the epoch is obvious.
-$t_a$ represents a specific \emph{tag}, or disjoint subset of the namespace.
+
+Epoch $x$ is denoted $e_x$ when referring to the numeric counter and $Q_x$ when referring to a configuration of subquorums.
+Subquorum $i$ of epoch $e_x$ is represented as $q_{i,x}$, or just $q_i$ when the epoch is obvious, e.g. $q_i \in Q_x$.
+The namespace is divided into \emph{tags}, disjoint subsets of the namespace.
+It is equivalent to refer to $q_{i,x}$ as a tag since every subquorum manages at least one tag so that $Q_x$ covers the entire namespace.
+However, for specificity we may refer to $t_{i,x}$ and $t_i \in T_x$ when referring to objects rather than the subquorums that manage them.
+A system is composed of $R$ replicas, an individual replica may be designated $r_k$ to distinguish an individual replica from a subquorum.
 
 We assume faults are fail-stop~\cite{fail-stop} rather than Byzantine~\cite{byzantine-generals}.
 We do not assume that either replica hosts or networks are homogeneous, nor do we assume freedom from partitions and other network faults.
@@ -157,6 +161,12 @@ We do not assume that either replica hosts or networks are homogeneous, nor do w
 
 \subsection{Root Consensus}
 \label{ch03_root_consensus}
+
+Hierarchical consensus is a leader-oriented protocol that organizes replicas into two tiers of quorums, each responsible for fundamentally different decisions (Figure~\ref{fig:ch03_tiers}).
+The lower tier consists of multiple independent \emph{subquorums}, each committing operations to local shared logs.
+The upper, \emph{root quorum}, consists of subquorum peers, usually their leaders, delegated to represent the subquorum and hot spares in root elections and commits.
+Hierarchical consensus's main function is to export a linearizable abstraction of shared accesses to some underlying substrate, such as a distributed object store or file system.
+We assume that nodes hosting object stores, applications, and HC are frequently co-located across the wide area.
 
 \begin{figure}
     \begin{center}
@@ -166,25 +176,22 @@ We do not assume that either replica hosts or networks are homogeneous, nor do w
     \small\normalsize
 
     \begin{quote}
-        \caption[Delegated Votes]{}
+        \caption[Root and Subquorum Composition]{The root quorum coordinates all replicas in the system including hot spares, though active participation is only by delegated representatives of subquorums, which do not necessarily have to be leaders of the subquorum, though this is most typical. Subquorums are configured by root quorum decisions which determine epochs of operation. Each subquorum handles accesses to its own independent portion of the namespace.}
         \label{fig:ch03_tiers}
     \end{quote}
 \end{figure}
 \renewcommand{\baselinestretch}{2}
 \small\normalsize
 
-Hierarchical consensus is a leader-oriented protocol that organizes replicas into two tiers of quorums, each responsible for fundamentally different decisions (Figure~\ref{fig:ch03_tiers}).
-The lower tier consists of multiple independent subquorums, each committing operations to local shared logs.
-The upper,  \emph{root quorum}, consists of subquorum peers, usually their leaders, delegated to represent the subquorum in root elections and commits.
-Hierarchical consensus's main function is to export a linearizable abstraction of shared accesses to some underlying substrate, such as a distributed object store or file system.
-We assume that nodes hosting object stores, applications, and HC are frequently co-located across the wide area.
-
-The root quorum's primary responsibilities are mapping namespaces and replicas to individual subquorums.
-Each such map defines a distinct epoch, $e_i$, a monotonically increasing representation of the term of $q_{i,e}$.
+The root quorum's primary responsibilities are mapping replicas to individual subquorums and mapping subquorums to tags within the namespace.
+Each such map defines a distinct epoch, $e_x$, a monotonically increasing representation of the term of the configuration of subquorums and tags, $Q_x$.
 The root quorum is effectively a consensus group consisting of subquorum leaders.
 Somewhat like subquorums, the effective membership of the root quorum is not defined by the quorum itself, but in this case by leader election or peer delegations in the lower tier.
+While the root quorum is composed of all replicas in the system, only this subset of replicas actively participates in root quorum decision making.
 
-The root quorum partitions the namespace across multiple subquorums, each with a disjoint portion as its scope.
+The root quorum partitions (shards) the namespace across multiple subquorums, each with a disjoint portion as its scope.
+The namespace is decomposed into a set of tags, $T$ where each tag $t_i$ is a disjoint subset of the namespace.
+Tags are mapped to subquorums in each epoch, $Q_x \mapsto T_x$ such that $\forall t \in T_x$ $\exists! q_{i,x} \mapsto t$.
 The intent of subquorum localization is ensure that the \emph{domain} of a client, the portion of the namespace it accesses, is entirely within the scope of a local, or nearby, subquorum.
 If true across the entire system, each client interacts with only one subquorum, and subquorums do not interact at all during execution of a single epoch.
 This \emph{siloing} of client accesses simplifies implementation of strong consistency guarantees and allows better performance.
@@ -192,38 +199,64 @@ This \emph{siloing} of client accesses simplifies implementation of strong consi
 \subsection{Delegation}
 \label{ch03_delegation}
 
-Fault tolerance scales with increasing system size.
 The root quorum's membership is, at least logically, the set of all system replicas, at all times.
 However, running consensus elections across large systems is inefficient in the best of cases, and prohibitively slow in a geo-replicated environment.
-Root quorum decision-making is kept tractable by having replicas \emph{delegate} their votes, usually to their leaders, for a finite duration.
+Root quorum decision-making is kept tractable by having replicas \emph{delegate} their votes, usually to their leaders, for a finite duration of epochs.
 With leader delegation, the root membership effectively consists of the set of subquorum leaders.
 Each leader votes with a count describing its own and peer votes from its
-subquorum.
+subquorum and from hot spares that have delegated to it.
+
+Fault tolerance scales with increasing system size and consensus leadership is not intended to be stable.
+A quorum leader is elected to indefinitely assign log entries to slots (access operations for subquorums, epoch configurations for the root quorum).
+If the leader fails, then so long as the quorum has enough online peers, they can elect a new leader, and when the leader comes back online, it rejoins the quorum as a follower.
+The larger the size of the quorum, the more failures it is able to tolerate.
+This means that there might be multiple subquorum leaders in a single epoch as shown in Figure~\ref{fig:ch03_epochs_terms}.
 
 Consider an alternative leader-based approach where root quorum membership is defined as the current set of subquorum leaders.
 Both delegation and the leader approach have clear advantages in performance and flexibility over direct votes of the entire system.
-However, the leader approach dramatically decreases fault tolerance.
-Furthermore, the root quorum becomes unstable in the leader approach as its membership changes during partitions or subquorum elections.
-% Furthermore, \roo membership changes with \sub leaders and at \sub
-% repartitions in the leader approach.
+However, the leader approach causes the root quorum to become unstable as its membership changes during partitions or subquorum elections.
 These changes would require heavyweight \emph{joint consensus} decisions in the root quorum for correctness in Raft-like protocols~\cite{raft}.
+By delegating at the root level, we introduce the possibility that a delegate fails, removing a large number of root votes, to ensure root quorum stability (we address this possibility in \S~\ref{ch03_nuclear_option}).
 
-With delegation, however, root quorum membership is always the entire system and remains unchanged over subquorum re-configuration.
+
+\begin{landscape}
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=8.2in]{figures/ch03_epochs_terms.pdf}
+    \end{center}
+    \renewcommand{\baselinestretch}{1}
+    \small\normalsize
+
+    \begin{quote}
+        \caption[Ordering of Epochs and Terms in Root and Subquorums]{The relationship of subquorum leadership (terms) to epochs is shown as follows. Three subquorums participate in HC in variable network conditions. In $e_1$, $q_{1,1}$ and $q_{3,1}$ experience outages causing them to elect new subquorum leaders while $q_{2,1}$ remains stable. After a root election transitions the system from $e_1 \rightarrow e_2$ (with a fuzzy transition from $q_{2,1} \rightarrow q_{2,2}$). The configuration $Q_2$ creates three totally new subquorums whose terms and leader election restarts.}
+        \label{fig:ch03_epochs_terms}
+    \end{quote}
+\end{figure}
+\renewcommand{\baselinestretch}{2}
+\small\normalsize
+\end{landscape}
+
+Delegation ensures that root quorum membership is always the entire system and remains unchanged over subquorum leader elections and even reconfiguration.
 Delegation is essentially a way to optimistically shortcut contacting every replica for each decision.
 Subquorum repartitioning merely implies that a given replica's vote might need to be delegated to a different leader.
+To ensure that delegation happens correctly and without requiring coordination, we simply allow a replica to directly designate another replica as its delegate until some future epoch is reached.
+Replicas may only delegate their vote once per epoch and replicas are not required to delegate their vote.
+To simplify this process, during configuration of subquorums by the root quorum, the root leader provides delegate hints, e.g. those replicas that have been stable members of the root quorum without partitions.
+When replicas receive their configuration they can use these hints to delegate their vote to the closest nearby delegate if not already delegated for the epoch.
+If no hints are provided, then replica followers generally delegate their vote to the term 1 leader and hot spares to the closest subquorum leader.
 
 Delegation does add one complication: the root quorum leader must know all vote delegations to request votes when committing epoch changes.
 We deal with this issue, as well as the requirement for a nuclear option (\S~\ref{ch03_nuclear_option}), by simplifying our protocol.
 Instead of sending vote requests just to subquorum leaders, \textbf{the root quorum leader sends vote requests to all system replicas.}
 This is true even for \emph{hot spares}, which are not currently in any subquorum.
+Delegates reply with the unique ids of the replicas they represent so that root consensus decisions are still made using a majority of all system replicas.
 
 This is correct because vote requests now reach all replicas, and because replicas whose votes have been delegated merely ignore the request.
 We argue that it is also efficient, as a commit's efficiency depends only on receipt of a majority of the votes.
-Large consensus groups are generally slow (see Section~\ref{ch03_evaluation}) not just because of communication latency, but because large groups in a heterogeneous setting are more likely to include replicas on very slow hosts or networks.
+Large consensus groups are generally slow (see Figure~\ref{fig:ch03_scaling_consensus}) not just because of communication latency, but because large groups in a heterogeneous setting are more likely to include replicas on very slow hosts or networks.
 In the usual case for our protocol, the root leader still only needs to wait for votes from the subquorum leaders.
 Leaders are generally those that respond more quickly to timeouts, so the
 speed of root quorum operations is unchanged.
-% Not generally true, as timeouts are stochastic.
 
 \subsection{Epoch Transitions}
 \label{ch03_epoch_transitions}
@@ -232,7 +265,9 @@ speed of root quorum operations is unchanged.
 % - fuzzy transitions
 % - anti-entropy and tombstones
 
-An epoch change is initiated by the leader in response to one of several events, including:
+Every epoch represents a new configuration of the system as designated by the root leader.
+Changing configuration ensures that the system is both dynamic, responding both to failures and changing usage patterns, and to minimize coordination by colocating related objects.
+An epoch change is initiated by the root leader in response to one of several events, including:
 
 \renewcommand{\baselinestretch}{1}
 \begin{itemize}
@@ -240,6 +275,7 @@ An epoch change is initiated by the leader in response to one of several events,
     \item notification of join requests by new replicas
     \item notification of failed replicas
     \item changing network conditions that suggest re-assignment of replicas
+    \item manual reconfigurations, e.g. to localize data
 \end{itemize}
 \renewcommand{\baselinestretch}{2}
 
@@ -256,23 +292,6 @@ Truncation is necessary to guarantee a consistent view of the log within a subqu
 Replicas then begin participating in their new subquorum instantiation.
 In the common case where a subquorum's membership remains unchanged across the transition, an \texttt{epoch-change} may still require additional mechanism because of changes in namespace responsibility.
 
-\begin{landscape}
-\begin{figure}
-    \begin{center}
-        \includegraphics[width=8.2in]{figures/ch03_epochs_terms.pdf}
-    \end{center}
-    \renewcommand{\baselinestretch}{1}
-    \small\normalsize
-
-    \begin{quote}
-        \caption[Ordering of Epochs and Terms in Root and Subquorums]{}
-        \label{fig:ch03_epochs_terms}
-    \end{quote}
-\end{figure}
-\renewcommand{\baselinestretch}{2}
-\small\normalsize
-\end{landscape}
-
 \subsection{Fuzzy Handshakes}
 \label{ch03_fuzzy_transitions}
 
@@ -284,6 +303,14 @@ Communication delays and partitions might delay notification.
 Temporary failures might block local commits.
 A subquorum might also delay transitioning to allow a local burst of activity to cease such as currently running transactions\renewcommand{\baselinestretch}{1} \small\footnotesize\footnote{The HC implementation discussed in this chapter does not currently support transactions.}\renewcommand{\baselinestretch}{2} \small\normalsize.
 Safety is guaranteed by tracking subquorum dependencies across the epoch boundary.
+
+The most complex portion of the HC protocol is in handling data-related issues at epoch transitions.
+Transitions may cause tags to be transferred from one subquorum to another, forcing the new leader to load state remotely to serve object requests.
+Transitions handshakes are augmented in three ways.
+First, an replica can demand-fetch an object version from any other system replica.
+Second, epoch handoffs contain enumerations of all current object versions, though not the data itself.
+Knowing an object's current version gives the new handler of a tag the ability to demand fetch an object that is not yet present locally.
+Finally, handshakes start immediate fetches of the in-core version cache from the leader of the tag's subquorum in the old epoch to the leader in the new.
 
 \begin{figure}
     \begin{center}
@@ -302,7 +329,7 @@ Safety is guaranteed by tracking subquorum dependencies across the epoch boundar
 
 Figure~\ref{fig:ch03_namespace_handoff} shows an epoch transition where the scopes of $q_i$, $q_j$, and $q_k$ change across the transition as follows:
 
-\todo{Fix the alignment of the below equations:}
+% TODO: Fix the alignment of the below equations
 
 \renewcommand{\baselinestretch}{1}
 \begin{eqnarray}
@@ -332,58 +359,46 @@ Requiring $r_a$ to participate in a single subquorum at a time would potentially
 One of the many changes we made in the base Raft protocol is to allow a replica to have multiple distinct shared logs.
 Smaller changes concern the mapping of requests and responses to the appropriate consensus group.
 
-\subsection{Subquorum Consensus}
-\label{ch03_subquorum_consensus}
+\subsection{Subquorum and Client Operations}
+\label{ch03_client_operations}
 
-\todo{this section is bad}
-
-Each subquorum, $q_i$, elects a leader to coordinate local decisions.
+A subquorum, $q_{i,x}$, logically exists only for the duration of an epoch, $e_x$ and maps accesses to a subset of tags in $T$ such that $q_{i,x} \mapsto t_{i,x} \subset T_x$.
+Each subquorum elects a leader to coordinate local decisions.
 Fault tolerance of the subquorum is maintained in the usual way, detecting leader failures and electing new leaders from the peers.
 Subquorums do not, however, ever change system membership on their own.
 Subquorum membership is always defined in the root quorum.
 
-Subquorum consensus is used to commit object writes.
-Reads are not committed by default, but are always served by the leader of the
-appropriate subquorum.
-Namespace assignments in HC result in the object space being partitioned (or
-sharded) across distinct subqourms.
-The mapping of the shared object namespace to individual subquorums is the
-\emph{tagset}, or the tagset partition.
-An individual \emph{tag} defines a disjoint subset of the object space.
-
-As writes are committed through HC, the shared logs provide a complete version history of all distributed objects.
-Subquorum leaders use in-core caches to provide fast access to recently accessed objects in the local subquorums's tag.
-Replicas perform background anti-entropy~\cite{dynamo,bayou,anti_entropy}, disseminating log updates a user-defined number of times across the system.
-
-The most complex portion of the HC protocol is in handling data-related issues at epoch transitions.
-Transitions may cause tags to be transferred from one subquorum to another, forcing the new leader to load state remotely to serve object requests.
-Transitions handshakes are augmented in three ways.
-First, an replica can demand-fetch an object version from any other system replica.
-Second, epoch handoffs contain enumerations of all current object versions, though not the data itself.
-Knowing an object's current version gives the new handler of a tag the ability to demand fetch an object that is not yet present locally.
-Finally, handshakes start immediate fetches of the in-core version cache from the leader of the tag's subquorum in the old epoch to the leader in the new.
-
-We do not currently gather the entire shared log onto a single replica because of capacity and flexibility issues.
-Capacity is limited because our system and applications are expected to be long-lived.
-Flexibility is a problem because HC, and applications built on HC, gain much of their value from the ability to pivot quickly, whether to deal with changes in the environment or for changing application access patterns.
-We require handoffs to be as lightweight as possible to preserve this advantage.
-
-\subsection{Client Operations}
-\label{ch03_client_operations}
-
-\todo{- Sessions
-- Connect to closest available replica, redirected to closest available leader.}
-
-Client namespace accesses are forwarded to the leader of the subquorum for the appropriate part of the namespace.
+Subquorum consensus is used to manage client accesses by committing object writes and designating a responding replica for object reads.
+Clients can generally \texttt{Get} a key (a read operation), and can \texttt{Put} values and \texttt{Del} objects (write operations).
+Client accesses are forwarded to the leader of the subquorum for the appropriate tag the object being accessed belongs to.
+Because the root quorum manages the namespace, all replicas can correctly forward a client to a member of the subquorum, at worst requiring two redirects to reach a leader.
 The underlying Raft semantics ensure that leadership changes do not result in loss of any commits.
 Hence, individual- or multiple-client accesses to a single subquorum are totally ordered.
-\emph{Remote accesses}, or client accesses to other than their local subquorum, are transparent to the primary protocol.
-However, creation of a single shared log of all system operations requires remote accesses to be logged.
+
+All writes are committed as operations by consensus decisions, appending the operation to a log shared by all replicas.
+On commit, the write is applied to the underlying storage asynchronously, so long as the write is committed, it is guaranteed to be applied in the order specified by the log.
+The shared logs also provide a complete version history of all distributed objects.
+Subquorum leaders use in-core caches to provide fast access to recently accessed objects in the local subquorums's tag.
+Replicas perform background anti-entropy~\cite{dynamo,bayou,anti_entropy}, disseminating log updates a user-defined number of times across the system, providing both durability as well as fast transitions between configurations.
+
+Reads are not committed with consensus decisions by default.
+Leaders respond to \texttt{Get} requests by replying with the latest applied (committed) value.
+This introduces the possibility of a stale read, e.g. that a read occurs before a committed operation is applied.
+To ensure a subquorum has linearizable consistency, reads would also need to be committed.
+Another option is to commit read-leases to a specified client, so that they are guaranteed to read a snapshot of object values.
+Committing multi-object leases is the basis for implementing transactions in subquorums, however they also play an important role in accessing multiple objects across subquorum boundaries.
+
+Although we have not yet implemented transactions in our system, we have provided a mechanism for multi-object coordination in the case where objects span multiple subquorums.
+A \emph{remote access} is conducted from one subquorum to another (e.g. leader to leader) transparently from the client.
+Remote accesses have implications for consistency as described in \S~\ref{ch03_grid_consistency}.
+For now we simply point out that all remote accesses, both reads and writes, require the subquorum to commit the operation or grant a temporary lease to the remote quorum.
+To optimize this process, batch commands may be used to limit the amount of cross-region communication required for remote accesses.
 
 \section{Consistency}
 \label{ch03_consistency}
 
-Pushing all writes through subquorum commits and serving reads at leaders allows us to guarantee that accesses are linearizable (Lin), which is the strongest non-transactional consistency~\cite{linearizability,sequential_consistency}.
+Hierarchical consensus provides the strongest possible per-object and global consistency guarantees.
+Pushing all writes through subquorum commits and serving reads at leaders allows us to guarantee that per-object accesses are linearizable (Lin), which is the strongest non-transactional consistency~\cite{linearizability,sequential_consistency}.
 As a recap, linearizability is a combination of atomicity and timeliness guarantees about accesses to a single object.
 Both \texttt{reads} and \texttt{writes} must appear atomic, and also instantaneous at some time between a request and the corresponding response to a client.
 \texttt{Reads} must always return the latest value.
@@ -392,6 +407,77 @@ This implies that reads return values are consistent \emph{with any observed ord
 Linearizability of object accesses can be \emph{composed}.
 If operations on each object are linearizable, the entire object space is also linearizable.
 This allows our subquorums to operate independently while providing a globally consistent abstraction.
+The resulting consistency model can be reasoned about as \emph{grid consistency}
+
+\subsection{Grid Consistency}
+\label{ch03_grid_consistency}
+
+Grid consistency uses the Vertical Paxos log model to also model a global ordering of operations that ensure the state of the system is always consistent.
+We express total orderings as ``happened-before'' ($\rightarrow$) relationships~\cite{lamport_time_1978}.
+The grid is defined along the horizontal by each epoch or configuration.
+Epochs are totally ordered, such that $e_{x-1} \rightarrow e_{x}$, determined by the root log's consensus operations.
+This implies that any access in $q_{i,x-1} \rightarrow q_{j,x}$, which is guaranteed by the tombstone and hand-off operation during epoch transition.
+The grid is defined vertically by logs of all $q_i \in Q_x$.
+Because subquorums operate independently with the exception of remote accesses, operations in each log can be applied concurrently.
+Said another way, all subquorum logs within an epoch implement a fuzzy log~\cite{fuzzy_log}.
+In this section we show how remote accesses and independent subquorums in a single epoch create a linearizable total ordering via composability and in the following section we describe how to extract a sequentially consistent global log.
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=5in]{figures/ch03_event_ordering.pdf}
+    \end{center}
+    \renewcommand{\baselinestretch}{1}
+    \small\normalsize
+
+    \begin{quote}
+        \caption[Sequential Event Ordering in HC]{Without remote accesses, once an epoch has been concluded a default total ordering exists: $w_{i,1}\rightarrow w_{i,3}\rightarrow w_{j,1}\rightarrow w_{j,3}$. Once the epoch is concluded, this ordering is guaranteed and exposes an externalizable total ordering of events.}
+        \label{fig:ch03_event_ordering}
+    \end{quote}
+\end{figure}
+\renewcommand{\baselinestretch}{2}
+\small\normalsize
+
+Figure~\ref{fig:ch03_event_ordering} shows a system with subquorums $q_i$ and $q_j$, each of which performs a pair of writes.
+Dotted lines show one possible event ordering for replicas $q_i$ (responsible for objects $a$ and $b$), and $q_j$ ($c$ and $d$).
+Without cross-subquorum reads or writes, ordering either subquorums's operations first creates a SC total ordering: $q_i \rightarrow q_j$ implies $w_{i,1} \rightarrow w_{i,3} \rightarrow w_{j,1} \rightarrow w_{j,3}$, for example.
+If the epoch has not been concluded, then the best the system can guarantee is sequential consistency, we can only guarantee that $w_{j,1} \rightarrow w_{j,3}$ and that $w_{i,1} \rightarrow w_{i,3}$.
+Once the epoch is concluded, however, there exists no other ordering other than the one expressed by the grid -- therefore at the epoch's conclusion a linearizable total ordering exists, though it cannot be read from.
+However, because only a single subquorum will handle reads within an epoch (no other quorum will issue a read unless the epoch has changed) we posit that a client that reads only objects handled by a single subquorum has a linearizable view of those objects.
+Because linearizability is composable across objects, the system is linearizable.
+
+The constraint that clients access only a single subquorum per epoch is acceptable in the common case, but because epoch changes require root quorum decisions, we allow cross-quorum communication via \emph{remote accesses}.
+Figure~\ref{fig:ch03_event_ordering_remote_write} shows additional dependencies created by issuing remote writes to other subquorums: $w_{i,2} \rightarrow w_{j,3}$ and $w_{j,2} \rightarrow w_{i,3}$.
+Each remote write establishes a partial ordering between events of the sender before the sending of the write, and writes by the receiver after the write is received.
+Similar dependencies result from remote reads.
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=5in]{figures/ch03_event_ordering_remote_write.pdf}
+    \end{center}
+    \renewcommand{\baselinestretch}{1}
+    \small\normalsize
+
+    \begin{quote}
+        \caption[Event Ordering with Remote Writes in HC]{Remote writes add additional ordering constraints: $w_{i,1} \rightarrow w_{i,2}\rightarrow w_{j,3}$, and $ w_{j,1} \rightarrow w_{j,2} \rightarrow w_{i,3}$. By creating \emph{subepochs}, we can guarantee linearizability even for accesses across multiple subquorums.}
+        \label{fig:ch03_event_ordering_remote_write}
+    \end{quote}
+\end{figure}
+\renewcommand{\baselinestretch}{2}
+\small\normalsize
+
+These dependencies cause the epochs to be logically split (not shown in picture).
+The receipt of write $w_{i,2}$ in $q_j$ causes $q_{j,1}$ to be split into $q_{j,1.1}$ and $q_{j,1.2}$.
+Likewise, the receipt of write $w_{j,2}$ into $q_i$ causes $q_i$ to be split into $q_{i,1.1}$ and $q_{i,1.2}$.
+Any topological sort of the subepochs that respects these orderings, such as $q_{i,1.1} \rightarrow q_{j,1.1} \rightarrow q_{j,1.2} \rightarrow q_{i,1.2}$, results in a valid SC ordering.
+
+As before, presenting a sequentially consistent global log across the entire system, then, only requires tracking these inter-subquorum data accesses, and then performing an $\mathcal{O}(n)$ merge of the subepochs.
+By definition, this log's ordering respects any externally visible ordering of cross-subquorum accesses (accesses visible to the system).
+So long as these dependencies are maintained, then the log is externalized at epoch boundaries.
+
+However, the log does not necessarily order other accesses according to external visibility.
+Extracting a global log could not be mined to find causal relationships between accesses through external communication paths unknown to the system.
+For example, assume that log events are published posts, and that one user claimed plagiarism.
+The accused would not be able to prove that his post came first unless there were some causal chain of posts and references visible to the protocol.
 
 \subsection{Globally Consistent Logs}
 \label{sec:ch03_log_ordering}
@@ -404,12 +490,7 @@ Though many or most distributed applications (objects stores, file systems, etc.
 HC \emph{can} be used to build a sequentially consistent (SC) shared log as shown in Figure~\ref{fig:ch03_log_ordering}.
 Like Lin, SC requires all observers to see a single total ordering.
 SC differs in that this total ordering does not have to be externalizable.
-Instead, it merely has to conform to local operation orders and all reads-from dependencies.
-
-\subsection{Grid Consistency}
-\label{ch03_grid_consistency}
-
-\todo{write about grid consistency}
+Instead, it merely has to conform to local operation orders and all reads-from dependencies created by remote accesses.
 
 \begin{landscape}
 \begin{figure}
@@ -420,7 +501,7 @@ Instead, it merely has to conform to local operation orders and all reads-from d
     \small\normalsize
 
     \begin{quote}
-        \caption[Grid Consistency: A Sequential Log Ordering]{}
+        \caption[Grid Consistency: A Sequential Log Ordering]{A sequential consistency view of a a global grid ordering. This figure shows the grid consistency model and happens before relationships between epoch configurations and writes between logs. This grid only exposes sequential consistency across all objects, however, because log operations are concurrent across all rows.}
         \label{fig:ch03_log_ordering}
     \end{quote}
 \end{figure}
@@ -428,96 +509,66 @@ Instead, it merely has to conform to local operation orders and all reads-from d
 \small\normalsize
 \end{landscape}
 
+We do not currently gather the entire shared log onto a single replica because of capacity and flexibility issues.
+Capacity is limited because our system and applications are expected to be long-lived.
+Flexibility is a problem because HC, and applications built on HC, gain much of their value from the ability to pivot quickly, whether to deal with changes in the environment or for changing application access patterns.
+We require handoffs to be as lightweight as possible to preserve this advantage.
 
-Figure~\ref{fig:ch03_event_ordering} shows a system with subquorums $q_i$ and $q_j$, each of which performs a pair of writes.
-Dotted lines show one possible event ordering for replicas $q_i$ (responsible for objects $a$ and $b$), and $q_j$ ($c$ and $d$).
-Without cross-subquorum reads or writes, ordering either
-subquorums's operations first creates a SC total ordering: $q_i \rightarrow q_j$ (``happened-before''~\cite{lamport_time_1978})
-implies $w_{i,1} \rightarrow w_{i,3} \rightarrow w_{j,1} \rightarrow w_{j,3}$,
-for example.
+\section{Safety and Correctness}
+\label{ch03_safety}
 
-\begin{figure}
-    \begin{center}
-        \includegraphics[width=5in]{figures/ch03_event_ordering.pdf}
-    \end{center}
-    \renewcommand{\baselinestretch}{1}
-    \small\normalsize
+Distributed consensus requires provable safety and correctness so as to be relied upon when building consistency-centric systems.
+Safety ensures that any update to the system, if committed, will be represented by the system even in the case of limited failure~\cite{safety}.
+Correctness is described by the consistency model, if a distributed algorithm always produces an expected system state, then it is correct~\cite{correctness}.
+Safety and correctness are proved as part of the scientific process of introducing new consensus algorithms.
+Although we view hierarchical consensus as a consensus protocol rather than a new consensus algorithm, we provide a brief overview of our safety proof as follows.
 
-    \begin{quote}
-        \caption[Sequential Event Ordering in HC]{Default ordering: $w_{i,1\rightarrow w_{i,3}\rightarrow w_{j,1}\rightarrow w_{j,3}}$}
-        \label{fig:ch03_event_ordering}
-    \end{quote}
-\end{figure}
-\renewcommand{\baselinestretch}{2}
-\small\normalsize
-
-By contrast, the subquorums in Figure~\ref{fig:ch03_event_ordering_remote_write} create additional dependencies by issuing remote writes to other subquorums: $w_{i,2} \rightarrow w_{j,3}$ and $w_{j,2} \rightarrow w_{i,3}$.
-Each remote write establishes a partial ordering between events of the sender before the sending of the write, and writes by the receiver after the write is received.
-Similar dependencies result from remote reads.
-
-
-\begin{figure}
-    \begin{center}
-        \includegraphics[width=5in]{figures/ch03_event_ordering_remote_write.pdf}
-    \end{center}
-    \renewcommand{\baselinestretch}{1}
-    \small\normalsize
-
-    \begin{quote}
-        \caption[Event Ordering with Remote Writes in HC]{Remote writes add additional ordering constraints: $w_{i,1} \rightarrow w_{i,2}\rightarrow w_{j,3}$, and $ w_{j,1} \rightarrow w_{j,2} \rightarrow w_{i,3}$}
-        \label{fig:ch03_event_ordering_remote_write}
-    \end{quote}
-\end{figure}
-\renewcommand{\baselinestretch}{2}
-\small\normalsize
-
-These dependencies cause the epochs to be split (not shown in picture).
-The receipt of write $w_{i,2}$ in $q_j$ causes $q_{j,1}$ to be split into
-$q_{j,1.1}$ and $q_{j,1.2}$.
-Likewise, the receipt of write $w_{j,2}$ into $q_i$ causes $q_i$ to be split
-into $q_{i,1.1}$ and $q_{i,1.2}$.
-Any topological sort of the subepochs that respects these orderings, such as
-$q_{i,1.1} \rightarrow q_{j,1.1} \rightarrow q_{j,1.2} \rightarrow q_{i,1.2}$,
-results in a valid SC ordering.
-
-Presenting a sequentially consistent global log across the entire system, then, only requires tracking these inter-subquorum data accesses, and then performing an $\mathcal{O}(n)$ merge of the subepochs.
-
-By definition, this log's ordering respects any externally visible ordering of cross-subquorum accesses (accesses visible to the system).
-However, the log does not necessarily order other accesses according to external visibility.
-The resulting shared log could not be mined to find causal relationships between accesses through external communication paths unknown to the system.
-
-For example, assume that log events are published posts, and that one user claimed plagiarism.
-The accused would not be able to prove that his post came first unless there were some causal chain of posts and references visible to the protocol.
-
-
-\section{Fault Tolerance}
-\label{ch03_fault_tolerance}
-
-We assert that consensus at the leaf replicas is correct and safe because decisions are implemented using well-known leader-oriented consensus approaches.
+We assert that consensus at individual subquorums is correct and safe because decisions are implemented using well-known leader-oriented consensus approaches.
 Hierarchical consensus therefore has to demonstrate linearizable correctness and safety between subquorums for a single epoch and between epochs.
 Briefly, linearizability requires external observers to view operations to objects as instantaneous events.
 Within an epoch, subquorum leaders serially order local accesses, thereby guaranteeing linearizability for all replicas in that quorum.
-% Remote accesses and the internal invariant also enforce linearizability of accesses
-% between \subs.
+Remote accesses and the internal subepoch invariant also enforce linearizability of accesses between subquorums inside of a single epoch as described in \S~\ref{ch03_grid_consistency}.
+Given a static system of subquorum configurations that each manage independent shards, we claim that our system implements vertical paxos.
 
+A static configuration would not require a root quorum, but it would also not allow reconfiguration to move quorums to locales of access or to repair system failures.
+Therefore to prove safety and correctness, we must show that root quorum behavior, specifically epoch transitions and delegation, is correct.
 Epoch transitions raise the possibility of portions of the namespace being re-assigned from one subquorum to another, with each subquorum making the transition independently.
 Correctness is guaranteed by an invariant requiring subquorums to delay serving newly acquired portions of the namespace until after completing all appropriate handshakes.
+Tombstones ensure that an update cannot be applied to a subquorum then lost when the transitioning subquorum takes over.
+Delegation is protected by bookkeeping that ensures that no replica can be counted twice in a vote, therefore in the worst case, delegation means that a single failure can eliminate many votes.
+We propose formal specifications in Appendix~\ref{apx:formal_specification} to prove that these invariants are sufficient for correctness.
 
+Safety and correctness are important parts of distributed consensus, but only if they also allow a system to make progress in the event of failure.
+We define the system's \emph{safety} property as guaranteeing that non-linearizable (or non-sequentially-consistent, see Section~\ref{sec:ch03_log_ordering}) event orderings can never be observed.
+We define the system's \emph{progress} property as the system having enough live replicas to commit votes or operations in the root quorum.
+In the rest of this section, we will specifically identify types of expected failures that may harm our proposed guarantees and what amount of failure is tolerated before preventing progress.
+We then describe two additional mechanisms that we use to ensure the safety of hierarchical consensus: the \emph{nuclear option} and \emph{obligation leases}.
 
-\begin{landscape}
+\subsection{Fault Tolerance}
+\label{ch03_fault_tolerance}
+
+The system can suffer several types of failures, as shown in Table~\ref{tab:failure_categories}.
+Both subquorum leaders and the root leaders send periodic beacons and heartbeat messages to their followers.
+If a heartbeat message is missed, e.g. if a follower does not receive an expected heartbeat from its leader or if a leader does not receive a response from the heartbeat, then the system takes action to ensure it's still available to respond to clients.
+Failures of subquorum and root quorum leaders are handled through the normal consensus mechanisms and a new leader is elected.
+Failures of subquorum peers are handled by the local leader petitioning the root quorum to re-configure the subquorum in the next epoch.
+Failure of a root quorum peer is the failure of a subquorum leader with delegated votes, this can be handled by a reconfiguration which reallocates the delegated votes to a new peer so long as a majority of delegates are available in the root quorum.
+Root quorum beacon messages help inform replicas of leadership and configuration changes, which ensures the system adapts to temporary outages and failures.
+
 \renewcommand{\baselinestretch}{1}
 \small\normalsize
  \begin{table}[ht]
-\caption[HC Failure Categories]{Failure categories: Peer failure is detected by missed heartbeat messages. The rest are triggered by the appropriate election timeout.}
+\caption[HC Failure Categories]{Failures include either node failure or network partitions which are detected by missed beacon or heartbeat messages. A replicas role and a threshold for the number of missed messages determines how the system responds.}
 \begin{center}
 \begin{tabular}{l|l}
 \hline
 Failure Type & Response \\
 \hline \hline
-subquorum peer & request replica repartition from root quorum \\
+subquorum peer & request reconfiguration from root quorum \\
 subquorum leader & local election, request replacement from root quorum \\
+subquorum & reconfiguration after obligations timeout \\
 root leader & root election (with delegations)\\
-majority of majority of subquorums & (nuclear option) root election after delegations timed out \\
+majority of delegates & delegations time out (nuclear option) \\
 \hline
 \end{tabular}
 \end{center}
@@ -525,49 +576,29 @@ majority of majority of subquorums & (nuclear option) root election after delega
 \end{table}
  \renewcommand{\baselinestretch}{2}
 \small\normalsize
-\end{landscape}
-
-\subsection{Failures}
-\label{ch03_failures}
-
-During failure-free execution, the root quorum partitions the system into\ disjoint subquorums, assigns \emph{subquorum leaders}, and assigns partitions of the tagspace to subquorums.
-Each subquorum coordinates and responds to accesses for objects in its assigned tagspace.
-We define the system's \emph{safety} property as guaranteeing that non-linearizable (or non-sequentially-consistent, see Section~\ref{sec:ch03_log_ordering}) event orderings can never be observed.
-We define the system's \emph{progress} property as the system having enough live replicas to commit votes or operations in the root quorum.
-
-The system can suffer several types of failures, as shown in Table~\ref{tab:failure_categories}.
-Failures of subquorum and root quorum leaders are handled through the normal consensus mechanisms.
-Failures of subquorum peers are handled by the local leader petitioning the root quorum to re-configure the subquorum in the next epoch.
-Failure of a root quorum peer is the failure of subquorum leader, which is handled as above.
-Root quorum heartbeats help inform other replicas of leadership changes, potentially necessary when individual subquorums break down.
-
-\todo{describe assasination}
 
 HC's structure means that some faults are more important than others.
 Proper operation of the root quorum requires the majority of replicas in the majority of subquorums to be non-faulty.
-Given a system with $2m+1$ subquorums, each of $2n+1$ replicas, the entire system's progress can be halted with as few as $(m+1)(n+1)$ well-chosen failures.
+Given a system with $2m+1$ subquorums, each of $2n+1$ replicas, the entire system's progress can be halted with as few as $(m+1)(n+1)$ well-chosen failures -- e.g. the assassination of the delegates.
 Therefore, in worst case, the system can only tolerate: $f_{worst}=mn+m+n$ failures and still make progress.
 At maximum, HC's basic protocol can tolerate up to: $f_{best} = (m+1)*n + m*(2n+1) = 3mn+m+n$ failures.
-As an example, a 25/5 system can tolerate at least 8 and up to 16 failures out of 25 total replicas.
+As an example a 25/5 system, that is a system of 25 replicas with size 5 subquorums ($m=2, n=2$), can tolerate at least 8 and up to 16 failures.
 A 21/3 system can tolerate at least 7, and a maximum of 12, failures out of 21 total replicas.
-Individual subquorums might still be able to perform local operations despite an impasse at the global level.
 
-Total subquorum failure can temporarily cause a portion of the namespace to be unserved.
-However, the root quorum eventually times out and moves into a new epoch with that portion assigned to another subquorum.
-
-\subsection{Obligations Timeout}
-\label{ch03_obligations_timeout}
-
-\todo{write this section}
+In order to achieve best possible fault tolerance, the root quorum operates strategically to handle failures.
+For example, individual subquorums might still be able to perform local operations despite an impasse at the global level.
+The root quorum chooses carefully whether a failure type should involve a reconfiguration or whether the system should wait for an outage to be repaired.
+There are two primary types of failures though that have to be dealt with specifically.
+Total subquorum failure can temporarily cause a portion of the namespace to be unserved (or only served locally).
+In this case we use obligation timeouts to determine when the root quorum should force a configuration change.
+Additionally in the face of delegate assassination, where no root quorum decisions can be made, we use the nuclear option to eliminate delegates and require every replica to contribute their own vote.
 
 \subsection{The Nuclear Option}
 \label{ch03_nuclear_option}
 
-\todo{fix this section}
-
 Singleton consensus protocols, including Raft, can tolerate just under half of the entire system failing.
 As described above, HC's structure makes it more vulnerable to clustered failures.
-Therefore we define a \emph{nuclear option}, which uses direct consensus decision among all system replicas to tolerate any $f$ replicas failing out of $2f+1$ total replicas in the system.
+Therefore we define a \emph{nuclear option}, which uses direct consensus decision making among all system replicas to tolerate any $f$ replicas failing out of $2f+1$ total replicas in the system.
 
 A nuclear vote is triggered by the failure of a root leader election.
 A \emph{nuclear candidate} increment's its term for the root quorum and broadcasts a request for votes to all system replicas.
@@ -585,7 +616,7 @@ This approach is simple and correct, but deals poorly with leader turnovers in t
 Consider a subquorum where all peers have delegated votes to their leader for the next root slot.
 If that leader fails, none of the peers will be represented.
 We finesse this issue by re-defining such delegations to count root elections, root commits, \emph{and} root heartbeats.
-The latter means that local peers will regain their votes for the next root quorum action if it happens after to the next heartbeat.
+The latter means that local peers will regain their votes for the next root quorum action if it happens after the next heartbeat.
 
 Consider the worst-case failure situation discussed in \S~\ref{ch03_fault_tolerance}: a majority of the majority of subquorums have failed.
 None of the failed subquorum leaders can be replaced, as none of those subquorums have enough local peers.
@@ -593,17 +624,38 @@ None of the failed subquorum leaders can be replaced, as none of those subquorum
 The first response is initiated when a replica holding delegations (or its own vote) times out waiting for the root heartbeat.
 That replica increments its own root term, adopts the prior system configuration as its own, and becomes a root candidate.
 This candidacy fails, as a majority of subquorum leaders, with all of their delegated votes, are gone.
-Progress is not made until delegations time out.
+Progress in the root quorum is not made until delegations time out.
 In our default case where a delegation is for a single root event, this happens after the first root election failure.
 
 At the next timeout, any replica might become a candidate because delegations have lapsed (under our default assumptions above).
-Such a \emph{nuclear} candidate increments its root term and sends candidate requests to all system replicas, succeeding if it gathers a majority across all live replicas.
+Such a nuclear candidate increments its root term and sends candidate requests to all system replicas, succeeding if it gathers a majority across all live replicas.
 
 The first candidacy assumed the prior system configuration in its candidacy announcement.
 This configuration is no longer appropriate unless some of the ``failed'' replicas quickly regain connectivity.
 Before the replica announces its candidacy for a second time, however, many of the replica replies have timed out.
 The candidate alters its second proposed configuration by recasting all such replicas as hot spares and potentially reducing the number and size of the subgroups.
 Subsequent epoch changes might re-integrate the new hot spares if the replicas regain connectivity.
+
+\subsection{Obligations Timeout}
+\label{ch03_obligations_timeout}
+
+The second type of specific failure the root quorum must deal with is a subquorum stranded behind a network partition.
+In this case the subquorum may be operating and serving local requests but its leader (or delegate) is unable to communicate to the root quorum.
+In the majority of cases, the root quorum should wait out the presumably temporary system partition if client requests are being served.
+However, it is also possible that all replicas in the subquorum have failed due to cascading correlated failure and no accesses to that portion of the namespace are being granted.
+
+We therefore propose a configurable obligations timeout.
+Subquorums are considered obligated to serve requests from clients for the duration of the epoch in which the subquorum is configured.
+However in order to ensure that subquorums are in fact meeting those obligations, we introduce another timeout during which the subquorum has to communicate with the root leader, reconfirming its obligation for the next period.
+If the obligation period times out without being renewed, the subquorum is obligated to stop handling client requests and the root quorum is obligated to reconfigure the system.
+
+The problem is that the subquorum that is reallocated that portion of the namespace presumably would not be able to achieve a hand-off with the partitioned system.
+It is also possible that the region the subquorum was configured in simply cannot be reconfigured through a root consensus decision.
+In this case, there would be an unacceptable period of unavailability for that portion of the namespace.
+To deal with this situation, both the newly configured subquorum and the previous subquorum must go into an ``unstable'' state, informing clients that their writes are not guaranteed the level of consistency the system normally provides.
+Using a federated consistency model, replicas would simply assume a lower level of consistency.
+Unstable mode is repaired in one of two cases, either the partitioned subquorum comes back on line and is able to automatically negotiate the epoch transition, fixing conflicts where necessary or it manually determined that the subquorum had been destroyed, which results in data loss anyway.
+Optimizations such as anti-entropy replication of data across regions and global views of data versions minimize the impact of such loss, but cannot prevent it.
 
 \section{Performance Evaluation}
 \label{ch03_evaluation}
