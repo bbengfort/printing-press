@@ -13,7 +13,7 @@ To support these trends, a fog of partial-replicas that serve clients in specifi
 For that reason, we propose that in addition to first tier strong-consistency backbone, a planetary-scale distributed system also requires a second-tier dissemination network that provides a high-availability mesh between quorum decision making~\cite{oceanstore}.
 
 Outside of a data center context, strong coordination using consensus is simply not feasible~\cite{sensor_coordination}.
-In a stable network environment, systems are able to adapt consistency at runtime~\cite{chihoub_harmony:_2012,chihoub_consistency_2013,kraska_consistency_2009,pitoura_data_1999,deno-toc}.
+In a stable network environment, systems are able to adapt consistency at runtime~\cite{harmony,harmony_money,consistency_rationing,pitoura_data_1999,deno-toc}.
 Systems outside of this context are expected to have heterogenous hardware which leads to variability both in terms of capacity and failure rates.
 The farther the network diameter, the more partition prone a network becomes, and the higher latencies are experienced between nodes.
 Mobility also means dynamic membership with many peers, therefore even adaptable configuration provided by hierarchical consensus is not sufficient.
@@ -663,11 +663,9 @@ Our results show that a key to the global guarantees is using a core consensus g
 By designing a federated system where only interactions between replicas of varying consistency types are defined, systems can scale beyond the handful of devices usually described to dozens or hundreds of replicas in variable-latency, partition-prone geographic networks.
 Replicas can monitor their local environment and adapt as necessary to meet timeliness and correctness constraints required by the local user.
 
-We were only able to investigate a limited number of system configurations.
-However, the space of possible system configurations is vast.
+We were only able to investigate a limited number of system configurations and the space of possible system configurations is vast.
 We do not claim that the configurations described in this chapter are in any way optimal.
-Rather, we claim that the extremely promising results described in
-Section~\ref{sec:results} show that the general approach is promising.
+Rather, we claim that our simulation results described in \S~\ref{ch04_evaluation} show that the general approach is promising.
 Our simulation environment is extremely flexible, and we intend to continue
 evaluating possible system configurations in parallel with our system development.
 

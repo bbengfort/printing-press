@@ -7,17 +7,17 @@
 
 Throughout this dissertation we've outlined a planetary-scale data storage system composed of a two-tier structure that provides a hybrid consistency model.
 Both tiers are designed to scale to thousands of replicas, and together could represent millions of replicas operating in concert around the world.
-Management and systems administration of such a large scale system using external monitoring processes is impractical at best and prohibitively complex at worse.
-Even with a trusted infrastructure of cloud services, building a single synchronization point for monitoring and optimization would require the online collection of live information from across the globe, which itself would be susceptible to delays and partitions of the kind the administrator would be trying to manage.
-Even if those delays could be managed, such a synchronization point would have to manage a huge number of events streaming in from a large number of sources, which has challenges in and of itself~\cite{spark_streaming}.
+Management and systems administration of such a large scale system using external monitoring processes is impractical at best and prohibitively complex at worst.
+Even with a trusted infrastructure of cloud services, building a single synchronization point for monitoring and optimization would require the online collection of live information from across the globe.
+This synchronization point would itself be susceptible to delays and partitions and would have to manage a huge number of events streaming in from a large number of sources, which has challenges in and of itself~\cite{spark_streaming}.
 
 Instead, we propose that an \emph{emergent model} of network behavior is required to tune and optimize planetary scale systems in an online fashion such that local, simple rules lead to globally emergent behavior~\cite{bengfort_evolutionary_2014}.
 Specifically we hypothesize that when individual replicas follow simple optimization procedures based on monitoring of their local network performance, access patterns, queries to their neighbors, and other environmental factors the performance of the system will collectively increase.
 Because we focus primarily on the consistency aspects of geo-replicated data storage, we have termed this behavior \emph{adaptive consistency}, because with a hybrid or continuous consistency model, such optimizations will minimize inconsistent behaviors due to latency or configuration.
 
-Although this work is largely left for future research on a fully deployed platform, we have built our system with this kind of adaptation in mind.
-To validate our thought process, we have conducted an experiment that primarily adapts the federated fog layer of our system by modifying anti-entropy selection with reinforcement learning techniques~\cite{bengfort_anti-entropy_2018}.
 In this chapter we will show we can improve consistency of the system as a whole with localized machine learning implemented on a per-replica basis.
+Although this work is largely left for future research on a fully deployed platform, we have built our system with this kind of adaptation in mind.
+Our preliminary experiments suggest that adapting anti-entropy selection with reinforcement learning techniques will meaningfully enhance consistency in the federated fog layer of the system~\cite{bengfort_anti-entropy_2018}.
 We will then finish with a discussion of how we can generalize this process to other techniques in the system as a whole.
 
 \section{Anti-Entropy Bandits}
@@ -57,7 +57,7 @@ the rate of client requests, leading to practically strong consistency.
 
 However, propagation rates need to be re-evaluated when replicas move outside of data center contexts and when anti-entropy is replicating across the wide area.
 Our system envisions a fog layer that provides data services to localized regions with a hybrid consistency model.
-The edge is specifically designed to handle mobile users, sensor systems, and high throughput applications the edge of the data center backbone~\cite{edge_computing,geo_cdn}.
+The fog is specifically designed to handle mobile users, sensor systems, and high throughput applications at the edge of the data center backbone~\cite{edge_computing,geo_cdn}.
 However, scaling an eventually consistent system to dozens or even hundreds
 of nodes increases the radius of the network, which leads to increased noise
 during anti-entropy e.g. the possibility that an anti-entropy session will be
@@ -80,11 +80,11 @@ for fast, successful synchronizations by modifying peer selection
 probabilities.
 The result is a synchronization topology that emerges according to access
 patterns and network latencies.
-Such topologies produce efficient synchronization,
+As we will show in the next sections, such topologies produce efficient synchronization,
 localize most data exchanges, lower visibility latency, and increase
 consistency.
 
-\subsection{Accesses and Consistency}
+\subsection{Visibility Latency}
 
 In this section we review the access and consistency model in the context of bandits as well as how anti-entropy is conducted.
 A more complete discussion of these topics can be found in Chapter~\ref{ch:federated_consistency}.
@@ -144,7 +144,7 @@ likelihood of reward, and can modify it's arm selection \emph{strategy} to
 maximize the total reward over time.
 
 Bandits must balance exploration of new arms with possibly better reward
-values and exploitation of an arm that has higher rewards than the other.
+values and exploitation of an arm that has higher rewards than others.
 In the \emph{epsilon greedy strategy}, the bandit will select the arm with
 the best reward with some probability $1-\epsilon$, otherwise it will select
 any of the arms with uniform probability.
@@ -221,6 +221,23 @@ connections between regions.
 The store, called Honu, is implemented in Go 1.9 using gRPC and protocol
 buffers for RPC requests; all code is open source and available on GitHub.
 
+The workload on the system was generated by 15 clients, one in each region and
+colocated with one of the replicas.
+Clients continuously created Put requests for random keys with a unique
+prefix per-region such that consistency conflicts only occur within a
+single region.
+The average throughput generated per-client was 5620.4 puts/second.
+The mean synchronization latency between each region ranged from 35ms to
+630ms as shown in Figures~\ref{fig:ch06_latency_sync_heatmap} and \ref{fig:ch06_push_pull_frankfurt_latencies}.
+To ensure at least one synchronization per anti-entropy session, we set the
+anti-entropy interval to 1 second to train the system, then reduced the
+interval to 125ms while measuring visibility latency.
+To account for lag between commands sent to replicas in different regions,
+each experiment was run for 11 minutes, the bandit learning period was 4
+minutes then visibility latency was observed for 6 minutes, buffered by 30
+seconds before and after the workload to allow replicas to initialize and
+gracefully shutdown.
+
 \begin{figure}
     \begin{center}
         \includegraphics[width=5in]{figures/ch06_latency_sync_heatmap.pdf}
@@ -251,38 +268,6 @@ buffers for RPC requests; all code is open source and available on GitHub.
 \renewcommand{\baselinestretch}{2}
 \small\normalsize
 
-The workload on the system was generated by 15 clients, one in each region and
-colocated with one of the replicas.
-Clients continuously created Put requests for random keys with a unique
-prefix per-region such that consistency conflicts only occur within a
-single region.
-The average throughput generated per-client was 5620.4 puts/second.
-The mean synchronization latency between each region ranged from 35ms to
-630ms as shown in Figures~\ref{fig:ch06_latency_sync_heatmap} and \ref{fig:ch06_push_pull_frankfurt_latencies}.
-To ensure at least one synchronization per anti-entropy session, we set the
-anti-entropy interval to 1 second to train the system, then reduced the
-interval to 125ms while measuring visibility latency.
-To account for lag between commands sent to replicas in different regions,
-each experiment was run for 11 minutes, the bandit learning period was 4
-minutes then visibility latency was observed for 6 minutes, buffered by 30
-seconds before and after the workload to allow replicas to initialize and
-gracefully shutdown.
-
-\begin{figure}
-    \begin{center}
-        \includegraphics[width=5in]{figures/ch06_rewards.pdf}
-    \end{center}
-    \renewcommand{\baselinestretch}{1}
-    \small\normalsize
-
-    \begin{quote}
-        \caption[Bandit Rewards]{Total system rewards over time.}
-        \label{fig:ch06_rewards}
-    \end{quote}
-\end{figure}
-\renewcommand{\baselinestretch}{2}
-\small\normalsize
-
 Our first experiments compared uniform random peer selection with epsilon
 greedy bandits using $\epsilon \in \{0.1, 0.2, 0.5\}$ as well as an annealing
 epsilon greedy bandit.
@@ -301,14 +286,14 @@ converge more quickly to the optimal reward.
 
 \begin{figure}
     \begin{center}
-        \includegraphics[width=5in]{figures/ch06_visibility_latency.pdf}
+        \includegraphics[width=5in]{figures/ch06_rewards.pdf}
     \end{center}
     \renewcommand{\baselinestretch}{1}
     \small\normalsize
 
     \begin{quote}
-        \caption[Visibility Latency]{Decreasing visibility latency from bandit approaches.}
-        \label{fig:ch06_visibility_latency}
+        \caption[Bandit Rewards]{Total system rewards over time.}
+        \label{fig:ch06_rewards}
     \end{quote}
 \end{figure}
 \renewcommand{\baselinestretch}{2}
@@ -329,6 +314,21 @@ Employing bandit strategies reduces the visibility latency from 2360ms on
 average in the uniform case to 1870ms, reducing the number of required
 anti-entropy intervals by approximately 4.
 
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=5in]{figures/ch06_visibility_latency.pdf}
+    \end{center}
+    \renewcommand{\baselinestretch}{1}
+    \small\normalsize
+
+    \begin{quote}
+        \caption[Visibility Latency]{Decreasing visibility latency from bandit approaches.}
+        \label{fig:ch06_visibility_latency}
+    \end{quote}
+\end{figure}
+\renewcommand{\baselinestretch}{2}
+\small\normalsize
+
 To show the emergent behavior of bandits, we have visualized the resulting
 topologies as network diagrams in Figure~\ref{fig:ch06_uniform_selection_topology} (uniform
 selection), Figure~\ref{fig:ch06_annealing_epsilon_toplogy} (annealing epsilon) and
@@ -343,7 +343,7 @@ represent replicas that were colocated with workload generators.
 Each edge between vertices represents the total number of successful
 synchronizations, the darker and thicker the edge is, the more
 synchronizations occurred between the two replicas.
-Edges are directed, the source of the edge is the replica that initiated
+Edges are directed; the source of the edge is the replica that initiated
 anti-entropy with the target of the edge.
 
 \begin{figure}
@@ -391,17 +391,10 @@ anti-entropy with the target of the edge.
 \renewcommand{\baselinestretch}{2}
 \small\normalsize
 
-Comparing the resulting networks, it is easy to see that more defined
-topologies result from the bandit-based approaches.
-The uniform selection network is simply a hairball of connections with
-a limited number of synchronizations.
-Clear optimal connections have emerged with the bandit strategies, dark
-lines represent extremely successful synchronization connections between
-replicas, while light lines represent synchronization pairs that are
-selected less frequently.
-We posit that fewer edges in the graph represents a more stable network;
-the fewer synchronization pairs that are selected, the less noise that
-occurs from selecting a peer that is in a similar state.
+Comparing the resulting networks, it is easy to see that more defined topologies result from the bandit-based approaches.
+The uniform selection network is simply a hairball of connections with a limited number of synchronizations.
+By contrast, clear optimal connections have emerged with the bandit strategies; dark lines represent extremely successful synchronization connections between replicas, while light lines represent synchronization pairs that are selected less frequently.
+Based on our observations, we posit that fewer edges in the graph represents a more stable network; the fewer synchronization pairs that are selected, the less noise that occurs from selecting a peer that is in a similar state.
 
 \section{Bandits Discussion}
 
