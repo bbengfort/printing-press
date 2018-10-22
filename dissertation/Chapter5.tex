@@ -59,6 +59,35 @@ Instead we take a less strict view
 
 \subsection{File System}
 
+In the context of a wide-area file system, those operations could be individual
+\texttt{write()} systems calls, though this would be inefficient.
+Most wide-area file systems aggregate individual accesses through
+\textit{Close-To-Open} (CTO) consistency, where file reads and writes are
+``whole file'' \cite{afs,coda,lbfs}.
+A file read (``open'') is guaranteed to see data written by the latest write
+(``close'').
+This approach satisfies two of the major tenets of session consistency:
+\texttt{read-your-writes} and
+\texttt{monotonic-writes}, but not
+\texttt{writes-follow-reads}~\cite{bermbach_consistency_2013,anti_entropy,eventual_consistency}.
+
+Our file system, like many modern file systems,
+decouples
+meta-data~\emph{recipes}~\cite{casper,gfs,hadoop_hdfs,pvfs,globalfs}
+from file
+data storage.
+Meta-data includes an ordered list of \emph{blobs}, which are opaque binary chunks.
+When a file is closed after editing, the data associated with the file is \emph{chunked} into a
+series of variable-length blobs~\cite{lbfs}, identified by a hashing function applied to
+the data~\cite{rabin_karp,rabin_fingerprint}.
+Since blobs are effectively immutable~\cite{immutability_changes_everything}, or tamper-evident, (blobs are named by hashes of
+their contents), we assert that consistent meta-data replication can be decoupled from blob
+replication.
+Accesses to file system meta-data becomes the operations or entries in replicated logs.
+Meta-data is therefore replicated through the system, allowing any file
+system client to have a complete view of the file system namespace, even while
+not caching any file data.
+
 \section{Consistency Model}
 
 Client-side vs. system-side consistency

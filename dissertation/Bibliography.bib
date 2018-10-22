@@ -153,6 +153,17 @@
   author = {Zaharia, Matei and Das, Tathagata and Li, Haoyuan and Hunter, Timothy and Shenker, Scott and Stoica, Ion}
 }
 
+@inproceedings{hadoop_hdfs,
+  title = {The Hadoop Distributed File System},
+  booktitle = {Mass {{Storage Systems}} and {{Technologies}} ({{MSST}}), 2010 {{IEEE}} 26th {{Symposium}} On},
+  publisher = {{IEEE}},
+  date = {2010},
+  pages = {1--10},
+  author = {Shvachko, Konstantin and Kuang, Hairong and Radia, Sanjay and Chansler, Robert}
+}
+% == BibLateX quality report for hadoop_hdfs:
+% ? Unsure about the formatting of the booktitle
+
 @book{grid_computing,
   title = {The {{Grid}} 2: {{Blueprint}} for a New Computing Infrastructure},
   url = {https://books.google.com/books?hl=en&lr=&id=0l5gm6o3vrMC&oi=fnd&pg=PP1&dq=The+Grid++Blueprint+for+a+New+Computing+Infrastructure&ots=hpGgsSKtmk&sig=hzB6BQo4TlG5vQsOKMT0inzqykY},
@@ -469,6 +480,17 @@
 % == BibLateX quality report for chubby:
 % ? Unsure about the formatting of the booktitle
 
+@article{globalfs,
+  title = {{{GlobalFS}}: {{A Strongly Consistent Multi}}-{{Site File System}}},
+  url = {http://www.inf.usi.ch/faculty/pedone/Paper/2016/2016GlobalFS.pdf},
+  urldate = {2016-08-29},
+  author = {Pacheco, Leandro and Halalai, Raluca and Schiavoni, Valerio and Pedone, Fernando and Riviere, Etienne and Felber, Pascal}
+}
+% == BibLateX quality report for globalfs:
+% Exactly one of 'date' / 'year' must be present
+% Missing required field 'journaltitle'
+% ? Title looks like it was stored in title-case in Zotero
+
 @book{tanenbaum_distributed_2007,
   title = {Distributed Systems},
   url = {http://cds.cern.ch/record/1056310/files/0132392275_TOC.pdf},
@@ -555,7 +577,7 @@
   author = {Moreno, Yamir and Nekovee, Maziar and Pacheco, Amalio F.}
 }
 
-@inproceedings{kempe_gossip-based_2003,
+@inproceedings{kempe_gossip,
   title = {Gossip-Based Computation of Aggregate Information},
   url = {http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=1238221},
   booktitle = {Foundations of {{Computer Science}}, 2003. {{Proceedings}}. 44th {{Annual IEEE Symposium}} On},
@@ -565,7 +587,7 @@
   pages = {482--491},
   author = {Kempe, David and Dobra, Alin and Gehrke, Johannes}
 }
-% == BibLateX quality report for kempe_gossip-based_2003:
+% == BibLateX quality report for kempe_gossip:
 % ? Unsure about the formatting of the booktitle
 
 @inproceedings{rumor_spreading,
@@ -776,7 +798,7 @@
 % == BibLateX quality report for wiederhold_consistency_1990:
 % ? Unsure about the formatting of the booktitle
 
-@inproceedings{bermbach_metastorage_2011,
+@inproceedings{metastorage,
   title = {Metastorage: {{A}} Federated Cloud Storage System to Manage Consistency-Latency Tradeoffs},
   url = {http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=6008742},
   booktitle = {Cloud {{Computing}} ({{CLOUD}}), 2011 {{IEEE International Conference}} On},
@@ -786,7 +808,7 @@
   pages = {452--459},
   author = {Bermbach, David and Klems, Markus and Tai, Stefan and Menzel, Michael}
 }
-% == BibLateX quality report for bermbach_metastorage_2011:
+% == BibLateX quality report for metastorage:
 % ? Unsure about the formatting of the booktitle
 
 @article{pitoura_data_1999,
@@ -801,7 +823,7 @@
   author = {Pitoura, Evaggelia and Bhargava, Bharat}
 }
 
-@inproceedings{agrawal_mixed_1994,
+@inproceedings{hybrid_consistency,
   title = {Mixed Consistency: A Model for Parallel Programming},
   url = {http://dl.acm.org/citation.cfm?id=197967},
   booktitle = {Proceedings of the Thirteenth Annual {{ACM}} Symposium on {{Principles}} of Distributed Computing},
@@ -811,7 +833,7 @@
   pages = {101--110},
   author = {Agrawal, Divyakant and Choy, Manhoi and Va Leong, Hong and Singh, Ambuj K.}
 }
-% == BibLateX quality report for agrawal_mixed_1994:
+% == BibLateX quality report for hybrid_consistency:
 % ? Unsure about the formatting of the booktitle
 
 @inproceedings{zhang_hierarchical_2007,
@@ -1271,6 +1293,18 @@
   author = {Ahamad, Mustaque and Neiger, Gil and Kohli, Prince and Burns, James and Hutto, Phil and Anderson, T. E.}
 }
 
+@article{immutability_changes_everything,
+  title = {Immutability Changes Everything},
+  volume = {13},
+  url = {http://dl.acm.org/citation.cfm?id=2884038},
+  number = {9},
+  journaltitle = {Queue},
+  urldate = {2016-03-07},
+  date = {2015},
+  pages = {40},
+  author = {Helland, Pat}
+}
+
 @inproceedings{gfs,
   title = {The {{Google}} File System},
   volume = {37},
@@ -1372,7 +1406,7 @@
 % ? Unsure about the formatting of the booktitle
 % ? Title looks like it was stored in title-case in Zotero
 
-@article{karp_efficient_1987,
+@article{rabin_karp,
   title = {Efficient Randomized Pattern-Matching Algorithms},
   volume = {31},
   number = {2},
@@ -1407,7 +1441,7 @@
 % Unexpected field 'author'
 % ? Title looks like it was stored in lower-case in Zotero
 
-@inproceedings{merkle_digital_1987-1,
+@inproceedings{merkle_tree,
   title = {A Digital Signature Based on a Conventional Encryption Function},
   booktitle = {Conference on the {{Theory}} and {{Application}} of {{Cryptographic Techniques}}},
   publisher = {{Springer}},
@@ -1415,7 +1449,7 @@
   pages = {369--378},
   author = {Merkle, Ralph C}
 }
-% == BibLateX quality report for merkle_digital_1987-1:
+% == BibLateX quality report for merkle_tree:
 % ? Unsure about the formatting of the booktitle
 
 @article{tarasov_filebench_2016,
@@ -1553,13 +1587,36 @@
 % == BibLateX quality report for safety:
 % ? Title looks like it was stored in title-case in Zotero
 
-@inproceedings{muthitacharoen_low-bandwidth_2001,
+@inproceedings{lbfs,
   title = {A {{Low}}-Bandwidth {{Network File System}}},
   booktitle = {Proceedings of the 18th {{ACM Symposium}} on {{Operating Systems Principles}} ({{SOSP}} '01)},
   date = {2001-10},
   pages = {174--187},
   author = {Muthitacharoen, Athicha and Chen, Benjie and Mazi\`eres, David}
 }
+
+@report{rabin_fingerprint,
+  title = {Fingerprinting by {{Random Polynomials}}},
+  number = {TR-15-81},
+  institution = {{Harvard Aiken Computation Laboratory}},
+  date = {1981},
+  author = {Rabin, Michael O.}
+}
+% == BibLateX quality report for rabin_fingerprint:
+% Missing required field 'type'
+% ? Title looks like it was stored in title-case in Zotero
+
+@inproceedings{casper,
+  location = {{San Antonio, TX}},
+  title = {Opportunistic {{Use}} of {{Content Addressable Storage}} for {{Distributed File Systems}}},
+  url = {http://citeseer.ist.psu.edu/tolia03opportunistic.html},
+  booktitle = {Proceedings of the {{USENIX}} 2003 {{Annual Technical Conference}}},
+  date = {2003-06},
+  pages = {127--140},
+  author = {Tolia, Niraj and Kozuch, Michael and Satyanarayanan, Mahadev and Karp, Brad and Perrig, Adrian and Bressoud, Thomas}
+}
+% == BibLateX quality report for casper:
+% ? Title looks like it was stored in title-case in Zotero
 
 @software{s3,
   title = {Amazon {{Simple Storage Service}} ({{Amazon S3}})},
@@ -1568,6 +1625,17 @@
 % == BibLateX quality report for s3:
 % Unexpected field 'title'
 % ? Title looks like it was stored in title-case in Zotero
+
+@incollection{raynal_sequential_2002,
+  title = {Sequential Consistency as Lazy Linearizability},
+  booktitle = {{{EurAsia}}-{{ICT}} 2002: {{Information}} and {{Communication Technology}}},
+  publisher = {{Springer}},
+  date = {2002},
+  pages = {866--873},
+  author = {Raynal, Michel}
+}
+% == BibLateX quality report for raynal_sequential_2002:
+% Missing required field 'editor'
 
 @article{fail-stop,
   title = {Byzantine {{Generals}} in {{Action}}: {{Implementing Fail}}-Stop {{Processors}}},
@@ -1601,6 +1669,14 @@
   date = {2012},
   pages = {1--12},
   author = {Thomson, Alexander and Diamond, Thaddeus and Weng, Shu-Chun and Ren, Kun and Shao, Philip and Abadi, Daniel J}
+}
+
+@inproceedings{pvfs,
+  title = {{{PVFS}}: {{A}} Parallel File System for {{Linux}} Clusters},
+  booktitle = {Proceedings of the 4th Annual {{Linux Showcase}} and {{Conference}}},
+  date = {2000},
+  pages = {391--430},
+  author = {Ross, Robert B and Thakur, Rajeev and {others}}
 }
 
 @inproceedings{hyder-a,
@@ -1655,7 +1731,7 @@
 % Missing required field 'type'
 % ? Title looks like it was stored in title-case in Zotero
 
-@inproceedings{leitao_hyparview_2007,
+@inproceedings{reliable_gossip,
   title = {{{HyParView}}: {{A}} Membership Protocol for Reliable Gossip-Based Broadcast},
   booktitle = {Dependable {{Systems}} and {{Networks}}, 2007. {{DSN}}'07. 37th {{Annual IEEE}}/{{IFIP International Conference}} On},
   publisher = {{IEEE}},
@@ -1663,7 +1739,7 @@
   pages = {419--429},
   author = {Leitao, Joao and Pereira, Jos\'e and Rodrigues, Luis}
 }
-% == BibLateX quality report for leitao_hyparview_2007:
+% == BibLateX quality report for reliable_gossip:
 % ? Unsure about the formatting of the booktitle
 
 @inproceedings{tolgyesi_adaptive_2009,
@@ -2312,6 +2388,57 @@
   date = {1987},
   pages = {137--151},
   author = {Lynch, Nancy A. and Tuttle, Mark R.}
+}
+
+@article{fog,
+  title = {Finding Your Way in the Fog: {{Towards}} a Comprehensive Definition of Fog Computing},
+  volume = {44},
+  number = {5},
+  journaltitle = {ACM SIGCOMM Computer Communication Review},
+  date = {2014},
+  pages = {27--32},
+  author = {Vaquero, Luis M. and Rodero-Merino, Luis}
+}
+
+@inproceedings{fog_iot,
+  title = {Fog Computing and Its Role in the Internet of Things},
+  booktitle = {Proceedings of the First Edition of the {{MCC}} Workshop on {{Mobile}} Cloud Computing},
+  publisher = {{ACM}},
+  date = {2012},
+  pages = {13--16},
+  author = {Bonomi, Flavio and Milito, Rodolfo and Zhu, Jiang and Addepalli, Sateesh}
+}
+% == BibLateX quality report for fog_iot:
+% ? Unsure about the formatting of the booktitle
+
+@article{fog_mobile,
+  title = {Fog Computing: {{Focusing}} on Mobile Users at the Edge},
+  journaltitle = {arXiv preprint arXiv:1502.01815},
+  date = {2015},
+  author = {Luan, Tom H. and Gao, Longxiang and Li, Zhi and Xiang, Yang and Wei, Guiyi and Sun, Limin}
+}
+% == BibLateX quality report for fog_mobile:
+% ? Possibly abbreviated journal title arXiv preprint arXiv:1502.01815
+
+@inproceedings{sensor_coordination,
+  title = {Next Century Challenges: {{Scalable}} Coordination in Sensor Networks},
+  booktitle = {Proceedings of the 5th Annual {{ACM}}/{{IEEE}} International Conference on {{Mobile}} Computing and Networking},
+  publisher = {{ACM}},
+  date = {1999},
+  pages = {263--270},
+  author = {Estrin, Deborah and Govindan, Ramesh and Heidemann, John and Kumar, Satish}
+}
+% == BibLateX quality report for sensor_coordination:
+% ? Unsure about the formatting of the booktitle
+
+@article{prefix_trie,
+  title = {Fast and Accurate Short Read Alignment with {{Burrows}}\textendash{{Wheeler}} Transform},
+  volume = {25},
+  number = {14},
+  journaltitle = {bioinformatics},
+  date = {2009},
+  pages = {1754--1760},
+  author = {Li, Heng and Durbin, Richard}
 }
 
 

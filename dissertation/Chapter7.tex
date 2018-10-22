@@ -15,7 +15,7 @@ and reliability concerns of master-service
 systems~\cite{gray_dangers_1996,gfs} but create silos of independent
 operation that are not coordinated with respect to each other.
 
-We have theorized that cloud services present the opportunity for deploying data services on a trusted infrastructure. If it is not trusted, however, we can use an encryption model similar to SPORC to combine multiple cloud providers into a single data system~\cite{sporc}. 
+We have theorized that cloud services present the opportunity for deploying data services on a trusted infrastructure. If it is not trusted, however, we can use an encryption model similar to SPORC to combine multiple cloud providers into a single data system~\cite{sporc}.
 
 \section{Hierarchical Consensus}
 
@@ -46,3 +46,109 @@ Finally, shared logs have proven useful in a number of settings from fault toler
 However, keeping such logs consistent in even a single consensus instance has proven difficult~\cite{chubby,gfs,zookeeper}.
 More recent systems are leveraging hardware support to provide fast access to shared logs~\cite{vcorfu,tango,calvindb,calvinfs,hyder-a,fawn}.
 To our knowledge, HC is the first work to propose synchronizing shared logs across multiple discrete consensus instances in the wide area.
+
+\section{Federated Consistency}
+
+One of the earliest attempts to hybridize weak and strong consistency was a
+model for parallel programming on shared memory systems by Agrawal et al
+\cite{agrawal_mixed_1994}.
+This model allowed programmers to relax strong consistency in certain contexts
+with causal memory or pipelined random access in order to improve parallel
+performance of applications.
+Per-operation consistency was extended to distributed storage by the RedBlue
+consistency model of Li et al \cite{li_making_2012}.
+Here, replication operations are broken down into small, commutative
+sub-operations that are classified as red (must be executed in the same order
+on all replicas) or blue (execution order can vary from site to site), so long
+as the dependencies of each sub-operation are maintained.
+The consistency model is therefore global, specified by the red/blue ordering
+and can be adapted by redefining the ratio of red to blue operations, e.g.
+all blue operations is an eventually consistent system and all red is
+sequential.
+
+The next level above per-operation consistency hybridization is called
+\textit{consistency rationing} wherein individual objects or groups of objects
+have different consistency levels applied to them to create a global quality
+of service guarantee.
+Kraska et al.
+\cite{kraska_consistency_2009} initially proposed consistency rationing be on
+a per-transaction basis by classifying objects in three tiers: eventual,
+adaptable, and linearizable.
+Objects in the first and last groups were automatically assigned transaction
+semantics that maintained that level of consistency; however objects assigned
+the adaptable categorization had their consistency policies switched at
+runtime based on a cost function that either minimized time or write costs
+depending on user preference.
+This allowed consistency in the adaptable tier to be flexible and responsive
+to usage.
+
+Chihoub et al.
+extended the idea of consistency rationing and proposed limiting the number of
+stale reads or the automatic minimization of some consistency cost metric by
+using reporting and consistency levels already established in existing
+databases \cite{chihoub_harmony:_2012,chihoub_consistency_2013}.
+Here multiple consistency levels are being utilized, but only one consistency
+model is employed at any given time for all objects, relaxing or strengthening
+depending on observed costs.
+By utilizing all possible consistency semantics in the database, this model
+allows a greater spectrum of consistency guarantees that adapt at runtime.
+
+Al-Ekram and Holt \cite{al-ekram_multi-consistency_2010} propose a middleware
+based scheme to allow multiple consistency models in a single distributed
+storage system.
+They identify a similar range of consistency models, but use a middleware
+layer to forward client requests to an available replica that maintains
+consistency at the lowest required criteria by the client.
+However, although their work can be extended to deploying several consistency
+models in one system, they still expect a homogeneous consistency model that
+can be swapped out on demand as client requirements change.
+Additionally their view of the ordering of updates of a system is from one
+versioned state to another and they apply their consistency reasoning to the
+divergence of a local replica's state version and the global version.
+Similar to SUNDR, proposed by Li et al.
+\cite{li_secure_2004}, an inconsistency is a fork in the global ordering of
+reads and writes (a ``history fork'').
+Our consistency model instead considers object forks, a more granular level
+that allows concurrent access to different objects without conflict while
+still ensuring that no history forks can happen.
+
+Hybridization and adaptation build upon previous work that strictly
+categorizes different consistency schemes.
+An alternative approach is to view consistency along a continuous scale with
+several axes that can be tuned precisely.
+Yu and Vahdat \cite{yu_design_2002} propose the \textit{conit}, a consistency
+unit described as a three dimensional vector that describes tolerable
+deviations from linearizability along staleness, order error, and numeric
+ordering.
+Similarly, Afek et al.
+\cite{afek_quasi-linearizability:_2010} present quasi-linearizable histories
+which specify a bound on the relative movement of ordered items in a log which
+make it legally sequential.
+
+A strong central core to provide support to the entire system has been
+suggested both in Oceanstore \cite{kubiatowicz_oceanstore:_2000} and primary
+copy schemes \cite{gray_dangers_1996}.
+We take this idea further in our experiments by Federating a strong central
+core composed of Replicas that perform consensus via the Raft consensus
+protocol and combine it with highly available eventually consistent systems.
+In this way Federated consistency gains the flexibility and availability of
+the Eventual replicas (leader re-election and no requirement for remote writes
+mean that the replica can continue even if it is completely partitioned from
+the rest of the network) while still getting guarantees from Raft, which
+minimizes ``fork flipping'' -- the behavior of writing to one branch then
+another, truly pernicious inconsistent behavior that cannot be prevented in an
+eventually consistent system.
+
+System designers can take advantage of heterogeneous replicas by implementing
+stronger consistency on more reliable machines that are able to handle more
+messages.
+Mobile replicas that are prone to network loss, out of order or missed
+messages, or other variable behavior can adapt their policy depending on the
+environment they're in.
+Our model also allows for \textit{adaptive} behavior, in that the replicas can
+monitor the environment for change and as the mean latency decreases, adapt
+their $T$ parameter accordingly.
+This is a no cost operation for Eventual replicas (who can also optimize
+pairwise gossip by implementing non-discrete random selection using Bandits or
+other optimization techniques), and only requires joint consensus on the part
+of the consensus group.
