@@ -5,13 +5,13 @@
 \chapter{Adaptive Consistency}
 \label{ch:adaptive_consistency}
 
-Throughout this dissertation we've outlined a planetary-scale data storage system composed of a two-tier structure that provides a hybrid consistency model.
+Throughout this dissertation we have outlined a planetary-scale data storage system composed of a two-tier structure that provides a hybrid consistency model.
 Both tiers are designed to scale to thousands of replicas, and together could represent millions of replicas operating in concert around the world.
 Management and systems administration of such a large scale system using external monitoring processes is impractical at best and prohibitively complex at worst.
 Even with a trusted infrastructure of cloud services, building a single synchronization point for monitoring and optimization would require the online collection of live information from across the globe.
-This synchronization point would itself be susceptible to delays and partitions and would have to manage a huge number of events streaming in from a large number of sources, which has challenges in and of itself~\cite{spark_streaming}.
+This synchronization point would itself be susceptible to delays and partitions and would have to manage a huge number of events streaming in from many sources, which has challenges in and of itself~\cite{spark_streaming}.
 
-Instead, we propose that an \emph{emergent model} of network behavior is required to tune and optimize planetary scale systems in an online fashion such that local, simple rules lead to globally emergent behavior~\cite{bengfort_evolutionary_2014}.
+Instead, we propose that an \emph{emergent model} of network behavior is required to tune and optimize planetary scale systems at runtime such that local, simple rules lead to globally emergent behavior~\cite{bengfort_evolutionary_2014}.
 Specifically we hypothesize that when individual replicas follow simple optimization procedures based on monitoring of their local network performance, access patterns, queries to their neighbors, and other environmental factors the performance of the system will collectively increase.
 Because we focus primarily on the consistency aspects of geo-replicated data storage, we have termed this behavior \emph{adaptive consistency}, because with a hybrid or continuous consistency model, such optimizations will minimize inconsistent behaviors due to latency or configuration.
 
@@ -21,6 +21,7 @@ Our preliminary experiments suggest that adapting anti-entropy selection with re
 We will then finish with a discussion of how we can generalize this process to other techniques in the system as a whole.
 
 \section{Anti-Entropy Bandits}
+\label{ch06_anti_entropy_bandits}
 
 A distributed system is made highly available when individual servers are
 allowed to operate independently without failure-prone, high latency
@@ -85,6 +86,7 @@ localize most data exchanges, lower visibility latency, and increase
 consistency.
 
 \subsection{Visibility Latency}
+\label{ch06_visbility}
 
 In this section we review the access and consistency model in the context of bandits as well as how anti-entropy is conducted.
 A more complete discussion of these topics can be found in Chapter~\ref{ch:federated_consistency}.
@@ -94,7 +96,7 @@ and from one or more replicas in a single operation, creating read and write quo
 In large, geo-replicated systems, we assume that clients prefer to choose fewer, local replicas to connect with, assuming that writes are primarily local and reads are global.
 On \texttt{Put}, a new conflict-free version of the write is created.
 This results in the possibility of two types of inconsistencies that occur during concurrent accesses: stale reads and forked writes.
-As a write is propagated through the system, the latest-writer wins policy means that at least one of the forks will be ``stomped'', e.g. not fully replicated.
+As a write is propagated through the system, the latest-writer wins policy means that at least one of the forks will be ``stomped,'' e.g. not fully replicated.
 
 Both forms of inconsistency can be primarily attributed to \emph{visibility
 latency}, that is the time it takes for an update to propagate to all
@@ -119,6 +121,7 @@ achieved, and is instead modulated by a noise variable that is
 proportional to the size of the network.
 
 \subsection{Multi-Armed Bandits}
+\label{ch06_multi_armed_bandits}
 
 To combat the effect of noise on visibility latency our initial approach
 employs a technique commonly used in active and reinforcement learning:
@@ -179,7 +182,7 @@ The complete reward function is given in Table~\ref{tab:ch06_rewards}: for each
 phase of synchronization (push and pull), compute the reward as the sum of the
 propositions given.
 For example if a synchronization results in three objects being pulled in
-250ms, and one object being pushed in 250ms, the reward is 0.75.
+250 ms, and one object being pushed in 250 ms, the reward is 0.75.
 
 \renewcommand{\baselinestretch}{1}
 \small\normalsize
@@ -192,8 +195,8 @@ For example if a synchronization results in three objects being pulled in
 \hline \hline
 Synchronize at least 1 object & 0.25 & 0.25 & 0.50 \\
 Additional for multiple objects  & 0.05 & 0.05 & 0.10 \\
-Latency $\leq$ 5ms (local)        & 0.10 & 0.10 & 0.20 \\
-Latency $\leq$ 100ms (regional)   & 0.10 & 0.10 & 0.20 \\
+Latency $\leq$ 5 ms (local)        & 0.10 & 0.10 & 0.20 \\
+Latency $\leq$ 100 ms (regional)   & 0.10 & 0.10 & 0.20 \\
 \hline
 \textit{Total} & \textit{0.50} & \textit{0.50} & \textit{1.00} \\
 \hline
@@ -211,6 +214,7 @@ size could be considered or systems with imbalanced deployments might
 consider a reward function that prioritizes inter-region communication.
 
 \subsection{Experiments}
+\label{ch06_experiments}
 
 We conducted experiments using a distributed key-value store totally
 replicated across 45 replicas in 15 geographic regions on 5 continents
@@ -227,11 +231,11 @@ Clients continuously created Put requests for random keys with a unique
 prefix per-region such that consistency conflicts only occur within a
 single region.
 The average throughput generated per-client was 5620.4 puts/second.
-The mean synchronization latency between each region ranged from 35ms to
-630ms as shown in Figures~\ref{fig:ch06_latency_sync_heatmap} and \ref{fig:ch06_push_pull_frankfurt_latencies}.
+The mean synchronization latency between each region ranged from 35 ms to
+630 ms as shown in Figures~\ref{fig:ch06_latency_sync_heatmap} and \ref{fig:ch06_push_pull_frankfurt_latencies}.
 To ensure at least one synchronization per anti-entropy session, we set the
 anti-entropy interval to 1 second to train the system, then reduced the
-interval to 125ms while measuring visibility latency.
+interval to 125 ms while measuring visibility latency.
 To account for lag between commands sent to replicas in different regions,
 each experiment was run for 11 minutes, the bandit learning period was 4
 minutes then visibility latency was observed for 6 minutes, buffered by 30
@@ -284,6 +288,21 @@ arms, while higher $\epsilon$ values take longer to find optimal topologies.
 However, in the static workload case, the more aggressive bandit strategies
 converge more quickly to the optimal reward.
 
+Visibility latencies were computed by reducing the workload rate to once
+every 4 seconds to ensure the write becomes fully visible across the entire
+network.
+During the visibility measurement period, replicas locally logged the
+timestamp the write was pushed or pulled; visibility latency is computed as
+the difference between the minimum and maximum timestamp.
+The average visibility latency per region is shown in
+Figure~\ref{fig:ch06_visibility_latency} measured by the left y-axis.
+Because the anti-entropy delay is a fixed interval, the estimated number of
+required anti-entropy sessions associated with the visibility delay is shown
+on the right y-axis of the same figure.
+Employing bandit strategies reduces the visibility latency from 2360 ms on
+average in the uniform case to 1870 ms, reducing the number of required
+anti-entropy intervals by approximately 4.
+
 \begin{figure}
     \begin{center}
         \includegraphics[width=5in]{figures/ch06_rewards.pdf}
@@ -298,21 +317,6 @@ converge more quickly to the optimal reward.
 \end{figure}
 \renewcommand{\baselinestretch}{2}
 \small\normalsize
-
-Visibility latencies were computed by reducing the workload rate to once
-every 4 seconds to ensure the write becomes fully visible across the entire
-network.
-During the visibility measurement period, replicas locally logged the
-timestamp the write was pushed or pulled; visibility latency is computed as
-the difference between the minimum and maximum timestamp.
-The average visibility latency per region is shown in
-Figure~\ref{fig:ch06_visibility_latency} measured by the left y-axis.
-Because the anti-entropy delay is a fixed interval, the estimated number of
-required anti-entropy sessions associated with the visibility delay is shown
-on the right y-axis of the same figure.
-Employing bandit strategies reduces the visibility latency from 2360ms on
-average in the uniform case to 1870ms, reducing the number of required
-anti-entropy intervals by approximately 4.
 
 \begin{figure}
     \begin{center}
@@ -397,6 +401,7 @@ By contrast, clear optimal connections have emerged with the bandit strategies; 
 Based on our observations, we posit that fewer edges in the graph represents a more stable network; the fewer synchronization pairs that are selected, the less noise that occurs from selecting a peer that is in a similar state.
 
 \section{Bandits Discussion}
+\label{ch06_bandits_discussion}
 
 To achieve stronger eventual consistency, the visibility latency
 of a system replicated with anti-entropy must be reduced.
@@ -480,20 +485,44 @@ We also plan to evaluate other reinforcement learning strategies such as
 neural or Bayesian networks to determine if they handle dynamic environments
 more effectively.
 
-\section{Access Temperature Approaches}
+\section{Generalizing Adaptation}
+\label{ch06_generalizing_adaptation}
 
-\todo{add this section}
+% I would very much like to redo this section.
 
-- Expected model of access patterns (daylight).
+Using bandits for anti-entropy peer selection is a demonstration of an introspective model of adaptability~\cite{oceanstore}.
+Introspection is an architectural paradigm that augments a systems normal operation with two components: \emph{monitoring} and \emph{optimization}.
+Monitoring components must keep track of a historical record of system behavior, often summarizing or aggregating information at local nodes to minimize the amount of data that must be propagated to neighbors.
+Optimization components use the observed and summarized data to extract patterns of behavior which can then be used to adapt the behavior of a system either by adjusting the configuration of a local replica~\cite{oates_investigating_1998} or by providing predictive models that are propagated to all replicas with active learning~\cite{kalai_efficient_2005,osugi_balancing_2005}.
 
-\section{Other Types of Adaptation}
+Adaptation improves the manageability, performance, and consistency of the system in a number of ways.
+Monitoring of data movement can establish continuous confidence intervals of the durability of the system and the requirements for archiving blocks in deep storage.
+Adaptation can also be used to identify unreliable groups of machines or to detect anomalies that may destabilize the system.
+Accesses might be classified to tune portions of the system to handle high throughput small updates vs fewer, high volume writes, or to support more reads than writes.
+We believe that most systems administration tasks at a planetary scale will require some form of stochastic online adaptation behavior because a centralized monitoring and manual management is simply unrealistic.
+Currently there are two primary goals for learning based adaptation that will guide the architecture for other adaptive services: object placement and replica management.
 
-\todo{add this section and conclusion}
+\emph{Replica management} adjusts the network topology to serve requests as efficiently as possible, repairing outages to ensure the system is maximally available.
+Replicas monitor message latencies when communicating between replicas, constructing a network proximity map that influences timing parameter behavior and the system tick rate.
+Message latencies can also be used to adapt other configurations in real time, such as synchronization probabilities as described by the bandit approach in this chapter or to modify the integration of federated consistency protocols.
+Network proximity between replicas and clients can also be used to ensure that clients experience a high quality of service, by ensuring that quorums are constructed to be maximally proximal to the objects the quorums serve.
 
-Monitor and Optimize.
+Replica management can also elastically scale and provision extra capacity when needed reducing capacity when it is not.
+In a planetary system, there is an expected pattern of accesses, e.g. many objects will be accessed more during daylight hours and less frequently at night.
+Other objects will experience geographically shifting access patterns, for example, as passengers travel between locations on flights.
+If access patterns can be extracted for specific objects or groups of objects, then optimistic root quorum decisions to allocate new quorums with hot spares or shift the locale of the quorums managing an object will increase the overall quality of service of the system.
 
-Replica placement, object placement
+\emph{Object placement} groups related or similar objects together to ensure inter-object consistency is maintained and to minimize access latency from a variety of geographic locations.
+Hierarchical consensus is most efficient when subquorums manage accesses to a group of objects from a specific geographic locale.
+If accesses to related objects cross subquorum boundaries, then remote reads between subquorums is required to maintain linearizable consistency.
+Automatic discovery of relationships between objects ensures that a single subquorum manages the objects most likely to be accessed together thereby minimizing the access latency.
+Alternatively if reads and writes of an object are from different regions, the frequency of the type of access in each region can determine how to configure a subquorum for maximum benefit.
+Clustering algorithms can also be used to group objects and to prefetch them to locales of expected access.
 
+The challenge for generalized adaptation is to carefully balance local behaviors and coordinated learning.
+In principle, local reinforcement learning is preferred so that neighborhoods of common behavior emerge, creating efficient global behaviors.
+However, other learning techniques such as anomaly detection, event classification, or confidence reporting require a global view of access patterns and the network environment.
+Balancing these two opposing requirements is an area of essential future research, though one that requires real data to demonstrate the influence of learning systems on consistency.
 
 \section{Conclusion}
 
