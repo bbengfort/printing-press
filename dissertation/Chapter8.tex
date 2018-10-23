@@ -1,6 +1,117 @@
-%Chapter 7
+%Chapter 8
 
 \renewcommand{\thechapter}{8}
 
 \chapter{Conclusion}
 \label{ch:conclusion}
+
+Inspired by the work of Oceanstore and recent trends in cloud computing we present a consistency-centric architecture for a planetary scale data storage system.
+This architecture provides support for extremely large systems with thousands or even millions of replicas geo-replicated across continents and oceans.
+We envision that such a system will reside in heterogenous network environments, therefore we propose a two tier consistency model -- a hierarchical consensus core residing in cloud data centers federated with a highly available fog of devices that rapidly disseminate updates.
+We also recognize that management of such a large system cannot easily be centralized therefore we also propose an adaptive scheme such that local optimizations lead to emergent global consistency.
+
+Our work is motivated by recent trends in global scale software.
+The success of cloud computing and app stores allows software developers to easily deploy their applications to an international audience.
+Software development practices have shifted to meet these trends, from container based development to Web application localization, and most software is now deployed expecting international scaling.
+The problem is that the data storage that backs these applications has not kept up.
+International deployment therefore requires developers to isolate data in specific regions, or to use provisioned data services for geo-replicated databases developed by the cloud providers themselves.
+There is a growing need for region-agnostic, generalized geo-replicated data services that provide SQL-like strong consistency guarantees.
+
+Hierarchical consensus provides high-throughput, geo-replicated consensus to serve as a strata for the strongest possible consistency databases and file systems.
+An implementation and extension of Vertical Paxos, HC shards accesses to independent subquorums, which themselves are configured by a root quorum.
+The root quorum is composed by all replicas in the system to ensure maximal fault tolerance and an intersection between configuration decisions and access decisions.
+To support such a large quorum, followers in subquorums delegate their votes to their leaders, who are the only active participants in the root quorum.
+The root quorum makes configuration decisions to partition the object space to partitioned to subquorums localized in the region where accesses occur.
+Subquorums fuzzily transition between configuration changes to ensure the system makes global progress, then replicate accesses from clients.
+These techniques ensure that HC provides unified globally distributed consensus and that strong consistency semantics can be guaranteed and easily reasoned upon without region-specific considerations.
+
+Next generation distributed systems will also have to support high throughput machine-to-machine geographically localized accesses.
+Sensors systems from traffic coordination devices to the smart grid and an Internet of Things will push time-sensitive data from multiple distributed publishers, to fewer centralized subscribers.
+These devices will exist in highly variable mobile network environments in a much wider area, creating a fog of extra datacenter devices that require higher availability rather than the strongest possible consistency.
+
+We believe a single architecture should support both the cloud and the fog.
+We therefore propose the consistency-centric federation of multiple synchronization protocols.
+Federation of strong consistency provided by consensus and eventual consistency provided by anti-entropy synchronization involves both communication and consistency integration at the boundary of each system type.
+Communication integration requires that all replicas respond to distinct RPC requests from either type of system in a manner that is correct if the system was homogenous.
+Consistency integration requires the ability to communicate the strongest possible consistency back to the relaxed consistency model and resolve policy differences.
+By defining a ``forte'' component of comparable version numbers, consensus leaders can arbitrate which version should be accepted across the entire system.
+Federation provides a hybrid consistency model that is more continuous than discrete, depending on topology, e.g. more eventual replicas lead to higher system availability, more consensus replicas lead to higher system consistency.
+
+Both federation and hierarchical consensus allow systems to scale to thousands of replicas and millions of clients.
+At this scale, centralized system management and configuration tuning becomes intractable.
+Our final proposition is for adaptive consistency -- the use of real-time machine learning to adjust the configuration of the system to maximize the consistency guarantees of the system.
+Adaptive consistency monitors network behavior, access patterns, and object attributes locally, modifying the behavior of individual replicas.
+This information is then forwarded to optimization computations that create global models which are disseminated to target replicas for decision making or to reconfigure replica or object placement.
+
+We demonstrated the potential for adaptive consistency with a reinforcement learning approach to peer selection for anti-entropy.
+Using multi-armed bandits, replicas modified the likelihood of selecting a peer for synchronization based on observing how successful the synchronization was.
+By rewarding low latency connections as well as multiple objects sync'd, the network as a whole learned a topology based on accesses that efficiently propagated updates across the system.
+This in turn reduced the visibility latency of a write, and reduced visibility latency means a lower probability of stale reads, the root cause of inconsistency.
+Therefore anti-entropy bandits increased the overall consistency of the system.
+We propose that replicas learning locally and creating emergent global properties is the best strategy for decentralized adaptation of the system.
+
+Together, our observations about strong geo-distributed consensus, federated consistency, and adaptive consistency form a complete model for planetary scale systems.
+Our architecture is composed of an HC core that propagates updates through broadcast mechanisms across the wide area while federating an eventual system in the fog, all of which is managed by adaptive consistency.
+We evaluated HC with a system implementation spanning the globe, focused on maximizing throughput and minimizing access latency.
+We evaluated our federated consistency model with a simulation to collect metrics that are difficult to measure in a distributed system.
+Finally, we experimented with adaptive consistency using our eventual system, also distributed around the globe, optimizing the network based on global accesses.
+We believe these systems create a rich platform for a variety of future lines of inquiry and research.
+
+To date we have implemented the HC (Alia) and Fog (Honu) components individually.
+Our next step is to federate them into a single system, moving our simulation experiments into the real world.
+Both HC and Fog currently implement a distributed key/value store.
+Our target application is a globally distributed file system, which will serve as a replication substrate for other applications.
+Our file system, FluidFS, is currently implemented using a key/value store replicated using standard consensus algorithms.
+By replacing consensus with our planetary scale consistency system, we believe that FluidFS will be able to support truly massive applications.
+
+Once we have our fully integrated system, we plan to deploy it as two primary applications.
+The first application is a direct deployment of FluidFS as a shared cloud storage drive.
+The second application we envision is a global trading-card game.
+In this game, users will use matchmaking to find other players to play 2--4 person short games and will be able to trade cards.
+In particular we envision a system such that each region has its own faction with its own abilities to foster trading across the wide area.
+Although the details are beyond the scope of this dissertation, these applications are designed to exercise the planetary scale system in meaningful ways.
+
+We believe that the open source nature of our project will foster adoption and interest in these applications.
+Even if the applications are short lived, real world workloads and access traces will allow us to create planetary-scale benchmarks that simply do not exist right now.
+Additionally, real world deployments will allow us to construct realistic models of outages and downtime that will more easily allow us to test future research.
+Finally, most of the questions around adaptive consistency require non-synthetic data to construct and evaluate models.
+Acquiring real world users will allow us to address many future questions.
+
+The most pressing question concerns when to make HC root decisions.
+Currently, reconfiguration is manually triggered or triggered by simple heuristics appropriate to the experiments we were running.
+However, new epochs should be proposed by monitoring demand and access patterns, ensuring that subquorums are localized with respect to their accesses.
+The root quorum must monitor replica health and object placement to create a measurement of the ``system quality,'' then if a threshold in the quality metric is reached, it should adapt the system to improve or optimize quality.
+Adaptive consistency and learning methods might also be used to pre-allocate subquorums to ensure there is as little down time as possible.
+
+Our next question concerns the implementation of transactions in HC.
+Our current implement does not directly implement transactions but does allow client-side transactions by allowing remote reads and writes to coordinate multi-object accesses.
+Native support for transactions would significantly increase geo-replicated consistency, however, particularly if the native support fit into the hierarchical model.
+We propose to investigate a transaction tier or other structural patterns such as batching transactions across the wide area in a hierarchical context.
+
+We would like to explore adaptations of other consensus protocols.
+We described HC with leader-oriented consensus, primarily because it allowed us to more easily reason about delegation.
+We see no reason that leaderless consensus such as ePaxos or leader balanced mechanisms like Mencius could not fit into hierarchical consensus.
+For example, if accesses are evenly balanced around a region of interest; for example between Ireland, London, and Frankfurt -- then an ePaxos subquorum would perform far better than a Raft subquorum.
+The second generation of hierarchical consensus will support multiple consensus protocols that are designed to optimize subquorum behavior, configured by the root leader.
+
+A weak point of HC is the obligations timeout that occurs when a single subquorum is partitioned from the rest of the system.
+We briefly mentioned that federated consistency might provide flexibility to solve this issue by allowing the subquorum to relax consistency for the duration of the partition.
+We would like to explore this in detail, particularly as the focus of our federated work was on how to make an eventual consistency system stronger with a core consensus background.
+Federation creates a data fabric, where updates can be propagated across multiple channels, which we believe leads to important research questions about how such a mesh would influence failure behavior.
+
+Another line of inquiry is the ability to federate other consistency protocols and automatically handle conflicts.
+Causal consistency is ``the strongest form of weak consistency'' and we see no reason why it cannot be federated using similar strategies to the ones we proposed.
+Any time consistency is relaxed, the possibility of conflicts increases.
+However, users do not necessarily have to resolve conflicts just because a collision occurs.
+Causal relations and dynamic blocking such as the ones used in Git may allow the system to automatically resolve conflicts.
+We believe that enhancing conflict resolution as a native part of federated consistency will create much more robust policies than latest-writer-wins, which will lead to more robust generalized federation.
+
+Using machine learning to automatically adapt and tune system behavior is also a large and important area of interest.
+These techniques will play a large role in automatically scaling the system to meet demand at peak periods and to rollback resources to conserve energy.
+Clustering objects and other smart access techniques will allow not only for faster cache access but also improve consistency overall.
+We expect that systems research will natively move to including learning systems in the same way that security is taken seriously in systems now.
+
+The object of this work was to consider a consistency-centric planetary scale data model.
+This model will serve as a platform for future research into geo-replicated consensus and consistency.
+As geographically distributed systems become more essential to software development, we hope that the open source nature of our software and the investigation proposed in the dissertation serve as a basis and inspiration
+to bring the benefits of technology to every part of the earth, and perhaps farther.
