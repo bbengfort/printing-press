@@ -41,7 +41,7 @@ Anti-entropy sessions synchronize the state between servers ensuring that,
 at least briefly, the local state is consistent with a portion of the global
 state of the system.
 If all servers engage in anti-entropy sessions, the system is able to make
-some reasonable guarantees about consistent replication; the most famous
+some reasonable guarantees about consistent replication; the most well known
 of which is that without requests the system will become
 globally consistent, eventually~\cite{anti_entropy}.
 More specifically, inconsistencies in the form of stale reads can be bound by
@@ -57,7 +57,7 @@ particularly in a data center context where visibility latency is far below
 the rate of client requests, leading to practically strong consistency.
 
 However, propagation rates need to be re-evaluated when replicas move outside of data center contexts and when anti-entropy is replicating across the wide area.
-Our system envisions a fog layer that provides data services to localized regions with a hybrid consistency model.
+Our system envisions a \emph{fog layer} that provides data services to localized regions with a hybrid consistency model.
 The fog is specifically designed to handle mobile users, sensor systems, and high throughput applications at the edge of the data center backbone~\cite{edge_computing,geo_cdn}.
 However, scaling an eventually consistent system to dozens or even hundreds
 of nodes increases the radius of the network, which leads to increased noise
@@ -67,7 +67,7 @@ Geographic distribution and extra-datacenter networks also increase the
 latency of anti-entropy sessions so that inconsistencies become more apparent
 to external observers.
 
-To address this challenge, we propose the use of reinforcement learning techniques to optimize network behavior to minimize latency.
+To address this challenge, we propose the use of reinforcement learning techniques to optimize network behavior by minimizing latency.
 Anti-entropy uses gossip and rumor spreading to propagate updates
 deterministically without saturating the
 network even in the face of network
@@ -148,7 +148,7 @@ maximize the total reward over time.
 
 Bandits must balance exploration of new arms with possibly better reward
 values and exploitation of an arm that has higher rewards than others.
-In the \emph{epsilon greedy strategy}, the bandit will select the arm with
+In an \emph{epsilon greedy strategy}, the bandit will select the arm with
 the best reward with some probability $1-\epsilon$, otherwise it will select
 any of the arms with uniform probability.
 The smaller $\epsilon$ is, the more the bandit favors exploitation of known
@@ -186,7 +186,7 @@ For example if a synchronization results in three objects being pulled in
 
 \renewcommand{\baselinestretch}{1}
 \small\normalsize
- \begin{table}[ht]
+ \begin{table}[t!]
 \caption[Bandit Reward Function]{The rewards function for our initial anti-entropy bandits. Rewards are computed by introspecting the results of the pull and push phases of bilateral anti-entropy.}
 \begin{center}
 \begin{tabular}{@{}l c c c @{}}
@@ -505,7 +505,7 @@ Currently there are two primary goals for learning based adaptation that will gu
 \emph{Replica management} adjusts the network topology to serve requests as efficiently as possible, repairing outages to ensure the system is maximally available.
 Replicas monitor message latencies when communicating between replicas, constructing a network proximity map that influences timing parameter behavior and the system tick rate.
 Message latencies can also be used to adapt other configurations in real time, such as synchronization probabilities as described by the bandit approach in this chapter or to modify the integration of federated consistency protocols.
-Network proximity between replicas and clients can also be used to ensure that clients experience a high quality of service, by ensuring that quorums are constructed to be maximally proximal to the objects the quorums serve.
+Network proximity between replicas and clients can also be used to ensure that clients experience a high quality of service, by ensuring that quorums are constructed as close as possible to the objects the quorums serve.
 
 Replica management can also elastically scale and provision extra capacity when needed reducing capacity when it is not.
 In a planetary system, there is an expected pattern of accesses, e.g. many objects will be accessed more during daylight hours and less frequently at night.

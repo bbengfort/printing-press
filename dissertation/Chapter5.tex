@@ -13,7 +13,7 @@ This means that both the foundation and motivation for creating large geo-replic
 Second, like the internet, complex global systems emerge through the composition of many simpler components following straight forward rules~\cite{internet}.
 Instead of architecting a monolithic system, the design process is decomposed to reasoning about the behavior of single processes.
 
-Fundamentally, each process in our system is an independent actor with storage, memory, and compute resources~\cite{actors,scala_actors,orleans}.
+Fundamentally, each process in our system is an independent actor~\cite{actors,scala_actors,orleans} with storage, memory, and compute resources.
 The primary purpose of an actor is to receive and respond to messages (events) from other actors by modifying the actor's internal state, creating new actors, or sending messages to other actors~\cite{hewitt_actors}.
 The behavior of an actor depends solely on the order of messages received, making them an ideal model for programming consistency protocols.
 A system is therefore composed of actors, and reasoning about the global behavior of the system requires only a description of the interactions that different actors in the system have.
@@ -21,12 +21,13 @@ A system is therefore composed of actors, and reasoning about the global behavio
 The actor model allows us to decouple consistency behavior from application behavior.
 Consistency behavior is defined in the messaging between actors, for example actors participating in hierarchical consensus provide consistency by voting for a leader and correctly committing commands from the leader based on majority votes.
 Application behavior is defined by the internal state of the actor, for example the maintenance of a versioned key-value store.
-We use this decoupling to construct three principle applications from our consistency-centric model: a ledger, a key-value database, and a file system, all distributed geographically.
+We use this decoupling to construct three principle applications from our consistency-centric model: a key-value database, a ledger, and a file system, all distributed geographically.
 
 In this chapter we will describe the details of our implementation.
 First, we will describe the base requirements for all replicas, along with our assumptions concerning communication, security, processing and data storage.
 We will also outline the details of our implementation of the consistency protocols described in previous chapters.
-Finally we will describe the details of the applications we built on top of our consistency protocols.
+Both HC and federated consistency are based on object stores that can be sharded and managed independently, therefore we will principally describe operations in terms of a key/value store.
+Finally we will describe the details of the applications we built on top of our consistency protocols and the base object store.
 
 \section{Replicas}
 \label{ch05_replicas}
@@ -43,12 +44,12 @@ For example, a totally replicated system is one where each replica stores a comp
 At the scale of a multi-region, globally deployed system, we assume that total replication is impractical and primarily consider the partial replication case.
 However, we also assume that replicas maintain a view of the entire system, that is meta-data about the location and provenance of all objects, so as to direct client requests to the appropriate replica to serve requests.
 
-We assume that replicas reside on trusted hosts with reliable communication and that failures are non-byzantine.
+We assume that replicas reside on trusted hosts with reliable communication and that failures are non-byzantine~\cite{byzantine-generals,byzantine_fault_tolerance}.
 However, we do expect security to be a default component of a real-world implementation, particularly as many communication links travel across the internet.
 Communication should be secured and authenticated with transport layer security (TLS)~\cite{tlsv1,tlsv2}.
 TLS requires that each replica maintains a certificate and public key encryption to secure communications~\cite{rsa} and if each replica has its own certificate, then TLS can also be used to authenticate valid peers based on a central authority's shared certificate~\cite{tls_authentication}.
 We also assume that data stored on disk should be encrypted.
-We prefer per-replica encryption to ensure that data is loaded and stored from an in-memory cache as quickly as possible and though we recognize that some applications require per-user encryption, it is beyond the scope of our system to provide it.
+We prefer per-replica encryption to ensure that data is loaded and stored from an in-memory cache as quickly as possible though we recognize that some applications require per-user encryption; it is beyond the scope of our system to provide it.
 
 \begin{figure}
     \begin{center}
@@ -74,10 +75,10 @@ Clients are handled using unary RPC requests, but to improve communication perfo
 Each message is pushed through the primary event channel, then responded to using a callback channel.
 Other threads include timers and monitoring threads that are also synchronized through the main event channel.
 
-We've principally implemented two types of replicas based on consistency protocol.
+We've principally implemented two types of replicas with two different consistency protocols.
 Alia~\cite{alia} replicas implement hierarchical consensus based on our implementation of the Raft protocol~\cite{alia_raft}.
 Honu~\cite{honu} replicas implement eventual consistency using bilateral anti-entropy synchronization.
-Both Alia and Honu implement an object store such that objects are described by unique keys and each update to the object creates a new version.
+Both Alia and Honu implement an object store such that objects are described by unique keys, and each update to the object creates a new version.
 The key/value nature of our implementation allows the namespace and object data to be sharded and partially replicated across all replicas, therefore the key/value database described in \S~\ref{ch05_key_value_db} is the base application for all of our applications.
 
 Replicas primarily cache their object stores in memory to improve performance.
@@ -97,7 +98,7 @@ communication.
 The system is implemented in \todo{7,924 lines of code}, not including standard
 libraries or support packages.
 
-An  replica implements multiple instantiations of the Raft protocol, which we have modified in several ways.
+A replica implements multiple instantiations of the Raft protocol, which we have modified in several ways.
 Every replica must run one instantiation of the \textit{root consensus protocol}.
 Replicas may also run one or more instantiations of the \textit{commit consensus protocol} if they are assigned to a subquorum.
 Repartition decisions move the system between epochs with a new configuration and tagspace, and can only be initiated by messages from peers or monitoring processes.
