@@ -17,12 +17,12 @@ Current approaches \cite{epaxos,mencius,calvindb,spaxos,sutra_fast_2011,peluso_m
 These assumptions are justified by the environments in which they run: highly curated environments of individual data centers connected by dedicated networks.
 Although replicas in these environments may participate in global consensus, our architecture requires us to accommodate replicas with heterogenous capabilities and usage modalities.
 Widely distributed replicas might have neither high bandwidth nor low latency and might suffer partitions of varying durations.
-Such systems of replicas might also be dynamic in membership, in relative locations, and have relative workloads.
+Such systems of replicas might also be dynamic in membership, unbalanced across multiple regions to support variable sized workloads in each region.
 Most importantly, to provide a backbone for a planetary scale data system, the consistency backbone must scale to include potentially thousands of replicas around the world.
 
-As a result, straightforward approaches of running variants of Paxos~\cite{paxos,paxos_simple}, ePaxos~\cite{epaxos}, or Raft~\cite{raft} across the wide area, even for individual objects will perform poorly for several reasons.
-First, distance (in network connectivity) between consensus replicas and the most active replicas decrease the performance of the entire system, consensus is only as fast as the final vote required to make a decision, even when making thrifty requests.
-Second, network partitions are common, which cause consensus algorithms to fail-stop~\cite{fail-stop} if they cannot receive a majority, a criticism that is often used to justify eventual consistency systems for high availability.
+As a result, straightforward approaches of running variants of Paxos~\cite{paxos,paxos_simple}, ePaxos~\cite{epaxos}, or Raft~\cite{raft} across the wide area, even for individual objects, will perform poorly for several reasons.
+First, distance (in network connectivity) between the most active consensus replicas and their followers decrease the performance of the entire system, consensus is only as fast as the final vote required to make a decision, even when making ``thrifty'' requests.
+Second, network partitions are common, which causes consensus algorithms to fail-stop~\cite{fail-stop} if they cannot receive a majority, a criticism that is often used to justify eventual consistency systems for high availability.
 Finally, the fault tolerance of small quorum algorithms can be disrupted by a few unreliable hosts and given the scale of the system and the heterogenous nature of replicas, the likelihood of individual failure is so high so as to be considered inevitable.
 
 We propose another approach to building large consensus systems.
@@ -48,7 +48,9 @@ A general implementation of Vertical Paxos therefore requires multiple independe
 In a geo-replicated context, there are two problems with this scheme.
 First, sharding does not allow for inter-object dependence (in the horizontal division) without relying on coordination from the management quorum.
 Second, the management quorum must be geo-replicated and able to scale to handle monitoring of the entire system.
-In both cases, the management quorum becomes a bottleneck and current solutions such as batching decisions or using specialized hardware for extremely accurate timestamps are outside of the scope of the safety properties provided by Vertical Paxos.
+In both cases, the management quorum becomes a bottleneck.
+Current solutions to the bottleneck include batching decisions or using specialized hardware to produce extremely accurate timestamps.
+These solutions, however, are outside of the scope of the safety properties provided by Vertical Paxos, which make it difficult to reason about consistency guarantees.
 The challenge is therefore in constructing a multi-group coordination protocol that configures and mediates per-object quorums with the same level of consistency and fault tolerance as the entire system.
 
 \begin{figure}
@@ -69,7 +71,7 @@ The challenge is therefore in constructing a multi-group coordination protocol t
 Hierarchical consensus organizes \emph{all} participating replicas into a single root quorum that manages the namespace across all regions as shown in Figure~\ref{fig:ch03_hierarchical_topology}.
 The root quorum guarantees correctness and failure-free operation by pivoting the overall system through two primary functions.
 First, the root quorum reconfigures its membership into subquorums, reserving extra members as hot-spares if needed.
-Second, the root quorum adjusts the mapping of the object namespace to the underlying partitions, which subquorums are responsible for managing.
+Second, the root quorum adjusts the mapping of the object namespace defined by the application layer to the underlying partitions, which subquorums are responsible for managing.
 These adjustments adapt the system to replica failures, system membership changes, varying access patterns, and ensure that related objects are coordinated together.
 Much of the system's complexity comes from handshaking between the root quorum and the lower-level subquorums during reconfigurations.
 
@@ -194,7 +196,8 @@ The namespace is decomposed into a set of tags, $T$ where each tag $t_i$ is a di
 Tags are mapped to subquorums in each epoch, $Q_x \mapsto T_x$ such that $\forall t \in T_x$ $\exists! q_{i,x} \mapsto t$.
 The intent of subquorum localization is ensure that the \emph{domain} of a client, the portion of the namespace it accesses, is entirely within the scope of a local, or nearby, subquorum.
 If true across the entire system, each client interacts with only one subquorum, and subquorums do not interact at all during execution of a single epoch.
-This \emph{siloing} of client accesses simplifies implementation of strong consistency guarantees and allows better performance.
+This \emph{siloing} of client accesses simplifies implementation of strong consistency guarantees and allows better performance at the cost of restricting multi-object transactions.
+We relax this restriction in \S~\ref{ch03_remote_accesses} to allow for the possibility of transactions.
 
 \subsection{Delegation}
 \label{ch03_delegation}
@@ -206,7 +209,7 @@ With leader delegation, the root membership effectively consists of the set of s
 Each leader votes with a count describing its own and peer votes from its
 subquorum and from hot spares that have delegated to it.
 
-Fault tolerance scales with increasing system size and consensus leadership is not intended to be stable.
+Fault tolerance scales with increasing system size and consensus leadership is intended to be stable.
 A quorum leader is elected to indefinitely assign log entries to slots (access operations for subquorums, epoch configurations for the root quorum).
 If the leader fails, then so long as the quorum has enough online peers, they can elect a new leader, and when the leader comes back online, it rejoins the quorum as a follower.
 The larger the size of the quorum, the more failures it is able to tolerate.
@@ -246,7 +249,7 @@ When replicas receive their configuration they can use these hints to delegate t
 If no hints are provided, then replica followers generally delegate their vote to the term 1 leader and hot spares to the closest subquorum leader.
 
 Delegation does add one complication: the root quorum leader must know all vote delegations to request votes when committing epoch changes.
-We deal with this issue, as well as the requirement for a nuclear option (\S~\ref{ch03_nuclear_option}), by simplifying our protocol.
+We deal with this issue, as well as the requirement for a \emph{nuclear option} (\S~\ref{ch03_nuclear_option}), by simplifying our protocol.
 Instead of sending vote requests just to subquorum leaders, \textbf{the root quorum leader sends vote requests to all system replicas.}
 This is true even for \emph{hot spares}, which are not currently in any subquorum.
 Delegates reply with the unique ids of the replicas they represent so that root consensus decisions are still made using a majority of all system replicas.
@@ -266,7 +269,7 @@ speed of root quorum operations is unchanged.
 % - anti-entropy and tombstones
 
 Every epoch represents a new configuration of the system as designated by the root leader.
-Changing configuration ensures that the system is both dynamic, responding both to failures and changing usage patterns, and to minimize coordination by colocating related objects.
+Efficient reconfiguration ensures that the system is both dynamic, responding both to failures and changing usage patterns, and minimizes coordination by colocating related objects.
 An epoch change is initiated by the root leader in response to one of several events, including:
 
 \renewcommand{\baselinestretch}{1}
@@ -285,8 +288,8 @@ The announcement may also include initial leaders for each subquorum, with the u
 Upon commit, the operation serves as an \emph{announcement} to subquorum leaders.
 Subquorum leaders repeat the announcement locally, disseminating full knowledge of the new system configuration, and eventually transition to the new epoch by committing an \texttt{epoch-change} operation locally.
 
-The epoch change is lightweight for subquorums that are not directly affected by the underlying re-configuration.
-If a subquorum is being changed or dissolved, however, the \emph{epoch-change} commitment becomes a tombstone written to the logs of all local replicas.
+The epoch change is lightweight for subquorums that are not directly affected by the overarching reconfiguration.
+If a subquorum is being changed or dissolved, however, the \emph{epoch-change} commitment becomes a tombstone written to the logs of all local replicas.4
 No further operations will be committed by that version of the subgroup, and the local shared log is archived and then truncated.
 Truncation is necessary to guarantee a consistent view of the log within a subquorum, as peers may have been part of different subquorums, and thus have different logs, during the last epoch.
 Replicas then begin participating in their new subquorum instantiation.
@@ -306,7 +309,7 @@ Safety is guaranteed by tracking subquorum dependencies across the epoch boundar
 
 The most complex portion of the HC protocol is in handling data-related issues at epoch transitions.
 Transitions may cause tags to be transferred from one subquorum to another, forcing the new leader to load state remotely to serve object requests.
-Transitions handshakes are augmented in three ways.
+Transition handshakes are augmented in three ways.
 First, an replica can demand-fetch an object version from any other system replica.
 Second, epoch handoffs contain enumerations of all current object versions, though not the data itself.
 Knowing an object's current version gives the new handler of a tag the ability to demand fetch an object that is not yet present locally.
@@ -412,7 +415,8 @@ The resulting consistency model can be reasoned about as \emph{grid consistency}
 \subsection{Grid Consistency}
 \label{ch03_grid_consistency}
 
-Grid consistency uses the Vertical Paxos log model to also model a global ordering of operations that ensure the state of the system is always consistent.
+Hierarchical consensus implements a multi-quorum model of consistency we call grid consistency.
+Grid consistency uses the Vertical Paxos three-dimensional log model to also model a global ordering of operations that ensure the state of the system is always consistent.
 We express total orderings as ``happened-before'' ($\rightarrow$) relationships~\cite{lamport_time_1978}.
 The grid is defined along the horizontal by each epoch or configuration.
 Epochs are totally ordered, such that $e_{x-1} \rightarrow e_{x}$, determined by the root log's consensus operations.
@@ -444,6 +448,9 @@ If the epoch has not been concluded, then the best the system can guarantee is s
 Once the epoch is concluded, however, there is no other ordering other than the one expressed by the grid -- therefore at the epoch's conclusion a linearizable total ordering exists, though it cannot be read from.
 However, because only a single subquorum will handle reads within an epoch (no other quorum will issue a read unless the epoch has changed) we posit that a client that reads only objects handled by a single subquorum has a linearizable view of those objects.
 Because linearizability is composable across objects, the system is linearizable.
+
+\subsection{Remote Accesses}
+\label{ch03_remote_accesses}
 
 The constraint that clients access only a single subquorum per epoch is acceptable in the common case, but because epoch changes require root quorum decisions, we allow cross-quorum communication via \emph{remote accesses}.
 Figure~\ref{fig:ch03_event_ordering_remote_write} shows additional dependencies created by issuing remote writes to other subquorums: $w_{i,2} \rightarrow w_{j,3}$ and $w_{j,2} \rightarrow w_{i,3}$.
@@ -483,14 +490,15 @@ The accused would not be able to prove that his post came first unless there wer
 \label{sec:ch03_log_ordering}
 
 Our default use case is in providing linearizable access to an object store.
-Though this approach allows us to guarantee all observers will see linearizable results of object accesses in real-time, the system is not able to enumerate a total order, or create a linearizable shared log.
-Such a linear order would require fine-grained (expensive) coordination across the entire system, or fine-grained clock synchronization~\cite{spanner}.
+Though this approach allows us to guarantee all observers will see linearizable results of object accesses in real-time, the system is not able to enumerate a total order or create a linearizable shared log.
+Such a linear order would require fine-grained (expensive) coordination across the entire system or fine-grained clock synchronization~\cite{spanner}.
 Though many or most distributed applications (objects stores, file systems, etc.) will work directly with HC, shared logs are a useful building block for distributed systems.
 
 HC \emph{can} be used to build a sequentially consistent (SC) shared log as shown in Figure~\ref{fig:ch03_log_ordering}.
-Like Lin, SC requires all observers to see a single total ordering.
-SC differs in that this total ordering does not have to be externalizable.
-Instead, it merely has to conform to local operation orders and all reads-from dependencies created by remote accesses.
+Because SC does not require an externalizable total ordering, it merely has to conform to local operation orders and all reads-from dependencies created by remote accesses.
+Therefore to construct a global log in real time, clients simply have to read from the logs of the subquorums, appending new entries as needed.
+If a client gets to a remote access in the log of a subquorum, it must read from the remote subquorums log until the access has completed, before continuing to append entries of the current log.
+This operation can be parallelized across multiple subquorum logs, requiring synchronization only at remote access points.
 
 \begin{landscape}
 \begin{figure}
@@ -513,6 +521,13 @@ We do not currently gather the entire shared log onto a single replica because o
 Capacity is limited because our system and applications are expected to be long-lived.
 Flexibility is a problem because HC, and applications built on HC, gain much of their value from the ability to pivot quickly, whether to deal with changes in the environment or for changing application access patterns.
 We require handoffs to be as lightweight as possible to preserve this advantage.
+
+Instead, we propose a checkpoint strategy based on epochs.
+Global logs may be used to recover side by side systems (such as a development environment) or for auditing purposes.
+Once an epoch has been fully concluded the state of the system remains constant and can be represented by a version-vector of metadata for each object.
+Auditing or recovery operations can then apply ongoing log accesses to the checkpoint state either for the entire system or simply a portion of the system.
+Once the desired state has been reached, the version-vector can then be used to extract the specific objects or history required.
+We utilized this method during development to provide consistency verification auditing across the system.
 
 \section{Safety and Correctness}
 \label{ch03_safety}
@@ -557,7 +572,7 @@ Root quorum beacon messages help inform replicas of leadership and configuration
 
 \renewcommand{\baselinestretch}{1}
 \small\normalsize
- \begin{table}[ht]
+ \begin{table}[t!]
 \caption[HC Failure Categories]{Failures include either node failure or network partitions which are detected by missed beacon or heartbeat messages. A replicas role and a threshold for the number of missed messages determines how the system responds.}
 \begin{center}
 \begin{tabular}{l|l}
@@ -585,23 +600,24 @@ At maximum, HC's basic protocol can tolerate up to: $f_{best} = (m+1)*n + m*(2n+
 As an example a 25/5 system, that is a system of 25 replicas with size 5 subquorums ($m=2, n=2$), can tolerate at least 8 and up to 16 failures.
 A 21/3 system can tolerate at least 7, and a maximum of 12, failures out of 21 total replicas.
 
-To achieve best possible fault tolerance, the root quorum operates strategically to handle failures.
+To tolerate the most faults, the root quorum operates strategically to handle failures.
 For example, individual subquorums might still be able to perform local operations despite an impasse at the global level.
 The root quorum chooses carefully whether a failure type should involve a reconfiguration or whether the system should wait for an outage to be repaired.
+
 There are two primary types of failures though that have to be dealt with specifically.
 Total subquorum failure can temporarily cause a portion of the namespace to be unserved (or only served locally).
 In this case we use obligation timeouts to determine when the root quorum should force a configuration change.
-Additionally in the face of delegate assassination, where no root quorum decisions can be made, we use the nuclear option to eliminate delegates and require every replica to contribute their own vote.
+Additionally in the face of delegate assassination, where no root quorum decisions can be made, we use the nuclear option to eliminate delegates and require every replica to contribute their own votes.
 
 \subsection{The Nuclear Option}
 \label{ch03_nuclear_option}
 
 Singleton consensus protocols, including Raft, can tolerate just under half of the entire system failing.
 As described above, HC's structure makes it more vulnerable to clustered failures.
-Therefore we define a \emph{nuclear option}, which uses direct consensus decision making among all system replicas to tolerate any $f$ replicas failing out of $2f+1$ total replicas in the system.
+Therefore we define a \emph{nuclear option}, which uses direct consensus among all system replicas to tolerate any $f$ replicas failing out of $2f+1$ total replicas in the system.
 
 A nuclear vote is triggered by the failure of a root leader election.
-A \emph{nuclear candidate} increment's its term for the root quorum and broadcasts a request for votes to all system replicas.
+A \emph{nuclear candidate} increments its term for the root quorum and broadcasts a request for votes to all system replicas.
 The key difficulty is in preventing delegated votes and nuclear votes from reaching conflicting decisions.
 Such situations might occur when temporarily unavailable subquorum leaders regain connectivity and allow a wedged root quorum to unblock.
 Meanwhile, a nuclear vote might be concurrently underway.
@@ -652,18 +668,21 @@ If the obligation period times out without being renewed, the subquorum is oblig
 The problem is that the subquorum that is reallocated that portion of the namespace presumably would not be able to achieve a hand-off with the partitioned system.
 It is also possible that the region the subquorum was configured in simply cannot be reconfigured through a root consensus decision.
 In this case, there would be an unacceptable period of unavailability for that portion of the namespace.
+
 To deal with this situation, both the newly configured subquorum and the previous subquorum must go into an ``unstable'' state, informing clients that their writes are not guaranteed the level of consistency the system normally provides.
-Using a federated consistency model, replicas would simply assume a lower level of consistency.
-Unstable mode is repaired in one of two cases, either the partitioned subquorum comes back on line and is able to automatically negotiate the epoch transition, fixing conflicts where necessary or it manually determined that the subquorum had been destroyed, which results in data loss anyway.
-Optimizations such as anti-entropy replication of data across regions and global views of data versions minimize the impact of such loss, but cannot prevent it.
+Using a federated consistency model (discussed in Chapter~\ref{ch:federated_consistency}), replicas would simply assume a lower level of consistency.
+An unstable mode of operation is repaired in one of two cases.
+First, the partitioned subquorum may come back on line and is able to automatically negotiate the epoch transition, fixing conflicts where necessary.
+Otherwise, the root quorum must manually determine that the subquorum had been destroyed, which results in data loss anyway.
+Optimizations such as anti-entropy replication (described in \S~\ref{ch04_anti_entropy}) of data across regions and global views of data versions minimize the impact of such loss, but cannot prevent it.
 
 \section{Performance Evaluation}
 \label{ch03_evaluation}
 
 HC was designed to adapt both to dynamic workloads as well as variable network conditions.
 We therefore evaluate HC in two distinct environments: a homogeneous data center and a heterogeneous real-world network.
-The homogeneous cluster is hosted on Amazon EC2 and includes 26 ``t2.medium'' instances: dual-core virtual machines running in a single VPC with inter-machine latencies of $\lambda_{\mu}=0.399ms$ and $\lambda_{\sigma}=0.216ms$.
-These machines are cost effective and, though lightweight, are easy to scale to large cluster sizes as workload increases.
+The homogeneous cluster is hosted on Amazon EC2 and includes 26 ``t2.medium'' instances: dual-core virtual machines running in a single VPC with inter-machine latencies ($\lambda$) normally distributed with a mean, $\lambda_{\mu}=0.399ms$ and standard deviation, $\lambda_{\sigma}=0.216ms$.
+These machines are cost-effective and, though lightweight, are easy to scale to large cluster sizes as workload increases.
 Experiments are set up such that each instance runs a single replica process and multiple client processes.
 
 The heterogeneous cluster (UMD) consists of several local machines distributed across a wide area, with inter-machine latencies ranging from
@@ -804,7 +823,7 @@ This may be optimized by having leadership assigned or maintained through root c
 
 Most consensus algorithms have their roots in the Paxos algorithm, originally described in parliamentary terms.
 The metaphor of government still applies well as we look at the evolution of distributed coordination as systems have grown to include large numbers of processes and geographies.
-Systems that use a dedicated leader are easy to reason about and implement, however, like chess, if the leader goes down the system cannot make any\ progress.
+Systems that use a dedicated leader are easy to reason about and implement. However, as in chess, if the leader fails the system cannot make any progress.
 Simple democracies for small groups solve this problem but do not scale, and as the system grows, it fragments into tribes.
 Inspired by modern governments, we have proposed a representative system of consensus, hierarchical consensus, such that replicas elect leaders to participate in a root quorum that makes decisions about the global state of the system.
 Local decision making, the kind that effects only a subset of clients and objects is handled locally by subquorums as efficiently as possible.

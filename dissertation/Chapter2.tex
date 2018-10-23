@@ -18,7 +18,7 @@
 The advent of cloud computing has accelerated both commercial and academic interest in distributed systems connected via wide area networks and the Internet.
 Cloud computing exists because large Internet companies, which had deployed extremely large data centers around the world to meet global user demand for their services, created extra capacity that could be leased to tenants on-demand.
 The global nature of cloud providers means that there is an opportunity for more common usage of geographically replicated data systems besides the specialized systems they developed for internal use.
-Though these systems have been made available to customers as provisioned services, they suffer from application-specific data models to narrow to solve general problems.
+Though these systems have been made available to customers as provisioned services, they suffer from application-specific data models too narrow to solve general problems.
 
 The specialization of the current generation of distributed systems is designed to optimize their behavior when deployed within a pristine data center context.
 This environment, with strong facility support and backbone communications, allows design choices that optimistically assume that repairs will be made quickly and that redundancy need only protect from few failures at a time~\cite{bermbach_eventual_2011,wada_data_2011,node_failure,jhawar_fault_2013}.
@@ -50,7 +50,7 @@ What followed was the rise and fall of NoSQL data systems, a microcosm of the pr
 Although there are many facets to the story of NoSQL, what concerns us most is the use of NoSQL to create geographically distributed systems, as these systems paved the way to the large-scale storage systems in use today.
 The commercial and open source interest in geo-replicated systems both for big data analysis and Web application development has led to the development of many database and file systems.
 These systems share common traits, allowing us to describe a general architecture for distributed systems.
-More importantly, the prevalence of such systems has led to a new application development paradigm: modern software must be designed as a global services.
+More importantly, the prevalence of such systems has led to a new application development paradigm: modern software must be designed as a global service.
 
 \subsection{A New Application Development Paradigm}
 \label{ch02_new_software_paradigm}
@@ -93,7 +93,7 @@ Even though there may be some cross-region backup to prevent catastrophic failur
 
 Region-based organization of cloud services has ensured that users are able to minimize latencies and provide applications to areas of interest, but applications have increasingly become more global.
 The possibility of region-agnostic deployment is tantalizing, particularly as larger applications spend a non-trivial amount of administration time determining where writes to objects are going to optimize their systems.
-Consistent updates across regions are not even considered as a possibility because in-house cloud services used data models that avoided large latencies wherever possible.
+Consistent updates across regions are not generally considered as a possibility because in-house cloud services used data models that avoided large latencies wherever possible.
 Moreover, as we will see in the next section, the design of provisioned cloud databases have made it difficult to reason about consistent behavior.
 Not only is there a need for strong consistency semantics, data-location awareness, and geo-replication in distributed data storage systems, there is also the need for a familiar and standardized storage API.
 
@@ -104,6 +104,7 @@ The growth of database systems distributed across the wide-area started with lar
 One reason that the commercial systems enjoyed this academic attention was that at the time, the unique scale of their usage validated the motivation behind their architecture.
 However their success has meant that these types of scales are no longer limited to huge software systems.
 The development of geo-replicated services has therefore undergone several phase shifts, and has led to a general framework that underlies most current systems.
+In this section we outline these phases and describe the general framework with a blueprint for designing large-scale distributed systems (see Figure~\ref{fig:ch02_distributed_architecture}), which we then use to motivate our system architecture.
 
 The first shift was the creation of highly available, sharded systems intended to meet the demand of increasing numbers of clients.
 Commercially, these types of systems include Dynamo~\cite{dynamo} and BigTable~\cite{bigtable}, which in turn spawned open source and academic derivatives such as Cassandra~\cite{cassandra} and HBase~\cite{hbase}.
