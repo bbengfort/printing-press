@@ -5,17 +5,27 @@
 \chapter{Related Work}
 \label{ch:related_work}
 
-Spanner~\cite{spanner} provides global consistency by sharding each tablet across multiple Paxos groups then externalizes their consistency using TrueTime, delaying the commit until a window of uncertainty has passed.
+Our work is heavily inspired by the OceanStore~\cite{oceanstore} project and its prototype, Pond~\cite{pond}.
+Before Amazon Web Services, Google Cloud, or Microsoft Azure, OceanStore changed the way researchers thought about wide area distributed systems, transforming the literature to consider truly global services and directly leading to research platforms like PlanetLab~\cite{planetlab}.
+Our goal is to provide a consistency-centric model for global scale systems that enables the same type of research platform.
+We target a globally distributed file system as a primary application because it serves a wide cross-section of systems research from databases to networking and operating systems.
 
-CalvinFS~\cite{calvindb,calvinfs} batches transaction operations across the wide area, but still requires paxos to be deployed across the wide area.
+The OceanStore model was based on an untrusted infrastructure and therefore relied on byzantine fault tolerance~\cite{byzantine-generals, byzantine_fault_tolerance,fail-stop,ho_nysiad_2008,kotla_zyzzyva_2007,singh_zeno_2009}.
+Around the same time, other distributed systems like the Farsite file system~\cite{farsite,farsite_byzantine} and PBFT~\cite{pbft} also principally considered byzantine agreement instead of performance.
+The rise of cloud services shifted the focus to trusted infrastructure and high throughput file systems such as Ceph~\cite{ceph} and GFS/HDFS~\cite{gfs,hdfs,hadoop_hdfs}.
+We do not foresee an abatement of the trusted infrastructure assumption either, as more recent work in large distributed file systems such as CalvinFS~\cite{calvinfs}, Giga+~\cite{giga+,giga+_scale}, IndexFS~\cite{indexfs} and GlobalFS~\cite{globalfs} all make the same assumptions.
+Even if a cloud provider is not trusted, a trust layer can be created on the cloud using models similar to SUNDR~\cite{sundr} or securely across multiple providers using SPORC~\cite{sporc}.
 
-Systems that implement many small quorums of
-coordination~\cite{mdcc,scatter,spanner} avoid the centralization bottleneck
-and reliability concerns of master-service
-systems~\cite{gray_dangers_1996,gfs} but create silos of independent
-operation that are not coordinated with respect to each other.
+The shift to cloud providers also shifted research away from file systems toward application-specific databases.
+In Chapter~\ref{ch:architecture} we described the evolution of cloud database design, from relaxed consistency models~\cite{bigtable,dynamo,pnuts,cassandra,hbase} to much stronger consistency~\cite{megastore,spanner,aurora}.
+Figure~\ref{fig:ch02_distributed_architecture} generalized these models by describing how they provide global consistency by sharding the namespace to specific geographic regions.
+Systems that implement many small quorums of coordination~\cite{mdcc,scatter,spanner} avoid the centralization bottleneck and reliability concerns of master-service systems~\cite{gray_dangers_1996,gfs} but create silos of independent operation that are not coordinated with respect to each other.
+In order to externalize a single consistent view, these systems rely on a complex multi-process architecture that makes it difficult to reason about the many layers of replication and consistency.
 
-We have theorized that cloud services present the opportunity for deploying data services on a trusted infrastructure. If it is not trusted, however, we can use an encryption model similar to SPORC to combine multiple cloud providers into a single data system~\cite{sporc}.
+Our work unifies these ideas into a consistency-centric model for globally distributed systems.
+We propose a single system based on a key/value object store that is federated in both a cloud environment and in a heterogeneous fog.
+This unification makes it simpler to reason about consistency and to build complex distributed applications.
+In the next sections we will conclude our related work by describing work related to hierarchical consensus and federated consistency.
 
 \section{Hierarchical Consensus}
 
@@ -26,8 +36,29 @@ These approaches focus on fast vs. slow path consensus, eliding phases with depe
 Our work is also orthogonal in that subquorums and the root quorums can be implemented with different underlying protocols, though the two levels must be integrated quite tightly.
 Further, HC abstracts reconfiguration away from subquorum consensus, allowing multiple subquorums to move into new configurations and reducing the need for joint consensus~\cite{raft} and other heavyweight procedures.
 Finally, its hierarchical nature allows the system to multiplex multiple consensus instances on disjoint partitions of the object space while still maintaining global consistency guarantees.
+% We describe some key differences between different distributed consensus protocols in Table~\ref{tab:distributed_consensus_comparison}.
+%
+% \begin{landscape}
+% \renewcommand{\baselinestretch}{1}
+% \small\normalsize
+%  \begin{table}
+% \caption[Comparison of Distributed Consensus]{A comparison of distributed consensus algorithms in a variety of scenarios.}
+% \begin{center}
+% \begin{tabular}{|p{1.6in}|p{1.6in}|p{1.6in}|p{1.6in}|p{1.6in}|}
+% \hline
+% \textbf{Scenario} & \textbf{Raft} & \textbf{ePaxos} & \textbf{Vertical Paxos} & \textbf{Hierarchical Consensus} \\
+% \hline \hline
+% Reads & Immediate response from leader (forward to leader). & Response from any replica after dependency resolution. & Read quorums overlap with write quorums to respond to requests. & Forward to leader of subquorum who responds or remote reads if required. \\
+% \hline
+% \end{tabular}
+% \end{center}
+% \label{tab:distributed_consensus_comparison}
+% \end{table}
+%  \renewcommand{\baselinestretch}{2}
+% \small\normalsize
+% \end{landscape}
 
-The global consistency guarantees of HC are in direct contrast to other systems that scale by exploiting multiple consensus instances~\cite{bigtable,mdcc,spanner} on a per-object basis.
+The global consistency guarantees of HC are in direct contrast to other systems that scale by exploiting multiple consensus instances~\cite{bigtable,mdcc,megastore} on a per-object basis.
 These systems retain the advantage of small quorum sizes but cannot provide system-wide consistency invariants.
 Another set of systems uses quorum-based decision-making but relaxes consistency guarantees~\cite{dynamo,pnuts,cops}; others provide no way to pivot the entire system to a new configuration~\cite{scatter}.
 Chain replication~\cite{van2004chain} and Vertical Paxos~\cite{vertical_paxos} are among approaches that control Paxos instances through other consensus decisions.
@@ -38,13 +69,15 @@ Possibly the closest system to HC is Scatter~\cite{scatter}, which uses an overl
 Neighbors can join, split, and talk amongst themselves. The bottom-up approach potentially allows scaling to many subquorums, but the lack of central control makes it hard to implement global re-maps beyond the reach of local neighbors.
 HC ties the root quorum and subquorums tightly together, allowing root quorum decisions to completely reconfigure the running system on the fly either on demand or by detecting changes in network conditions.
 
-We claim very strong consistency across a large distributed system, similar to Spanner~\cite{spanner}.
+We claim very strong consistency across a large distributed system, similar to Spanner~\cite{spanner} and CalvinFS~\cite{calvindb,calvinfs}.
 Spanner provides linearizable  transactions through use of special hardware and environments, which are used to tightly synchronize clocks in the distributed setting.
-Spanner therefore relies on a very specific, curated environment. HC targets a wider range of systems that require cost effective scaling in the data center to rich dynamic environments with heterogeneity on all levels.
+Spanner therefore relies on a very specific, curated environment.
+HC targets a wider range of systems that require cost effective scaling in the data center to rich dynamic environments with heterogeneity on all levels.
+CalvinFS~\cite{calvindb,calvinfs} batches transaction operations across the wide area to minimize communication, but still requires a geographically replicated Paxos instance to coordinate transactions.
 
 Finally, shared logs have proven useful in a number of settings from fault tolerance to correctness guarantees.
 However, keeping such logs consistent in even a single consensus instance has proven difficult~\cite{chubby,gfs,zookeeper}.
-More recent systems are leveraging hardware support to provide fast access to shared logs~\cite{vcorfu,tango,calvindb,calvinfs,hyder-a,fawn}.
+More recent systems are leveraging hardware support to provide fast access to shared logs~\cite{vcorfu,tango,hyder-a,fawn}.
 To our knowledge, HC is the first work to propose synchronizing shared logs across multiple discrete consensus instances in the wide area.
 
 \section{Federated Consistency}
@@ -70,10 +103,7 @@ The next level above per-operation consistency hybridization is called
 \textit{consistency rationing} wherein individual objects or groups of objects
 have different consistency levels applied to them to create a global quality
 of service guarantee.
-Kraska et al.
-\cite{consistency_rationing} initially proposed consistency rationing be on
-a per-transaction basis by classifying objects in three tiers: eventual,
-adaptable, and linearizable.
+Kraska et al.~\cite{consistency_rationing} initially proposed consistency rationing be on a per-transaction basis by classifying objects in three tiers: eventual, adaptable, and linearizable.
 Objects in the first and last groups were automatically assigned transaction
 semantics that maintained that level of consistency; however objects assigned
 the adaptable categorization had their consistency policies switched at
@@ -120,35 +150,6 @@ Yu and Vahdat \cite{conit_continous_consistency} propose the \textit{conit}, a c
 unit described as a three dimensional vector that describes tolerable
 deviations from linearizability along staleness, order error, and numeric
 ordering.
-Similarly, Afek et al.
-\cite{quasi_linearizability} present quasi-linearizable histories
+Similarly, Afek et al.~\cite{quasi_linearizability} present quasi-linearizable histories
 which specify a bound on the relative movement of ordered items in a log which
 make it legally sequential.
-
-A strong central core to provide support to the entire system has been
-suggested both in Oceanstore \cite{oceanstore} and primary
-copy schemes \cite{gray_dangers_1996,vertical_paxos}.
-We take this idea further in our experiments by Federating a strong central
-core composed of Replicas that perform consensus via the Raft consensus
-protocol and combine it with highly available eventually consistent systems.
-In this way Federated consistency gains the flexibility and availability of
-the Eventual replicas (leader re-election and no requirement for remote writes
-mean that the replica can continue even if it is completely partitioned from
-the rest of the network) while still getting guarantees from Raft, which
-minimizes ``fork flipping'' -- the behavior of writing to one branch then
-another, truly pernicious inconsistent behavior that cannot be prevented in an
-eventually consistent system.
-
-System designers can take advantage of heterogeneous replicas by implementing
-stronger consistency on more reliable machines that are able to handle more
-messages.
-Mobile replicas that are prone to network loss, out of order or missed
-messages, or other variable behavior can adapt their policy depending on the
-environment they're in.
-Our model also allows for \textit{adaptive} behavior, in that the replicas can
-monitor the environment for change and as the mean latency decreases, adapt
-their $T$ parameter accordingly.
-This is a no cost operation for Eventual replicas (who can also optimize
-pairwise gossip by implementing non-discrete random selection using Bandits or
-other optimization techniques), and only requires joint consensus on the part
-of the consensus group.
