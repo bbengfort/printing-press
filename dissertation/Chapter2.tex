@@ -16,21 +16,22 @@
 % The primary purpose of this chapter is to show that our core component, hierarchical consensus is the center of any geo-replicated system.
 
 The advent of cloud computing has accelerated both commercial and academic interest in distributed systems connected via wide area networks and the Internet.
-Cloud computing exists because large Internet companies, which had deployed extremely large data centers around the world to meet global user demand for their services, created extra capacity that could be leased to tenants on-demand.
+Cloud computing exists because large Internet companies, which had deployed extremely large data centers around the world to meet global user demand for their services, created extra compute, network, and storage capacity that could be leased to tenants on-demand.
 The global nature of cloud providers means that there is an opportunity for more common usage of geographically replicated data systems besides the specialized systems they developed for internal use.
-Though these systems have been made available to customers as provisioned services, they suffer from application-specific data models too narrow to solve general problems.
+Though systems such as Dynamo and Spanner have been made available to customers as provisioned services, they suffer from application-specific data models too narrow to solve general problems.
 
-The specialization of the current generation of distributed systems is designed to optimize their behavior when deployed within a pristine data center context.
+The specialization of the current generation of distributed systems is designed to optimize their behavior and performance when deployed within a pristine data center context.
 This environment, with strong facility support and backbone communications, allows design choices that optimistically assume that repairs will be made quickly and that redundancy need only protect from few failures at a time~\cite{bermbach_eventual_2011,wada_data_2011,node_failure,jhawar_fault_2013}.
 This has led to a general architecture for geo-replication that provisions consistency requirements across transactions, individual objects, and within blocks stored on disk, often leading to multiple, independent consistency models within the same system.
-This design leads to confusion about where data is stored and what guarantees can be made about each access.
+While component based design optimizes cloud development and runtime debugging, it also creates confusion about where and how data is stored and what guarantees can be made about each access.
 
-Instead, a single, global consistency model is required to correctly reason about a single, global system's behavior.
+To correctly reason about a single system's global behavior, a single, global consistency model is required.
 The central thesis of this dissertation is that this can only be achieved with a globally-distributed consensus protocol.
 
-Consistency depends on the network environment and in highly curated data centers, systems are built using localized consensus~\cite{bolosky_paxos_2011}.
-Outside the data center, however, single process failures show the impossibility of distributed consensus~\cite{fischer_impossibility_1985}.
-Therefore our approach is a continuous, flexible consistency model with geographic consensus at its core and a federated approach at its edge.
+Furthermore, consistency depends on the network environment.
+In highly curated data centers, systems are built using localized consensus~\cite{bolosky_paxos_2011} because inter-rack latency is low and disk failures are common.
+Outside the data center, however, single process failures resulting from variable network conditions or heterogenous resources show the impossibility of distributed consensus~\cite{fischer_impossibility_1985}.
+Therefore instead of applying a single, brittle consistency protocol, our approach is a continuous, flexible consistency model with geographic consensus at its core and a federated hybridization at its edge.
 The result is a single, understandable consistency model that leads to an architecture capable of supporting global systems both inside and outside of the data center.
 
 In this chapter, we will describe the details of our proposed architecture for a planet-wide distributed data store.
@@ -67,7 +68,7 @@ The original launch of the game was in 5 countries -- Australia, New Zealand, th
 The success of the game meant worldwide demand, and it was subsequently expanded to over 200 countries starting with Japan~\cite{yamazaki_developer_2016}.
 Unlike previous games that were restricted with region locks~\cite{region_locking}, Pokémon GO was a truly international phenomenon and Niantic was determined to allow international interactions in the game's feature set, interaction which relies on Google's unified international architecture and globally distributed databases.
 
-Stories such Niantic's deployment are increasingly becoming common and medium to large applications now \emph{require developers to quickly reason about how data is distributed in the wide area, different political regions, and replicated for use around the world}.
+Stories such Niantic's deployment are increasingly becoming common and medium to large applications now require developers to quickly reason about how data is distributed in the wide area, different political regions, and replicated for use around the world.
 
 It is not difficult to find many examples of companies and applications, from large to small, that have international audiences and global deployments which highlight the new challenges of software development.
 Dropbox has users in over 180 countries and is supported in 20 languages, maintaining offices in 12 locations from Herzliya to Sydney \cite{dropbox}.
@@ -84,7 +85,7 @@ Web developers are increasingly discussing and using container based approaches 
 Web frameworks have built in localization tools that are employed by default.
 Services are deployed on autoscaling cloud platforms from the start.
 
-To address this paradigm shift, cloud service providers have expanded their offerings to include use of their distributed data stores to application developers, as in the case of Niantic.
+To address this paradigm shift, cloud service providers have expanded their offerings to provide instances their internally-developed distributed data stores to application developers, as in the case of Niantic.
 This presents two problems, however.
 First, those systems were designed for the huge applications of the Internet companies themselves, not for the general needs of a large audience of developers.
 Second, cloud providers organized their services around geographically distinct regions, allowing their tenants the choice to deploy their applications in one or more regions.
@@ -122,8 +123,8 @@ These systems have defined several strategies from relaxed consistency to interv
 The first and primary strategy, however, is to shard data into independent groups of semi-related objects.
 A shard can be specifically defined either as buckets of objects, tablets of contiguous rows, or in the most extreme cases, individual objects.
 
-Sharding allow extremely massive databases and file systems to be broken down into smaller, related pieces that are more easily managed in a distributed context.
-Sharding allows concurrent access to objects without synchronization.
+Sharding allows extremely massive databases and file systems to be broken down into smaller, related pieces that are more easily managed in a distributed context.
+Perhaps more importantly, this decomposition also allows concurrent access to objects without latency-inducing synchronization.
 If a shard is defined within a specific region, then it is easy to prioritize local accesses and coordination with that region.
 Sharding also provides a data model for underlying redundant storage.
 If a tablet can be written to a specific page on disk, that page can also be replicated to more easily colocate replicas with data.
@@ -131,10 +132,11 @@ If multiple shards need to be accessed simultaneously in a transaction, then
 only the shards involved in the transaction need be coordinated, while all other shards can remain independent.
 
 The unit of coordination is therefore at the shard level.
-The namespace of the system must be allocated to individual components of the system, which must be globally available, and requires coordination to move part of the namespace from one region to another.
+Objects must be assigned to shards via a namespace, which must be allocated to individual components of the system.
+The namespace must be globally available, and therefore requires coordination to move part of the namespace from one region to another.
 Accesses to data on disk for individual objects must also be allowed to happen in a fault-tolerant manner, which requires coordination between several replicas to guarantee no data loss.
 Finally, transactions that require access to multiple objects must be coordinated to ensure atomic guarantees.
-To support all of these features in a system, a multi-process architecture of independent components for geo-replication is generally deployed, as shown in Figure~\ref{fig:ch02_distributed_architecture}.
+To support all of these features in a system, a multi-process architecture of independent components for geo-replication is generally utilized, as shown in Figure~\ref{fig:ch02_distributed_architecture}.
 
 \begin{figure}
     \begin{center}
@@ -156,7 +158,7 @@ Multiple, concurrent requests are load-balanced to container based compute nodes
 Though this aspect of distributed applications is outside the scope of a geo-replicated data store, the increased frequency of accesses across multiple regions increases the likelihood of collisions -- concurrent access by multiple clients to the same object(s), which leads to the consistency concerns of this dissertation.
 
 The data layer follows the application logic layer and is the layer that must coordinate accesses from many simultaneous geographies.
-If the data layer supports transactions~\cite{hat,calvindb,calvinfs,cockroachdb,vitess,aurora} then the top level of coordination is the transaction manager, which is responsible for identifying the shards that manage the objects and correctly committing or rolling back the transaction.
+If the data layer supports transactions~\cite{hat,calvindb,calvinfs,cockroachdb,vitess,aurora} then the top level of coordination is the transaction manager, which is responsible for identifying the shards being accessed and correctly committing or rolling back the transaction.
 Other systems support snapshot isolation for read-transactions~\cite{spanner,megastore}, ensuring that all reads for a specified time window are consistent.
 
 If the data layer does not support transactions or if only a single object is being accessed, then the system must coordinate with the shard master, a process that allocates the namespace to the replicas that manage those objects.

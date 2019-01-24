@@ -5,12 +5,12 @@
 \chapter{Related Work}
 \label{ch:related_work}
 
-Our work is heavily inspired by the OceanStore~\cite{oceanstore} project and its prototype, Pond~\cite{pond}.
-Before Amazon Web Services, Google Cloud, or Microsoft Azure, OceanStore changed the way researchers thought about wide area distributed systems, transforming the literature to consider truly global services and directly leading to research platforms like PlanetLab~\cite{planetlab}.
+Our work is heavily inspired by the Oceanstore project~\cite{oceanstore} and its prototype, Pond~\cite{pond}.
+Before Amazon Web Services, Google Cloud, or Microsoft Azure, Oceanstore changed the way researchers thought about wide area distributed systems, transforming the literature to consider truly global services and directly leading to research platforms like PlanetLab~\cite{planetlab}.
 Our goal is to provide a consistency-centric model for global scale systems that enables the same type of research platform.
 We target a globally distributed file system as a primary application because it serves a wide cross-section of systems research from databases to networking and operating systems.
 
-The OceanStore model was based on an untrusted infrastructure and therefore relied on byzantine fault tolerance~\cite{byzantine-generals, byzantine_fault_tolerance,fail-stop,ho_nysiad_2008,kotla_zyzzyva_2007,singh_zeno_2009}.
+The Oceanstore model was based on an untrusted infrastructure and therefore relied on byzantine fault tolerance~\cite{byzantine-generals, byzantine_fault_tolerance,fail-stop,ho_nysiad_2008,kotla_zyzzyva_2007,singh_zeno_2009}.
 Around the same time, other distributed systems like the Farsite file system~\cite{farsite,farsite_byzantine} and PBFT~\cite{pbft} also principally considered byzantine agreement instead of performance.
 The rise of cloud services shifted the focus to trusted infrastructure and high throughput file systems such as Ceph~\cite{ceph} and GFS/HDFS~\cite{gfs,hdfs,hadoop_hdfs}.
 We do not foresee an abatement of the trusted infrastructure assumption either, as more recent work in large distributed file systems such as CalvinFS~\cite{calvinfs}, Giga+~\cite{giga+,giga+_scale}, IndexFS~\cite{indexfs} and GlobalFS~\cite{globalfs} all make the same assumptions.

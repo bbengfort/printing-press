@@ -6,16 +6,19 @@
 \label{ch:introduction}
 % Going for about 5 pages or so here.
 
-Eighteen years ago the Oceanstore paper~\cite{oceanstore} presented a vision for a data utility infrastructure that spanned the globe.
-The economic model was that of a cooperative utility provided by a confederation of companies that could buy and sell capacity to directly support their users, with regional providers like airports and cafes installing servers to enhance performance for a small dividend of the utility.
-This economic model meant that Oceanstore's requirements centered around an untrusted infrastructure to support nomadic data: connectivity, security, durability, and location agnostic storage.
-To meet these requirements, the Oceanstore architecture was composed of two tiers: pools of byzantine quorums that made localized consistency and placement decisions, along with an optimistic dissemination tree layer that moved data between quorums as correctly as possible without providing guarantees.
-This architecture, along with a reliance on encryption and key-based access control, could facilitate grid computing storage, a truly decentralized and independent participation of heterogenous computational resources across the globe~\cite{grid_computing}.
+Eighteen years ago a dramatic vision for a globe-spanning distributed storage infrastructure called Oceanstore~\cite{oceanstore} was presented as an economic model for nomadic data.
+The central premise was a cooperative utility provided by a confederation of companies that could buy and sell capacity to directly support their users. Additionally, regional providers like airports and cafes could install servers to enhance performance for a small dividend of the utility.
+This economic model meant that Oceanstore's computational requirements centered around an untrusted infrastructure: connectivity, security, durability, and location agnostic storage.
+To meet these requirements, the Oceanstore architecture was composed of two tiers: pools of byzantine quorums and an optimistic dissemination tree layer.
+Both tiers propagated data in fundamentally different ways: the byzantine quorums localized consistency and made data placement decisions, while the dissemination layer moved data between quorums as correctly as possibly without providing any consistency guarantees.
+The goal of this architecture was to facilitate grid computing storage, truly decentralized and independent participation of heterogenous computational resources across the globe~\cite{grid_computing}.
+Because of the heterogenous nature of grid computing, the architecture relied heavily on encryption and key-based access control, prioritizing byzantine algorithms for distributed trust.
 
 Unforeseen by Oceanstore, however, was a fundamental shift in how companies and users accessed computing infrastructure.
 Improvements in virtualization management~\cite{eucalyptus} and later container computing~\cite{docker} allowed big Internet companies to easily lease their unused computational resources and disk capacity to application developers, making cloud computing~\cite{cloud_computing} rather than independent hardware purchasing and hosting the norm.
-Furthermore, from smarter phones to tablets and netbooks, user devices have become increasingly mobile with reduced disk capacities, which meant that applications, from photos to email and contacts, primarily store user data in cloud silos.
-The cloud economy means that there is a \emph{trusted infrastructure} of virtual resources that span globe, provisioned by a single provider as shown in Figure~\ref{fig:ch01_cloud_data_centers}.
+Furthermore, from smarter phones to tablets and netbooks, user devices have become increasingly mobile with reduced disk capacities, requiring applications to store user data in cloud silos even if they had relatively modest data requirements (e.g. not just photo or video applications but also email or contacts).
+Cloud storage further enhanced a user's view of being able to access their data anywhere, on any device, further increasing the popularity of the centralizing tendency of the cloud.
+The cloud economy means that there is a \emph{trusted infrastructure} of virtual resources that span globe, provisioned by a single provider rather than a confederation of services demonstrated by the major cloud provider's regional datacenters shown in Figure~\ref{fig:ch01_cloud_data_centers}.
 
 \begin{figure}
     \begin{center}
@@ -40,13 +43,15 @@ Increased capacity, however, cannot come at the cost of correctness or consisten
 For these reasons, we believe that a vision for an Oceanstore today would focus on \emph{consistency} rather than security.
 
 % How do we transition to this paragraph?
-Consistent behavior in distributed systems becomes increasingly complex to implement and reason about as the system size grows and requires increased coordination.
+As system size and network distance increases, consistent behavior in distributed systems becomes increasingly complex to implement and reason about because larger systems have even larger coordination requirements.
+Addressing this level of complexity is imperative for modern systems, because these systems are constantly growing.
 In 2021, Cisco forecasts over 25 billion devices will contribute to 105,800 GBps of global Internet traffic, 26\% of which will be file sharing and application data, and 51\% of which will originate from machine to machine-to-machine applications \cite{cisco_internet_trends}.
 New types of networks including sensor networks~\cite{sensor_networks}, smart grid solutions~\cite{smart_grid}, self-driving vehicle networks~\cite{sotis}, and an Internet of Things~\cite{iot} will mean an update model with many publishers, few subscribers, and increasingly distributed accesses.
-To support this growth and facilitate speed, traffic is consistently moving closer to the edge; Cisco predicts that cross-continent delivery will drop from 58\% of traffic in 2016 to 41\% in 2021 and that metro delivery will grow from 22\% to 35\% \cite{cisco_internet_trends}.
-Localization means that the cloud will be surrounded by a fog of devices that participate in systems by contributing data storage and computation to an extent greater than access-oriented clients might.
+To support this growth and facilitate speed, network traffic is moving closer to edge services; Cisco predicts that cross-continent delivery will drop from 58\% of traffic in 2016 to 41\% in 2021 and that metro delivery will grow from 22\% to 35\% \cite{cisco_internet_trends}.
+The trend toward localization means that the cloud will be surrounded by a fog of devices that participate in systems by contributing data storage and computation to an extent greater than access-oriented clients might.
 
-Based on these trends and inspired by the work of Oceanstore, we propose that a planetary-scale data storage system would be made up of an adaptable, two tier architecture of both cloud and fog infrastructure.
+These trends mean even more computational regions are coming online creating a unique opportunity and need for systems that exist in both data centers and edge network environments.
+Inspired by the work of Oceanstore, we propose a planetary-scale data storage system made up of an adaptable, two tier architecture of both cloud and fog infrastructure.
 The first tier, in the cloud, would be a strong consistency, fault tolerant and highly resilient geo-replicated consensus backbone.
 The second tier, via the fog, would be a high availability heterogenous network with a relaxed consistency model that could quickly disseminate updates.
 Such a system would be difficult to manually manage, therefore both tiers and the system as a whole would also have to automatically monitor and adapt to changes in access patterns and node and network availability during runtime.
@@ -80,4 +85,4 @@ In the next chapter we will more thoroughly describe our proposed geo-replicated
 Next, we will focus on the core backbone of our system, hierarchical consensus, and describe a globally fault tolerant approach to managing accesses to objects in the wide area.
 Using hierarchical consensus as a building block, the next chapter will focus on federated consistency, specifying a hybrid, heterogenous consistency model in the fog that interacts with the cloud consensus tier.
 At this point we will have enough background to introduce our system implementation and describe our file system and key-value store.
-From there, we will explore learning systems that monitor and adapt the performance of the system at runtime, before concluding with related work and a discussion of our future research.
+From there, we will explore learning systems that monitor and adapt the performance of the system at runtime, before concluding with related work and a discussion of related future research.

@@ -21,15 +21,17 @@ Such systems of replicas might also be dynamic in membership, unbalanced across 
 Most importantly, to provide a backbone for a planetary scale data system, the consistency backbone must scale to include potentially thousands of replicas around the world.
 
 As a result, straightforward approaches of running variants of Paxos~\cite{paxos,paxos_simple}, ePaxos~\cite{epaxos}, or Raft~\cite{raft} across the wide area, even for individual objects, will perform poorly for several reasons.
-First, distance (in network connectivity) between the most active consensus replicas and their followers decrease the performance of the entire system, consensus is only as fast as the final vote required to make a decision, even when making ``thrifty'' requests.
-Second, network partitions are common, which causes consensus algorithms to fail-stop~\cite{fail-stop} if they cannot receive a majority, a criticism that is often used to justify eventual consistency systems for high availability.
-Finally, the fault tolerance of small quorum algorithms can be disrupted by a few unreliable hosts and given the scale of the system and the heterogenous nature of replicas, the likelihood of individual failure is so high so as to be considered inevitable.
+First, distance (in network connectivity) between the most active consensus replicas and their followers decrease the performance of the entire system; said another way, consensus is only as fast as the final vote required to make a decision, even when making ``thrifty'' requests.
+Second, network partitions are common, which causes consensus algorithms to fail-stop if they cannot receive a majority~\cite{fail-stop}; a criticism that is often used to justify eventual consistency systems for high availability.
+Finally, the fault tolerance model of small quorum algorithms can be disrupted by only a few unreliable hosts.
+Given the scale of the system in question and the heterogenous nature of replicas, the likelihood of individual failure is so high so as to be considered inevitable, requiring much stronger fault tolerance guarantees.
 
 We propose another approach to building large consensus systems.
 Rather than relying on a few replicas to provide consensus to many clients, we propose to run a consensus protocol across replicas running at or near all of these locations.
 The key insight is that large problem spaces can often be partitioned into mostly disjoint sets of activity without violating consistency.
-We exploit this decomposition property by making our consensus protocol hierarchical and individual consensus groups fast by ensuring they are small.
-We exploit locality by building subquorums from colocated replicas, and locating subquorums near clients they serve.
+We exploit this decomposition property by making our consensus protocol hierarchical so that the problem space encompasses the entire system and individual consensus groups fast by ensuring they are small and coordinate with other consensus groups only when required.
+We exploit locality by building subquorums from colocated replicas, and locating subquorums near clients they serve, minimizing wide-area latency.
+But because all replicas participate, the fault tolerance of a large system is realized.
 
 In this chapter we describe hierarchical consensus, a tiered consensus structure that allows high throughput, localization, agility, and linearizable access to a shared namespace.
 We show how to use \emph{delegation} (\S~\ref{ch03_delegation})  to build large consensus groups that retain their fault tolerance properties while performing like small groups.
@@ -79,9 +81,10 @@ Much of the system's complexity comes from handshaking between the root quorum a
 % Subquorums elect their own leaders, which then coordinate accesses to the objects which they are assigned.
 
 These handshakes are made easier, and much more efficient, by using \emph{fuzzy transitions}.
-Fuzzy transitions allow individual subquorum to move through reconfiguration at their own pace, allowing portions of the system to transition to decisions made by the root quorum before others.
+Fuzzy transitions allow individual subquorums to move through reconfiguration at their own pace, allowing portions of the system to transition to decisions made by the root quorum before others.
 Given our heterogenous, wide-area environment, forcing the entire system to transition to new configurations in lockstep would be unacceptably slow.
-Fuzzy transitions also ensure that there is no dedicated shard-master that has to synchronize all namespace allocations: at the cost of possibly multiple  redirections, clients can be redirected by any member of the root quorum to replicas who should be participating in consensus decisions for the requested objects.
+Fuzzy transitions also ensure that there is no dedicated shard-master that has to synchronize all namespace allocations.
+At the possible cost of multiple redirections, clients can be redirected by any member of the root quorum to replicas who should be participating in consensus decisions for the requested objects.
 Fuzzy transitions ensure that root quorum decisions need not be timely since those decisions do not disrupt accesses of clients.
 
 \begin{figure}
@@ -100,7 +103,7 @@ Fuzzy transitions ensure that root quorum decisions need not be timely since tho
 \renewcommand{\baselinestretch}{2}
 \small\normalsize
 
-Though root quorum decisions are rare with respect to the throughput of accesses inside the entire system, they still do require the participation of all members of the system, which could lead to extremely large quorum sizes, and therefore extremely slow consensus operations that may be extremely sensitive to partitions.
+Though root quorum decisions are rare with respect to the throughput of accesses inside the entire system, they still do require the participation of all members of the system, which could lead to extremely large quorum sizes, and therefore extremely slow consensus operations that may be overly sensitive to partitions.
 Because all subquorums make disjoint decisions and because all members of the system are part of the root quorum, we propose a safe relaxation of the participation requirements for the root quorum such that subquorum followers can \emph{delegate} their root quorum votes to their leader.
 Delegation ensures that only a few replicas participate in most root quorum decisions, though decisions are made for the entire system.
 
@@ -551,7 +554,7 @@ Epoch transitions raise the possibility of portions of the namespace being re-as
 Correctness is guaranteed by an invariant requiring subquorums to delay serving newly acquired portions of the namespace until after completing all appropriate handshakes.
 Tombstones ensure that an update cannot be applied to a subquorum then lost when the transitioning subquorum takes over.
 Delegation is protected by bookkeeping that ensures that no replica can be counted twice in a vote, therefore in the worst case, delegation means that a single failure can eliminate many votes.
-We propose formal specifications in Appendix~\ref{apx:formal_specification} to prove that these invariants are sufficient for correctness.
+% We propose formal specifications in Appendix~\ref{apx:formal_specification} to prove that these invariants are sufficient for correctness.
 
 Safety and correctness are important parts of distributed consensus, but only if they also allow a system to make progress in the event of failure.
 We define the system's \emph{safety} property as guaranteeing that non-linearizable (or non-sequentially-consistent, see Section~\ref{sec:ch03_log_ordering}) event orderings can never be observed.
@@ -680,7 +683,7 @@ Optimizations such as anti-entropy replication (described in \S~\ref{ch04_anti_e
 \label{ch03_evaluation}
 
 HC was designed to adapt both to dynamic workloads as well as variable network conditions.
-We therefore evaluate HC in two distinct environments: a homogeneous data center and a heterogeneous real-world network.
+We therefore evaluate HC in three distinct environments: a homogeneous data center, a heterogeneous real-world network, and a globally distributed cloud network.
 The homogeneous cluster is hosted on Amazon EC2 and includes 26 ``t2.medium'' instances: dual-core virtual machines running in a single VPC with inter-machine latencies ($\lambda$) normally distributed with a mean, $\lambda_{\mu}=0.399ms$ and standard deviation, $\lambda_{\sigma}=0.216ms$.
 These machines are cost-effective and, though lightweight, are easy to scale to large cluster sizes as workload increases.
 Experiments are set up such that each instance runs a single replica process and multiple client processes.
@@ -694,6 +697,8 @@ Experiments on these machines are set up so that each instance runs multiple rep
 In this environment, localization is critical both for performance but also to ensure that the protocol can elect and maintain consensus leadership.
 The variability of this network also poses challenges that HC is uniquely suited to handle via root quorum-guided adaptation.
 We explore two distinct scenarios -- sawtooth and repartitioning -- using this cluster; all other experiments were run on the EC2 cluster.
+
+In our final experiment, we explore the use of hierarchical consensus in an extremely large, planetary-scale system comprised of 105 replicas in 15 data centers in 5 continents spanning the northern hemisphere and South America. This experiment was also hosted on EC2 ``t2.medium`` instances in each of the regions available to us at the time of this writing. In this context, reporting average latencies is difficult as inter-region latencies depend more on network distance than can be meaningfully ascribed to a single central tendency.
 
 \begin{figure}
     \begin{center}
@@ -717,7 +722,9 @@ A workload consists of one or more clients continuously sending writes of a spec
 
 Standard consensus algorithms, Raft in particular, scale poorly with uniformly decreasing throughput as nodes are added to the cluster.
 Commit latency increases with quorum size as the system has to wait for more responses from peers, thereby decreasing overall throughput.
-Figures~\ref{fig:ch03_scaling_consensus} and~\ref{fig:ch03_hc_throughput_workload} clearly show the multiplicative advantage of HC's hierarchical structure, though HC does not scale linearly as we had expected.
+Figures~\ref{fig:ch03_scaling_consensus} and~\ref{fig:ch03_hc_throughput_workload} clearly show the multiplicative advantage of HC's hierarchical structure.
+Note that though HC is not shown to scale linearly in these figures, this is due to performance bottlenecks of the networking implementation in these experiments.
+In our final experiment, we show linear scaling with our latest implementation of HC.
 
 \begin{figure}
     \begin{center}
@@ -734,7 +741,7 @@ Figures~\ref{fig:ch03_scaling_consensus} and~\ref{fig:ch03_hc_throughput_workloa
 \renewcommand{\baselinestretch}{2}
 \small\normalsize
 
-There are at least two factors currently limiting the HC throughput shown here.
+There are at least two factors limiting the HC throughput shown in our initial experiments.
 First, the HC subquorums for the larger system sizes are not saturated.
 A single 3-node subquorum saturates at around 25 clients and this experiment has only about 15 clients per subquorum for the largest cluster size.
 We ran experiments with 600 clients, saturating all subquorums even in the 24-node case.
@@ -743,8 +750,9 @@ This throughput peaked at slightly over 50,000 committed writes per second, bett
 We think the reason for this ceiling is hinted at by Figure~\ref{fig:ch03_hc_throughput_workload}.
 This figure shows increasingly larger variability with increasing system sizes.
 A more thorough examination of the data shows widely varying performance across individual subquorums in the larger configurations.
-We suspect that the cause is either VM misconfiguration or misbehavior.
-We are adding more instrumentation to diagnose the problem.
+After instrumenting the experiments to diagnose the problem, we determined it was a bug in the networking code, which we repaired and improved.
+By aggregating append entries messages from clients while consensus messages were in-flight, we managed to dramatically increase the performance of single quorums and reduce the number of messages sent.
+This change also had the effect of ensuring that the variability was decreased in our final experiment.
 
 \begin{figure}
     \begin{center}
@@ -808,7 +816,7 @@ In both cases, the root quorum adapts the system by repartitioning the tagspace 
 \renewcommand{\baselinestretch}{2}
 \small\normalsize
 
-Finally, Figure~\ref{fig:ch03_umd_fault_tolerance} shows a 3-subquorum configuration where one entire subquorum becomes partitioned from the others.
+Figure~\ref{fig:ch03_umd_fault_tolerance} shows a 3-subquorum configuration where one entire subquorum becomes partitioned from the others.
 After a timeout, the root uses an epoch change to re-allocate the tag of the partitioned subquorum over the two remaining subquorums.
 The partitioned subquorum eventually has an \emph{obligation timeout}, after which the root quorum is not obliged to leave the tag with the current subquorum.
 The tag may then be re-assigned to any other subquorum.
@@ -817,6 +825,30 @@ As a result, the system is able to recover from the partition as fast as possibl
 In this figure, the repartition occurs through two epoch changes, the first allocating part of the tagspace to the first subquorum, and the second allocating the rest of the tag to the other.
 Gaps in the graph are periods where the subquorums are electing local leaders.
 This may be optimized by having leadership assigned or maintained through root consensus.
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=5in]{figures/ch03_geoconsensus_total_throughput.pdf}
+    \end{center}
+    \renewcommand{\baselinestretch}{1}
+    \small\normalsize
+
+    \begin{quote}
+        \caption[Planetary Scale HC Throughput]{Throughput of the final implementation of Alia across 105 replicas in 15 AWS regions with size 3 subquorums colocated in each region. HC linearly scales as the number of replicas increases, also increasing the fault tolerance and the durability of the system.}
+        \label{fig:ch03_geoconsensus_total_throughput}
+    \end{quote}
+\end{figure}
+\renewcommand{\baselinestretch}{2}
+\small\normalsize
+
+In our final implementation we ran our repaired version of HC at a planetary scale.
+We created a system with 105 replicas in 15 regions in 5 continents.
+The system allocated size 3 subquorums round-robin to each region such that the largest system was comprised of 6 subquorums per region with 1 hot-spare per region.
+Figure~\ref{fig:ch03_geoconsensus_total_throughput} shows the global blast throughput of the system, the sum of throughput of client process that fired off 1000 concurrent requests, timing the complete response.
+To mitigate the effect of global latency, each region ran independent blast clients to its local subquorums, forwarding to remote quorums where necessary.
+To ensure that the system was fully throttled during the throughput experiment, we timed the clients to execute simultaneously using the AWS Time Sync service to ensure that clocks were within 100 nanoseconds of each other.
+In these results we show that our HC implementation does indeed scale linearly.
+Adding more nodes to the system increases the fault tolerance (e.g. by allocating hot spares) if enough nodes are added to add another subquorum, the capacity of the system to handle client requests is also increased.
 
 \section{Conclusion}
 \label{ch03_conclusion}
