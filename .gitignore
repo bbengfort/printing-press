@@ -125,5 +125,11 @@ sympy-plots-for-*.tex/
 *.bak
 *.sav
 
+# TexDict
+*.xcp
+
 # Mac Stuff
 .DS_Store
+
+# Code Editor
+.vscode
