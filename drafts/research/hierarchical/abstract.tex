@@ -1,22 +1,17 @@
-% Primary problem statement
-As data systems have scaled to accommodate increasing load and requirements for
-geographic replication across the wide area, they have also increased in complexity.
-Engineering based solutions to coordinate hundreds of replicas involve multiple,
-independent process and quorums to synchronize time, allocate locks, manage transactions,
-and recover from failure.
-Although these systems provide strong consistency, they do so in an rigid, opaque manner
-that is not flexible enough for general use.
-
-% Needs to be better
-In this paper we introduce Alia, an implementation and extension of Vertical Paxos
-designed to create large, strongly-consistent geo-replicated systems.
-Alia is a hierarchical consensus protocol that splits coordination across two tiers: a
-root quorum partitions subquorums across the namespace, each of which directly manage
-accesses to the data.
-To ensure that all replicas participate in both consensus tiers and provide transparent,
-linearizable guarantees across the entire system, subquorums intersect with the root
-quorum using a novel method: delegated voting.
-Alia is scalable, adaptable, and able to export an externalizable log of all accesses to
-the system.
-We demonstrate its advantages through an implementation scaling to hundreds of replicas
-across more than a dozen availability zones around the world using Amazon EC2.
+Distributing data storage systems across wide geographic areas provides resilience to
+catestrophic failure and improves performance by localizing user access.
+However, as network distance increases, the impact of failure modes such as partitions
+and communication variability pose significant challenges to coordination that impair
+strong consistency, particularly when systems scale beyond a handful of replicas.
+In order to balance consistency and performance in a multi-region context, geo-distributed
+consensus must be flexible, adapting to changing network conditions and user behavior.
+In this paper, we introduce \sys, a hierarchical consensus protocol that implements and
+extends Vertical Paxos, designed to implement large, strongly-consistent and adaptable
+geo-replicated consensus groups.
+\sys splits coordination responsibility across two tiers: a \roo responsible for
+safely moving the system through reconfigurations, and \subs that manage accesses.
+\Subs intersect with the \roo using a novel method, delegated voting, which ensures that
+all replicas participate in both consensus tiers and provide transparent, linearizable
+guarantees across the entire system.
+This design ensures \sys can optimize throughput and availability by flexibly changing
+its configuration in real-time to meet demand without sacrificing consistency.

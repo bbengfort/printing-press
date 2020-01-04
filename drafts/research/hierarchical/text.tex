@@ -1,370 +1,186 @@
-\documentclass[10pt,twocolumn]{article}
+\documentclass[11pt,conference]{IEEEtran}
 
-\usepackage{pete}
-\usepackage{times}
-\usepackage{fullpage}
-\usepackage{epsfig}
-\usepackage{subfigure}
+% IEEE standard packages
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+
+% Extra packages
+\usepackage{booktabs} % For formal tables
 \usepackage{xspace}
-\usepackage{amsmath}
+\usepackage{pete} % For Pete's annotations
+
+% Writing helpers
+\newcommand{\hc}{hierarchical consensus\xspace}
+\newcommand{\Hc}{Hierarchical consensus\xspace}
+\newcommand{\sub}{subquorum\xspace}
+\newcommand{\Sub}{Subquorum\xspace}
+\newcommand{\subs}{subquorums\xspace}
+\newcommand{\Subs}{Subquorums\xspace}
+\newcommand{\sys}{Alia\xspace}
+\newcommand{\roo}{root quorum\xspace}
+\newcommand{\roos}{root quorums\xspace}
+\newcommand{\Roo}{Root quorum\xspace}
+\newcommand{\Roos}{Root quorums\xspace}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 \begin{document}
 
-\title{\bf Scaling Strong Consistency Across Continents\\
-with Hierarchical Consensus}
-% \author{\rm{Benjamin Bengfort} and \rm{Pete Keleher}\\
-% University of Maryland, College Park\\
-% \{bengfort,keleher\}@cs.umd.edu}
-\author{\emph{Omitted for review}}
-\date{}
+\title{Consensus Across Continents}
+
+\author{
+\IEEEauthorblockN{Benjamin Bengfort, Rebecca Bilbro, Pete Keleher}
+\IEEEauthorblockA{Department of Computer Science\\
+University of Maryland, College Park, MD, USA\\
+\{bengfort,rbilbro,keleher\}@cs.umd.edu}}
 
 \maketitle
-
-% Use the following at camera-ready time to suppress page numbers.
-% Comment it out when you first submit the paper for review.
-\thispagestyle{empty}
 
 \begin{abstract}
     \input{abstract}
 \end{abstract}
 
-\section*{Introduction}
+\begin{IEEEkeywords}
+hierarchical consensus, geographic replication, delegated voting, strong consistency
+\end{IEEEkeywords}
 
-Coordination to ensure consistent behavior is essential to large-scale
-distributed software systems, particularly modern systems that span
-globe~\cite{spanner,mdcc,calvinfs,alvaro2013consistency}.
-A range of mechanisms exist to provide varying levels of consistency, but
-for systems that require strong guarantees, distributed consensus algorithms
-are the primary technique for maintaining a correct global state across
-independent machines in a computing cluster.
-Consensus design traditionally considers primarily the requirement of
-fault tolerance: progress in the face of one or two node failures.
-Current approaches~\cite{mencius,epaxos,multicoordinated_paxos,spaxos}
-therefore assume a small number of replicas in a co-located group, each
-centrally located on a powerful and reliable host.
-As a result, to scale modern systems that also have demanding requirements
-for high throughput, low latency, and durability, consensus is typically used
-in layers to manage smaller subsets of the system, trading performance for
-reliability where possible.
+\section{Introduction}
+% The intro seems like a very good narrative and captures all of the moving pieces
+% However, I'm worried that we're not getting across our awesome sauce soon enough (e.g. the first page)
+% I'm also worried that we do not do enough to describe our system in a meaningful way
+% Other papers like Akkio have 2 page intros though ...
+% Just not sure how to do this narrative and lift things to the top
+% To help this, I've added the system architecture diagram (fig 1) to the second page
+% and referenced it, even though it's not considerded in detail until later in the paper -
+% not totally sure if this is a good idea or not.
 
-% problem:
-% - standard consensus doesn't scale well
-% - it gets even worse across the wide area
-% - current systems assume object-independence
-% - current systems use fixed topographies and do not adapt
+The recent availability of cloud service providers with data centers that span the globe
+has made it easier than ever before to deploy geographically distributed data systems
+that span continents and oceans.
+These types of systems increase local performance by minimizing network distance between
+users and replicas and provide the opportunity for data recovery in the face of
+catastrophes such as floods or earthquakes.
+Moreover, the success of specialized, high-availability data
+systems~\cite{megastore,tao,akkio,dynamic_placement} in maximizing throughput across the
+wide area has led to increased interest in geo-replicated systems, particularly as more
+applications are being developed with international audiences in mind.
+However, in order to generalize these systems for modern application development, strong
+consistency semantics is required; therefore managed replicated data
+services~\cite{spanner,aurora,cockroachdb} have risen to prominence, achieving these
+semantics by hiding both the replication and infrastructure complexity from developers.
 
-Systems that implement many small quorums of
-coordination~\cite{mdcc,scatter,spanner} avoid the centralization bottleneck
-and reliability concerns of master-service
-systems~\cite{gray_dangers_1996,gfs} but create silos of independent
-operation that are not coordinated with respect to each other.
-Recently there has been increasing interest in dynamic and flexible quorums
-to maintain decentralized ledgers~\cite{stellar} \fuzzy{but practical
-experience shows that this results in the instantiation of a large number of
-intersecting quorums}, which is not practical for a dedicated system that
-does not have to worry about byzantine failure.
+At the same time, traditional monolithc applications are being replaced by microservice
+architectures and cloud-native service meshes~\cite{envoy} that make
+infrastructure directly visible to applications.
+As applications scale, service meshes make it easier to maintain and optimize
+service-specific communication to minimize downtime and to improve system flexibility.
+Additionally, due to increasing privacy regulation, application developers require more
+control over data placement rather than less~\cite{gdpr}.
+The engineering-based solutions of managed geo-distributed data services are designed to
+coordinate hundreds of replicas that have access to expensive data-center hardware and
+involves multiple, independent processes and quorums to synchronize time, allocate locks,
+manage transations, and recover from failure.
+Although these systems provide strong consistency, they do so in an rigid, opaque manner
+that is not flexible enough for developers who require strong consitency at a higher
+level of the application stack.
 
-Most consensus algorithms have their roots in the Paxos~\cite{paxos}
-algorithm, originally described in parliamentary terms.
-The metaphor of government still applies well as we look at the evolution of
-distributed coordination as systems have grown to include large numbers of
-processes and geographies.
-Systems that use a dedicated leader are easy to reason about and implement,
-however, like chess, if the leader goes down the system cannot make any
-progress.
-Simple democracies for small groups solve this problem but do not scale, and
-as the system grows, it fragments into tribes.
-Inspired by modern governments, we propose a representative system of
-consensus, such that replicas elect leaders to participate in a \roo that
-makes decisions about the global state of the system.
-Local decision making, the kind that effects only a subset of clients and
-objects is handled locally by \subs as efficiently as possible.
-The result is a a hierarchy of decision making that takes advantage of
-hierarchies that already exist in applications.
+We propose a simpler approach to building large, geographically replicated systems.
+Rather than relying on a fleet of loosely-coupled, independent small quorums whose
+interactions are difficult to reason about, we propose a single, system-wide consensus
+protocol that coordinates both replica placement and data accesses.
+By ensuring that all coordination occurs through a single consensus activity,
+it is easier to reason about the consistency of the system even in a network environment
+prone to correlated failures, partitions, and variable latency.
+Additionally, a single source of coordination gives the system the freedom to adapt to
+changes in access patterns, configure to maximize throughput, specify data placement
+rules, and ensure straightforward system maintenance.
 
-% motivation:
-% - hierarchies already exist in applications
-% - geo-replication requires adaptivity
-% - transactions don't work well with tablet structures
-%   \pjk{We don't discuss them in this paper. Do we?}
+In order to achieve this, a new consensus protocol that can scale beyond a handful of
+replicas is required.
+Distributed consensus, canonically represented by Paxos~\cite{paxos_simple} and its
+performance optimizing
+variants~\cite{fast_paxos,multicoordinated_paxos,spaxos,generalized_paxos}, primarily
+consider safety in the case of one or two fail-stop node failures.
+Although some recent research has explored the problem of geo-distributed
+consensus~\cite{mencius,epaxos}, it primarily considers the problem of high-latency
+links but geo-replication implies scale.
+Services running around the globe recquire dozens if not hundreds of replicas and
+introduce new failure modes such as network partitions, where sections of the system
+operate independently without fail-stop failure, and highly variable latency that
+inhibit quorum progress.
+In order to scale systems beyond a handful of replicas, current
+systems~\cite{spanner,scatter,mdcc,calvinfs} use Paxos as a component, instantiated
+across multiple transactions, shards, or tablets to manage small subsystems
+independently, leading to increased complexity and reduced transparency.
 
-In this paper, we describe \emph{Hierarchical Consensus (HC)}, an
-implementation and extension of Vertical Paxos~\cite{vertical_paxos}.
-Like Vertical Paxos, HC reasons about consistency across all objects by
-identifying commands with a grid ordering (rather than a log ordering) and is
-reconfigurable to adapt to dynamic environments that exist in geo-replicated
-systems.
-Adaptability allows HC to exploit locality of access, allowing for high
-performance coordination, even with replication across the wide area.
-HC extends Vertical Paxos to ensure that intersections exist between the
-\subs and the \roo to ensure coordination exists between \subs and to ensure
-that the system operates as a coordinated whole.
-To scale the consensus protocol of the \roo, we propose a novel approach,
-\emph{delegation}, to ensure that all replicas participate in consensus but
-limit the number and frequency of messages required to achieve majority.
-Finally, we generalize HC from primary-backup replication to describe more
-general online replication required by distributed databases and file
-systems.
+% the below paragraph needs help
+We introduce a novel approach to scale consensus beyond a handful of nodes:
+\emph{\hc}.
+Our approach is to similarly decompose the consensus problem into units that can be
+handled by provenly safe algorithms, but organizes all managed processes into an
+intersecting hierarchy of quorums that ensure that all system-wide consensus decisions
+are totally ordered.
+The challenge is in building a multi-group coordination protocol that configures and
+mediates \subs through a \roo.
+The \roo gaurantees correctness by pivoting the system through reconfigurations that
+place replicas into \subs and maps them to partitions of the object namespace to handle
+direct data accesses.
 
-% As always, the devil is in the details.
-% In this paper we first walk through the consistency model, then discuss the
-% components of the system in an understandable way by using Raft as our base
-% consensus algorithm and a key/value store as our primary application.
-% Most of the rest of a paper is a discussion of safety.
-% How can things go wrong in such a system? What are the implications? How can
-% the system adapt, remain resilient, and even outperform other fault tolerant
-% distributed consensus?
-% We conclude with an evaluation and a discussion of related works ...
+\ben{ended here}
 
-The rest of the paper is organized as follows: we first describe the
-background context that led to the intuition and motivations for HC,
-primarily describing Raft~\cite{raft}, our consensus algorithm of choice and
-a vertical consistency model.
-We then describe the design of the system in detail and describe failure-free
-operation of HC in a normal environment.
-We follow the failure-free description with a description of how HC handles
-various forms of failure and make an argument for the safety of the protocol,
-including several specific cases of failure.
-Finally we evaluate the performance of HC implemented as a distributed
-key-value database, distributed across 15 geographic regions around the
-world.
-
-% claims:
-% - HC is an implementation and extension of Vertical
-%   Paxos~\cite{vertical_paxos} that organizes consensus hierarchically.
-% - Use Raft~\cite{raft} for understandability
-% - No requirement for SQ protocol to be Raft, however there must be \roo and
-%   \sub intersections.
-% - we assert that leader-oriented protocols work best.
-% - generalized framework for scaling consensus
-
-\section*{Background}
+% Contributions:
+% - Reconfigurable consensus + adaptability
+% - Delegated voting to scale consensus
+% - Fuzzy transitions to allow progress
+% - Access/policy optimized data placement rules
 
 
+The \roo is composed of all replicas in the system, although reconfigurations are rare
+with respect to data accesses, we introduce \emph{delegated voting} to optimize quorum
+decisions at the root.
 
-Paxos~\cite{fast_paxos,multicoordinated_paxos,generalized_paxos,epaxos,spaxos}
-has two primary optimizations - fast path/slow path and leaders.
+Much of the systems complexity comes from handshaking between the \roo and \subs during
+reconfiguration.
+These handshakes are made easier and far more efficient by using \emph{fuzzy transitions},
+which allow individual \subs to move through reconfiguration at their own pace without
 
-We implement and extend Vertical Paxos~\cite{vertical_paxos} but go beyond
-primary backup replication to creating a key/value store (and soon a file
-system).
+We validate our approach by implementing \hc in Alia, a linearizable object store
+explicitly intended to run with many replicas, geo-replicated across heterogenous
+networks and devices.
+The resulting system is local, in that replicas serving clients can be located near them.
+The system is fast because individual operations are served by a small group of replicas
+regardless of the size of the total system.
+The system is nimble in that it it can dynamically reconfigure the number, membership,
+and responsibilities of the subquorums in response to failures, phase changes in the
+driving applications or policy requirements for data placement and durability.
+Finally, the system is consistent, supporting the strongest form of per-object
+consistency without relying on special-purpose hardware.
+We demonstrate its advantages through an implementation scaling to hundreds of replicas
+across more than a dozen availability zones around the world using Amazon EC2.
 
-Consider Niobe~\cite{niobe} and Boxwood~\cite{boxwood} as two implementations
-of Vertical Paxos.
+% TODO: do we need rest of paper outline or contributions here?
 
-\subsection*{Raft Consensus}
 
-A lightweight description of Raft and leader-oriented consensus protocols.
-
-\subsection*{Vertical Consistency Model}
-
-A command is identified by \texttt{(Epoch, Term, Log Index)} -- mirrors
-Vertical Paxos \texttt{(Configuration, Ballot, Index)} structure.
-
-Consistency: there must be a single, externalized ordering across all
-objects.
-
-Figure: grid ordering consistency.  \pjk{??}
-
-\subsection*{Related Work}
-
-\begin{itemize}
-    \item ePaxos~\cite{epaxos} is best geo-replicated consensus, doesn't
-    scale.
-    \item MDCC~\cite{mdcc}, Spanner~\cite{spanner} are big systems across
-    multiple data centers but isolate objects into tablets that aren't
-    coordinated. \pjk{In what sense?  Does MDCC not re-configure tablets?}
-    \item Niobe~\cite{niobe} and Boxwood~\cite{boxwood} are Vertical Paxos
-    for primary replication but treat configuration as an independent master
-    quorum and have independent object management.
-\end{itemize}
-
-\subsection*{HC Goals/Claims/Intuitions}
-
-\strong{consistency claims:} We claim that for a current epoch, $E_i$,
-this externalized ordering\footnote{\pjk{Hmm.. Externalized implies
-    linearizability. Accesses will observe this, but that does not
-    mean that we can rebuild it later on.  This comment seems to be
-    more true for SC.}} exists
-for all epochs $\leq E_{i-j}$ such that $j\geq1$ and $E_{i-j}$ is
-\emph{closed}, e.g. a tombstone has been written to the logs of all \subs,
-$S_{i-j}$.
-In the current epoch, $E_i$ it is not possible to externalize a complete
-ordering,  however it is possible to describe an observable sequential
-ordering of all objects.
-
-\strong{performance claims:} we should make some.
-
-\begin{figure*}[hbtp]
-  \centering
-  \minipage{\textwidth}
-      \includegraphics[width=\linewidth]{figures/hc_operation_summary}
-      \caption{A condensed summary of the hierarchical consensus protocol. Operations are described in a top-to-bottom fashion where the top level is \roo operations, the bottom is \sub operations, and the middle is transition and intersection. Section numbers such as §5.2 indicate where particular features are discussed.}
-      \label{fig:hc_operation_summary}
-  \endminipage
-\end{figure*}
-
-\section*{Design}\footnote{\pjk{I'd make this a straw-man design, along the
-  lines of SUNDR. We can then add delegation and generalized
-  delegation later.}}
-
-Preliminaries: a system is composed of a set of replicas, $R$, initially we
-assume that this set is fixed, later we discuss adding or removing to this
-set.
-The system self organizes into a \roo.
-The \roo assigns replicas to zero or one \subs.
-
-During operation, a Replica can be \emph{one} of the following.
-
-\begin{enumerate}
-    \item A follower in a \sub
-    \item A leader of a \sub and a member of the \roo
-    \item A hot spare
-\end{enumerate}
-
-Replicas that are leaders can simultaneously be a \sub leader and a \roo
-leader.
-Later we relax this so that any replica can be a member of of the \roo.
-
-\begin{figure}
+\begin{figure}[t]
     \centering
-    \includegraphics[width=0.5\textwidth]{figures/simple_example_topology}
-    \caption{Simple Example: 12x3 HC Topology}
-    \label{fig:simple_example_topology}
+    \includegraphics[width=0.5\textwidth]{figures/election3}
+    \caption{Replicas participate in intersecting tiers of consensus.}
+    \label{fig:system}
 \end{figure}
 
-\begin{figure*}
-    \centering
-    \minipage{\textwidth}
-    \includegraphics[width=\linewidth]{figures/simple_example_epochs_terms}
-    \caption{Simple Example: Epochs and Terms Timeline}
-    \label{fig:simple_example_epochs_terms}
-    \endminipage
-\end{figure*}
 
-Another simple example
+\section{Conclusion}
 
-\begin{figure*}
-    \centering
-    \minipage{\textwidth}
-    \includegraphics[width=\linewidth]{figures/simple_example_log_ordering}
-    \caption{Simple Example: Log Ordering}
-    \label{fig:simple_example_log_ordering}
-    \endminipage
-\end{figure*}
 
-\subsection*{Elections and Delegation}
 
-\begin{itemize}
-    \item election of \roo leader
-    \item assignment/election of \sub leaders
-    \item delegation of votes
-    \item re-elections
-    \item delegations expire
-\end{itemize}
+Future work: investigate more tiers
 
-\subsection*{Data Model}
-
-\ben{maybe move this to a different location?}
-
-\begin{itemize}
-    \item key/value store
-    \item read then write updates \pjk{We assume all writes
-        implemented w/ read then write, or do we implement writes this
-        way? And to what purpose?}
-    \item accesses: get, put, delete
-\end{itemize}
-
-\subsection*{Operation/Decision Making}
-
-\begin{itemize}
-    \item \sub decision making
-    \item remote reads and writes
-    \item reconfiguration/epoch changes
-    \item \roo decision making
-    \item transitions/fuzzy epochs
-\end{itemize}
-
-\section*{Safety and Fault Tolerance}
-
-\begin{itemize}
-    \item individual faults
-    \item partitions of the network (big faults)
-    \item safety argument
-\end{itemize}
-
-\subsection*{Delegation Safety}
-
-We have implemented two mechanisms for delegation safety: the first is
-timeout based, and the second is a simple book-keeping mechanism.
-
-In the timeout-based delegation, a replica delegates it's vote for a term
-limited logical period, usually at least two epochs. This means that the
-delegated vote lasts through at most 1 root leader election. The nuclear
-timeout option is longer than the root election timeout, therefore in order
-for the nuclear option to occur at least one failed root leader election also
-must have occurred. Because the nuclear option is triggered after a root
-leader election the delegation is reset on the nuclear option, and every
-replica must vote for themselves (ensuring that the nuclear option contains
-no delegations at all).
-
-\pjk{Again, I think this fails if delegation can be used for root votes} In
-the book-keeping mechanism, replicas can delegate their votes to anyone. All
-root votes must be accompanied by the term, epoch, and ID of the delegation.
-The root leader tracks votes as follows:
-
-\begin{itemize}
-\item If the delegated vote is not in the current epoch, it is discarded
-\item Otherwise the leader accepts only the vote with the highest term (e.g.
-the current subquorum leader).
-\item If the leader receives a vote from the replica, then it accepts that
-vote no matter what.
-\end{itemize}
-
-In this way, it is possible for duplicate votes to be received by the leader, but only a single vote per replica will be counted.
-
-\subsection*{Assassination}
-
-Scenario:
-
-System size of 18, HC 5x3 (5 subquourms of size three, 3 hot spares) in 3 regions - 6 replicas per region. In epoch e there is a configuration such that all 5 subquorum leaders and the root leader are in a single region, which loses it's connectivity to the rest of the world. All followers have delegated their votes to their subquorum leaders, except the hot spares which haven't delegated to anyone.
-
-Just a note here, we've been calling it "assassination" but it's actually very difficult to create a scenario where this occurs if replicas are evenly distributed over all regions without violating the principle of localization. In the above example, every single subquourm is geo-replicated.
-
-6 replicas with 16 votes can communicate and 12 replicas with 2 votes cannot.
-
-Step one: all subquorums elect a leader for the next term; they continue to handle requests.
-
-Step two: group of 6 attempts an epoch change to repair the poor progress, they assign all work to two subquorums of 3 (best scenario if there is total failure).
-
-Step three: group of 12 attempts a root leader election, it fails because they only have 2 votes.
-
-Step four: group of 12 initiates nuclear option, taking back delegations, moves into an epoch after the group of 6.
-
-We now have the scenario where we have concurrent writes to objects in two partitioned regions, however because of the epoch ordering, we know that all writes that happen in the group of 6 happen before the writes that happen in the group of 12.
-
-The group of 6 cannot make another epoch change because their delegations have expired and they cannot re-acquire them.
-
-\section*{Implementation and Evaluation}
-
-\begin{itemize}
-    \item Go implementation
-    \item AWS EC2 across 15 regions and 150 replicas (3, size 3 subquorums in 15 regions with 15 hot spares).
-    \item LevelDB
-    \item Version numbers
-\end{itemize}
-
-Evaluation
-
-\section*{Conclusion}
-
-\begin{itemize}
-    \item \todo{Psuedo code to make paper clearer}
-    \item \bobby{Provide top down description, where each model is relatively small, reduce cognitive load}
-    \item \bobby{Change name ``nuclear option'' -- make more technical e.g. ``final recovery'' (too jocular)}
-\end{itemize}
-
+\bibliographystyle{plain}
 \bibliography{papers}
-\bibliographystyle{abbrv}
 
 \end{document}
