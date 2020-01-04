@@ -1,14 +1,22 @@
-We introduce Hierarchical Consensus (HC), an understandable implementation
-and extension of Vertical Paxos designed to create large,
-strongly-consistent geo-replicated distributed systems.
-HC uses partitions across multiple independent \subs to increase overall
-availability, localize decision-making, and improve throughput.
-\Subs can be lightweight and chosen from hosts with low mutual communication
-latencies such that co-location and balanced load allow them to reach
-decisions quickly.
-Globally, a \roo maintains the decision-space and provides linearizable
-guarantees across the entire system by intersecting with \subs using a novel
-delegation approach to voting.
-We demonstrate HC's advantages through an implementation scaling to hundreds
-of replicas across more than a dozen availability zones around the world
-using Amazon EC2.
+% Primary problem statement
+As data systems have scaled to accommodate increasing load and requirements for
+geographic replication across the wide area, they have also increased in complexity.
+Engineering based solutions to coordinate hundreds of replicas involve multiple,
+independent process and quorums to synchronize time, allocate locks, manage transactions,
+and recover from failure.
+Although these systems provide strong consistency, they do so in an rigid, opaque manner
+that is not flexible enough for general use.
+
+% Needs to be better
+In this paper we introduce Alia, an implementation and extension of Vertical Paxos
+designed to create large, strongly-consistent geo-replicated systems.
+Alia is a hierarchical consensus protocol that splits coordination across two tiers: a
+root quorum partitions subquorums across the namespace, each of which directly manage
+accesses to the data.
+To ensure that all replicas participate in both consensus tiers and provide transparent,
+linearizable guarantees across the entire system, subquorums intersect with the root
+quorum using a novel method: delegated voting.
+Alia is scalable, adaptable, and able to export an externalizable log of all accesses to
+the system.
+We demonstrate its advantages through an implementation scaling to hundreds of replicas
+across more than a dozen availability zones around the world using Amazon EC2.
