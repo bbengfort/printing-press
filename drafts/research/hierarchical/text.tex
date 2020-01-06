@@ -85,20 +85,20 @@ Together, these four features offer strong consistency at scale amidst dynamical
 growing and shifting globally distributed systems of the kind required by modern
 applications.
 
-Traditional monolithic applications are being replaced by microservice
+The engineering-based solutions of managed geo-distributed data services are designed to
+coordinate hundreds of replicas that have access to expensive data-center hardware and
+involves multiple, independent processes and quorums to synchronize time, allocate locks,
+manage transactions, and recover from failure.
+Meanwhile, traditional monolithic applications are being replaced by microservice
 architectures and cloud-native service meshes~\cite{envoy} that make
 infrastructure directly visible to applications.
 As applications scale, service meshes make it easier to maintain and optimize
 service-specific communication to minimize downtime and to improve system flexibility.
 Additionally, due to increasing privacy regulation, application developers require more
 control over data placement rather than less~\cite{gdpr}.
-The engineering-based solutions of managed geo-distributed data services are designed to
-coordinate hundreds of replicas that have access to expensive data-center hardware and
-involves multiple, independent processes and quorums to synchronize time, allocate locks,
-manage transations, and recover from failure.
-Although these systems provide strong consistency, they do so in an rigid, opaque manner
-that is not flexible enough for developers who require strong consistency at a higher
-level of the application stack.
+Thus, while managed data services provide strong consistency, they do so in an rigid, 
+opaque manner that is not flexible enough for developers who require strong consistency
+at a higher level of the application stack
 
 We propose a simpler approach to building large, geographically replicated systems.
 Rather than relying on a fleet of loosely-coupled, independent small quorums whose
@@ -120,7 +120,7 @@ consider safety in the case of one or two fail-stop node failures.
 Although some recent research has explored the problem of geo-distributed
 consensus~\cite{mencius,epaxos}, it primarily considers the problem of high-latency
 links but geo-replication implies scale.
-Services running around the globe recquire dozens if not hundreds of replicas and
+Services running around the globe require dozens if not hundreds of replicas and
 introduce new failure modes such as network partitions, where sections of the system
 operate independently without fail-stop failure, and highly variable latency that
 inhibit quorum progress.
