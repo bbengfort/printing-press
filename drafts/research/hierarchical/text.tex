@@ -59,22 +59,39 @@ hierarchical consensus, geographic replication, delegated voting, strong consist
 % and referenced it, even though it's not considerded in detail until later in the paper -
 % not totally sure if this is a good idea or not.
 
-The recent availability of cloud service providers with data centers that span the globe
-has made it easier than ever before to deploy geographically distributed data systems
+It is easier than ever before to deploy geographically distributed data systems
 that span continents and oceans.
-These types of systems increase local performance by minimizing network distance between
-users and replicas and provide the opportunity for data recovery in the face of
-catastrophes such as floods or earthquakes.
-Moreover, the success of specialized, high-availability data
-systems~\cite{megastore,tao,akkio,dynamic_placement} in maximizing throughput across the
-wide area has led to increased interest in geo-replicated systems, particularly as more
-applications are being developed with international audiences in mind.
-However, in order to generalize these systems for modern application development, strong
-consistency semantics is required; therefore managed replicated data
-services~\cite{spanner,aurora,cockroachdb} have risen to prominence, achieving these
-semantics by hiding both the replication and infrastructure complexity from developers.
+These types of systems leverage data centers newly available around the globe,
+increasing local performance by minimizing network distance between users and
+replicas, and offering data recovery in the face of catastrophes such as floods or
+earthquakes.
+Specialized, high-availability data systems~\cite{megastore,tao,akkio,dynamic_placement}
+have maximized throughput across the wide area, driving interest in
+geo-replicated systems and making truly international applications increasingly
+feasible.
+Managed replicated data services~\cite{spanner,aurora,cockroachdb} that can provide
+strong consistency semantics for geographically distributed data systems have risen to
+prominence.
+However, while scalable consensus is effectively a solved problem, the solutions
+introduced by these new systems and services require hardware and hardcoding that
+inhibit change as system requirements change, e.g. as the userbase swells and becomes
+increasingly multinational, as failures become more routine, and as user behaviors
+become less geographically rooted.
 
-At the same time, traditional monolithc applications are being replaced by microservice
+Alia is the first distributed system of its kind to implement hierarchical consensus,
+a flexible protocol that facilitates adaptation in geo-replicated distributed systems.
+Hierarchical consensus comprises four key contributions; first, \emph{reconfigurable
+consensus}, which allows systems to adapt to changing quorum membership, including
+dynamic replacement and expansion; second, \emph{delegated voting}, which allows
+decisions to be coordinated at the root (i.e. master) quorum, but executed by informed
+hyperlocal subquora; third \emph{fuzzy transitions}, which allow the system to progress
+unimpeded by leadership changes and reconfigurations; and finally, \emph{flexible data
+placement}, which facilitates a greater proportion of direct accesses.
+Together, these four features offer strong consistency at scale amidst dynamically
+growing and shifting globally distributed systems of the kind required by modern
+applications.
+
+Traditional monolithic applications are being replaced by microservice
 architectures and cloud-native service meshes~\cite{envoy} that make
 infrastructure directly visible to applications.
 As applications scale, service meshes make it easier to maintain and optimize
@@ -86,7 +103,7 @@ coordinate hundreds of replicas that have access to expensive data-center hardwa
 involves multiple, independent processes and quorums to synchronize time, allocate locks,
 manage transations, and recover from failure.
 Although these systems provide strong consistency, they do so in an rigid, opaque manner
-that is not flexible enough for developers who require strong consitency at a higher
+that is not flexible enough for developers who require strong consistency at a higher
 level of the application stack.
 
 We propose a simpler approach to building large, geographically replicated systems.
@@ -127,7 +144,7 @@ intersecting hierarchy of quorums that ensure that all system-wide consensus dec
 are totally ordered.
 The challenge is in building a multi-group coordination protocol that configures and
 mediates \subs through a \roo.
-The \roo gaurantees correctness by pivoting the system through reconfigurations that
+The \roo guarantees correctness by pivoting the system through reconfigurations that
 place replicas into \subs and maps them to partitions of the object namespace to handle
 direct data accesses.
 
