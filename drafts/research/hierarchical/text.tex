@@ -26,6 +26,10 @@
 \newcommand{\Roo}{Root quorum\xspace}
 \newcommand{\Roos}{Root quorums\xspace}
 
+\renewcommand{\pjk}[1]{{\bf
+    [\marginpar[\hbox{{\textcolor{blue}{pjk}}\raisebox{0ex}{\Huge $\rightarrow$}}]%
+{\hbox{\raisebox{0ex}{\Huge $\leftarrow$}{\textcolor{blue}{pjk}}}}\textcolor{blue}{#1}]}}
+
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
@@ -54,9 +58,13 @@ hierarchical consensus, geographic replication, delegated voting, strong consist
 % I'm worried that we do not do enough to describe our system in a meaningful way
 % Other papers like Akkio have 2 page intros though ...
 
-It is easier than ever before to deploy geographically distributed data systems
-that span continents and oceans.
-These types of systems leverage data centers newly available around the globe,
+% It is easier than ever before to deploy
+Geographically distributed data systems now commonly
+% that
+span continents and oceans.
+These
+%  types of
+systems leverage data centers newly available around the globe,
 increasing local performance by minimizing network distance between users and
 replicas, and offering data recovery in the face of catastrophes such as floods or
 earthquakes.
@@ -85,6 +93,9 @@ Together, these four features offer strong consistency at scale amidst dynamical
 growing and shifting globally distributed systems of the kind required by modern
 applications.
 
+\emph{Alia is motivated by a...  (mismatch between ?...}
+\\ \noindent
+\pjk{comes out of nowhere.}
 The engineering-based solutions of managed geo-distributed data services are designed to
 coordinate hundreds of replicas that have access to expensive data-center hardware and
 involves multiple, independent processes and quorums to synchronize time, allocate locks,
@@ -96,14 +107,14 @@ As applications scale, service meshes make it easier to maintain and optimize
 service-specific communication to minimize downtime and to improve system flexibility.
 Additionally, due to increasing privacy regulation, application developers require more
 control over data placement rather than less~\cite{gdpr}.
-Thus, while managed data services provide strong consistency, they do so in an rigid, 
-opaque manner that is not flexible enough for developers who require strong consistency
+Thus, while managed data services provide strong consistency, they do so in rigid, 
+opaque manners that are not flexible enough for developers who require strong consistency
 at a higher level of the application stack
 
 We propose a simpler approach to building large, geographically replicated systems.
 Rather than relying on a fleet of loosely-coupled, independent small quorums whose
-interactions are difficult to reason about, we propose a single, system-wide consensus
-protocol that coordinates both replica placement and data accesses.
+interactions are difficult to reason about, we propose a \emph{single, system-wide consensus
+protocol} that coordinates both replica placement and data accesses.
 By ensuring that all coordination occurs through a single consensus activity,
 it is easier to reason about the consistency of the system even in a network environment
 prone to correlated failures, partitions, and variable latency.
@@ -116,10 +127,11 @@ replicas is required.
 Distributed consensus, canonically represented by Paxos~\cite{paxos_simple} and its
 performance optimizing
 variants~\cite{fast_paxos,multicoordinated_paxos,spaxos,generalized_paxos}, primarily
-consider safety in the case of one or two fail-stop node failures.
-Although some recent research has explored the problem of geo-distributed
-consensus~\cite{mencius,epaxos}, it primarily considers the problem of high-latency
-links but geo-replication implies scale.
+considers safety in the case of one or two fail-stop node failures.
+Recent research has explored the problem of geo-distributed
+consensus~\cite{mencius,epaxos}, but primarily considers the problem of high-latency
+links.
+However, geo-replication implies scale.
 Services running around the globe require dozens if not hundreds of replicas and
 introduce new failure modes such as network partitions, where sections of the system
 operate independently without fail-stop failure, and highly variable latency that
@@ -139,12 +151,18 @@ are totally ordered.
 The challenge is in building a multi-group coordination protocol that configures and
 mediates \subs through a \roo.
 The \roo guarantees correctness by pivoting the system through \emph{reconfigurations}
-that place replicas into \subs and maps them to partitions of the object namespace to
-handle direct data accesses.
-The \roo is composed of all replicas in the system, although reconfigurations are rare
+that place replicas into \subs and maps them to partitions of the
+object namespace. Each \sub serializes accesses to its mapped objects.
+\pjk{Sometimes we talk about tags, sometimes objects, need to
+  explicitly connect them}
+%  to
+% handle direct data accesses.
+
+The \roo is composed of all replicas in the system.
+Though decisions made by the \roo, i.e. system reconfigurations, are rare
 with respect to data accesses, we introduce \emph{delegated voting} to optimize quorum
 decisions at the root.
-Much of the systems complexity comes from handshaking between the \roo and \subs during
+Much of the system's complexity comes from handshaking between the \roo and \subs during
 reconfiguration.
 These handshakes are made easier and far more efficient by using \emph{fuzzy transitions},
 which allow individual \subs to move through reconfiguration at their own pace without
@@ -177,7 +195,10 @@ across more than a dozen availability zones around the world using Amazon EC2.
 % - Access/policy optimized data placement rules
 
 \section{Hierarchical Consensus}
-
+\pjk{Is this a description of a  protocol or an implementation?  They should be
+  discrete, even if the implementation is short (maybe mostly a description
+  of what changes in the implementation from a straightforward
+  transcription of the protocol.}
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.48\textwidth]{figures/election3}
@@ -202,7 +223,7 @@ frequently co-located across the wide area.
 
 The root quorum's primary responsibilities are mapping replicas to individual
 subquorums and mapping subquorums to tags within the namespace.
-Each such map defines a distinct epoch, $e_x$, a monotonically increasing
+Each such map defines a distinct epoch \pjk{first mention, not defined}, $e_x$, a monotonically increasing
 representation of the term of the configuration of subquorums and tags,
 $Q_x$.
 The root quorum is a consensus group consisting of subquorum leaders.
@@ -268,27 +289,31 @@ coordination, we simply allow a replica to directly designate another
 replica as its delegate until some future epoch is reached.
 Replicas may only delegate their vote once per epoch and replicas are
 not required to delegate their vote.
-To simplify this process, during configuration of subquorums by the
-root quorum, the root leader provides delegate hints, e.g. those
-replicas that have been stable members of the root quorum without
-partitions.
-When replicas receive their configuration they can use these hints
-to delegate their vote to the closest nearby delegate if not already
+
+The root leader can simplify this process by 
+% using reconfigurations
+ identifying
+replicas that have previously been highly available members of the root quorum.
+Replicas can delegate their vote to the closest replica on this list,
+if they not already
 delegated for the epoch.
 If no hints are provided, then replica followers generally delegate
 their vote to the term 1 leader and hot spares to the closest subquorum
 leader.
 
-Delegation does add one complication: the root quorum leader must
-know all vote delegations to request votes when committing epoch
+% Delegation 
+% does add one complication:
+The root quorum leader must
+know all vote delegations in order to request votes when committing epoch
 changes.
-We deal with this issue by simplifying our protocol.
-Instead of sending vote requests just to subquorum leaders,
+\sys deals with this issue by simplifying our protocol:
+instead of sending vote requests just to subquorum leaders,
 \textbf{the root quorum leader sends vote requests to all system
 replicas.}
 This is true even for \emph{hot spares}, which are not currently
 in any subquorum.
-Delegates reply with the unique ids of the replicas they represent
+Delegates reply with the
+unique ids of the replicas they represent 
 so that root consensus decisions are still made using a majority of
 all system replicas.
 
@@ -724,6 +749,11 @@ mitigated by adding additional subquorums to balance load.
     \endminipage
 \end{figure*}
 
+          \pjk{What heuristics/parameterization allows the system to
+            adapt in sawtooth? If we have to, go back and derive a
+            heuristic from what was actually done (was it all just
+            scripted or is there a heuristic?)}
+
 Besides pure performance and scaling, HC is also motivated by the need to adapt to 
 varying environmental conditions.
 In the next set of experiments, we explore two common runtime scenarios that motivate 
@@ -891,6 +921,8 @@ access patterns.
 % - investigate the affect of more tiers of consensus
 % - transactions
 % - automatic adaptibility using learning rather than policies and heuristics
+
+\pjk{Add years to refs.}
 
 \bibliographystyle{plain}
 \bibliography{papers}
