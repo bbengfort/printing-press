@@ -58,13 +58,8 @@ hierarchical consensus, geographic replication, delegated voting, strong consist
 % I'm worried that we do not do enough to describe our system in a meaningful way
 % Other papers like Akkio have 2 page intros though ...
 
-% It is easier than ever before to deploy
-Geographically distributed data systems now commonly
-% that
-span continents and oceans.
-These
-%  types of
-systems leverage data centers newly available around the globe,
+Geographically distributed data systems now commonly span continents and oceans.
+These systems leverage data centers newly available around the globe,
 increasing local performance by minimizing network distance between users and
 replicas, and offering data recovery in the face of catastrophes such as floods or
 earthquakes.
@@ -80,47 +75,49 @@ hardware and engineering involving multiple independent subsystems with differen
 failure modes, which, while providing strong consistency to application developers, do
 so by hiding both replication and infrastructure complexity.
 
-Alia is the first distributed system of its kind to implement hierarchical consensus,
-a flexible protocol that facilitates adaptation in geo-replicated distributed systems.
-Hierarchical consensus comprises four key contributions; first, \emph{reconfigurable
-consensus}, which allows systems to adapt to changing quorum membership, including
-dynamic replacement and expansion; second, \emph{delegated voting}, which allows
-decisions to be coordinated at the root (i.e. master) quorum, but executed by informed
-hyperlocal subquora; third \emph{fuzzy transitions}, which allow the system to progress
-unimpeded by leadership changes and reconfigurations; and finally, \emph{flexible data
-placement}, which facilitates a greater proportion of direct accesses.
-Together, these four features offer strong consistency at scale amidst dynamically
-growing and shifting globally distributed systems of the kind required by modern
-applications.
+Unfortunately, this complexity is increasingly necessary for modern application 
+development.
+Traditional monolithic applications are being replaced by microservice architectures
+and cloud-native service meshes~\cite{envoy} that make infrastructure directly visible
+to applications.
+Developers in turn leverage this visibility to scale applications, for instance using
+service meshes to maintain and optimize service-specific communication, minimize 
+downtime, and improve system flexibility.
+This visibility is also critical to meeting the demands of increasing privacy
+regulations, which require applications developers to finely control data 
+placement based upon differing legal obligations of the locales of users~\cite{gdpr}.
+Thus, while managed data services provide strong consistency, their rigidity and
+opaqueness are not flexible enough for developers who require strong consistency
+at a higher level of the application stack.
 
-\emph{Alia is motivated by a...  (mismatch between ?...}
-\\ \noindent
-\pjk{comes out of nowhere.}
-The engineering-based solutions of managed geo-distributed data services are designed to
-coordinate hundreds of replicas that have access to expensive data-center hardware and
-involves multiple, independent processes and quorums to synchronize time, allocate locks,
-manage transactions, and recover from failure.
-Meanwhile, traditional monolithic applications are being replaced by microservice
-architectures and cloud-native service meshes~\cite{envoy} that make
-infrastructure directly visible to applications.
-As applications scale, service meshes make it easier to maintain and optimize
-service-specific communication to minimize downtime and to improve system flexibility.
-Additionally, due to increasing privacy regulation, application developers require more
-control over data placement rather than less~\cite{gdpr}.
-Thus, while managed data services provide strong consistency, they do so in rigid, 
-opaque manners that are not flexible enough for developers who require strong consistency
-at a higher level of the application stack
+This paper presents Alia, the first distributed system of its kind to implement
+\emph{\hc}, a flexible protocol that enables the tuning and adaptation required
+by modern applications.
+Hierarchical consensus, described more fully in Section~\ref{section:hc},
+comprises four key contributions; 
+first, \emph{reconfigurable consensus}, which allows systems to adapt to changing
+quorum membership, including dynamic replacement and expansion; 
+second, \emph{delegated voting}, which allows decisions to be coordinated at the
+root (i.e. master) quorum, but executed by informed hyperlocal subquora;
+third \emph{fuzzy transitions}, which allow the system to progress unimpeded by
+leadership changes and reconfigurations; 
+and finally, \emph{flexible data placement}, which facilitates a greater proportion
+of direct accesses.
 
-We propose a simpler approach to building large, geographically replicated systems.
-Rather than relying on a fleet of loosely-coupled, independent small quorums whose
-interactions are difficult to reason about, we propose a \emph{single, system-wide consensus
-protocol} that coordinates both replica placement and data accesses.
-By ensuring that all coordination occurs through a single consensus activity,
-it is easier to reason about the consistency of the system even in a network environment
-prone to correlated failures, partitions, and variable latency.
-Additionally, a single source of coordination gives the system the freedom to adapt to
-changes in access patterns, configure to maximize throughput, specify data placement
-rules, and ensure straightforward system maintenance.
+Alia is motivated by the need for a simpler and more general-purpose approach to
+building large, geographically replicated systems.
+The engineering-based solutions of managed geo-distributed data services rely on
+multiple, independent processes and quorums together with expensive data-center hardware
+to synchronize time, allocate locks, manage transactions, and recover from failure.
+We instead propose a \emph{single, system-wide consensus protocol} that coordinates both replica
+placement and data accesses.
+By ensuring that all coordination occurs through a single consensus activity rather
+than a fleet of small, independent quorums, it is easier to reason about the
+consistency of the system even in a network environment prone to correlated failures,
+partitions, and variable latency.
+This single source of coordination then frees the system to adapt to changes in access
+patterns, configure to maximize throughput, specify data placement rules, and ensure
+straightforward system maintenance.
 
 In order to achieve this, a new consensus protocol that can scale beyond a handful of
 replicas is required.
@@ -136,23 +133,22 @@ Services running around the globe require dozens if not hundreds of replicas and
 introduce new failure modes such as network partitions, where sections of the system
 operate independently without fail-stop failure, and highly variable latency that
 inhibit quorum progress.
-In order to scale systems beyond a handful of replicas, current
+To scale systems beyond a handful of replicas, current
 systems~\cite{spanner,scatter,mdcc,calvinfs} use Paxos as a component, instantiated
 across multiple transactions, shards, or tablets to manage small subsystems
 independently, leading to increased complexity and reduced transparency.
 
 % the below paragraph needs help
 We introduce a novel approach to scale consensus beyond a handful of nodes:
-\emph{\hc}.
-Our approach is to similarly decompose the consensus problem into units that can be
-handled by provenly safe algorithms, but organizes all managed processes into an
-intersecting hierarchy of quorums that ensure that all system-wide consensus decisions
-are totally ordered.
-The challenge is in building a multi-group coordination protocol that configures and
+\emph{\hc}, wherein the consensus problem is effectively decomposed into process
+units, each of which can be handled by provenly safe algorithms, but which also
+intersect in a hierarchy of quorums that ensure all system-wide consensus
+decisions are totally ordered.
+This is achieved with a multi-group coordination protocol that configures and
 mediates \subs through a \roo.
 The \roo guarantees correctness by pivoting the system through \emph{reconfigurations}
-that place replicas into \subs and maps them to partitions of the
-object namespace. Each \sub serializes accesses to its mapped objects.
+that place replicas into \subs, mapping them to partitions of the object namespace. 
+Each \sub serializes accesses to its mapped objects.
 \pjk{Sometimes we talk about tags, sometimes objects, need to
   explicitly connect them}
 %  to
@@ -195,6 +191,7 @@ across more than a dozen availability zones around the world using Amazon EC2.
 % - Access/policy optimized data placement rules
 
 \section{Hierarchical Consensus}
+\label{section:hc}
 \pjk{Is this a description of a  protocol or an implementation?  They should be
   discrete, even if the implementation is short (maybe mostly a description
   of what changes in the implementation from a straightforward
