@@ -817,6 +817,80 @@ Adding more nodes to the system increases the fault tolerance (e.g. by allocatin
 pares) if enough nodes are added to add another subquorum, the capacity of the system to 
 handle client requests is also increased.
 
+\section{Related Works}
+
+% HC is a protocol for composing and coordinating consensus groups, maintaining 
+% consistency invariants over large systems, and adapt to changing conditions and
+% application loads.
+
+The principal contribution of this paper, \hc, follows from the
+large body of work on improving throughput in distributed consensus 
+over the Paxos protocol~\cite{paxos_simple,epaxos,flexible_paxos,generalized_paxos}, 
+and on Raft~\cite{raft,howard_raft_2015}, which focus primarily on fast vs.
+slow path consensus, eliding phases with dependency resolution, and load
+balancing.
+
+Our work is orthogonal to these in that \subs and the \roo can be
+implemented with different underlying consensus algorithms, though the
+two levels must be integrated quite tightly.
+Further, HC abstracts reconfiguration away from \sub consensus, allowing
+multiple \subs to move into new configurations and reducing the need
+for joint consensus~\cite{raft} and other heavyweight procedures.
+Finally, its hierarchical nature allows the system to multiplex multiple
+consensus instances on disjoint partitions of the object space while
+still maintaining global consistency guarantees.
+
+The global consistency guarantees of HC are in direct contrast to other
+systems that scale by exploiting multiple consensus
+instances~\cite{bigtable,mdcc,spanner} on a per-object basis.
+These systems retain the advantage of small quorum sizes but cannot provide
+system-wide consistency invariants.
+Another set of systems uses quorum-based decision-making but relaxes
+consistency guarantees~\cite{dynamo,pnuts,cops}; others provide no way to
+pivot the entire system to a new configuration~\cite{scatter}.
+Chain replication~\cite{van2004chain} and Vertical Paxos~\cite{vertical_paxos}
+are among approaches that control Paxos instances through other consensus
+decisions.
+However, HC differs in the deep integration of the two different levels.
+Whereas these approaches are top down, HC consensus decisions at the root
+level replace system configuration at the \sub level, and vice versa.
+
+Possibly the closest system to HC is Scatter~\cite{scatter}, which uses an
+overlay to organize consistent groups into a ring.
+Neighbors can join, split, and talk amongst themselves.
+The bottom-up approach potentially allows scaling to many
+\subs, but the lack of central control makes it hard to implement global
+re-maps beyond the reach of local neighbors.
+HC ties \roo and \subs tightly together, allowing \roo decisions to
+completely reconfigure the running system on the fly either on demand or
+by detecting changes in network conditions.
+
+Recent work has similarly explored a more strategic approach to data placement;
+Akkio~\cite{akkio}, for instance, optimizes shard placement using access
+latency as the cost function. 
+HC goes a step further, offering not optimization but rather fine grain control
+over data placement, which allows applications to determine their own
+use-case specific cost functions and heuristics.
+
+We claim very strong consistency across a large distributed system, similar
+to Spanner~\cite{spanner}.
+Spanner provides linearizable  transactions through use of special hardware
+and environments, which are used to tightly synchronize clocks in the
+distributed setting.
+Spanner therefore relies on a very specific, curated environment.
+HC targets a wider range of systems that require cost effective scaling in
+the data center to rich dynamic environments with heterogeneity on all levels.
+
+Finally, shared logs have proven useful in a number of settings from fault
+tolerance to correctness guarantees.
+However, keeping such logs consistent in even a single consensus instance has
+proven difficult~\cite{chubby,gfs,zookeeper}.
+More recent systems are leveraging hardware support to provide fast access to
+shared logs~\cite{vcorfu,tango,calvindb,calvinfs,hyder-a,fawn}.
+To our knowledge, HC is the first work to propose synchronizing shared logs
+across multiple discrete consensus instances in the wide area.
+
+
 \section{Discussion}
 
 Alia takes a different approach to implementing geo-distributed systems, focusing
