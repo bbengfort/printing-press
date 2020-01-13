@@ -119,7 +119,7 @@ considers safety in the case of one or two fail-stop node failures.
 Recent research has explored the problem of geo-distributed
 consensus~\cite{mencius,epaxos}, but primarily considers the problem of high-latency
 links.
-% We imply that the above algorithms do not scale, we may need to explictly state and
+% We imply that the above algorithms do not scale, we may need to explicitly state and
 % cite flexible paxos or our own research in \ref{fig:scaling_consensus}.
 However, geo-replication implies scale.
 Services running around the globe require dozens if not hundreds of replicas and
@@ -191,7 +191,7 @@ view of the system when any replica is queried.
 Most of these algorithms are based on Paxos~\cite{paxos_simple}, which ensures that a
 distributed log of ordered commands is maintained even if $f$ replicas fail-stop.
 This is achieved with quorums of $2f+1$ replicas that write an entry into the log using
-a 2 phase ballotting process: \texttt{PREPARE} and \texttt{ACCEPT}.
+a 2 phase balloting process: \texttt{PREPARE} and \texttt{ACCEPT}.
 The \texttt{PREPARE} phase is designed to nominate an open slot in the log at position
 $i$ to place the command and to detect any conflicting commands that may already
 exist in that slot; the \texttt{ACCEPT} phase commits the command in that slot.
@@ -200,7 +200,7 @@ In both phases a majority of replicas must respond for progress to be made.
 There are two primary optimizations to the basic consensus algorithm: leader election
 and fast path execution.
 Leader-oriented consensus protocols elide the \texttt{PREPARE} phase by specifically
-selecting a replica that has sole responsiblity of slot nomination.
+selecting a replica that has sole responsibility of slot nomination.
 Some variants such as Raft~\cite{raft} elect a leader that can nominate all slots for
 a time-limited duration, where as others like Mencius~\cite{mencius} use a round-robin
 approach to assigning leadership.
@@ -212,7 +212,7 @@ case, while still maintaining safety when $f$ replicas fail, however none of the
 optimizations describe how to scale consensus beyond $2f+1$ replicas.
 
 Vertical Paxos~\cite{vertical_paxos,niobe} describes how to scale consensus groups by
-allowing an auxillary master quorum to execute safe reconfiguration directives in the
+allowing an auxiliary master quorum to execute safe reconfiguration directives in the
 middle of consensus decisions.
 The replicated state machine process is extended from a single log to a grid where
 commands are placed both horizontally as a sequence of consensus instances
@@ -233,8 +233,8 @@ consensus to hundreds of nodes across the wide area.
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.48\textwidth]{figures/election3}
-    \caption{\Hc is an extension of Vertical Paxos such that the \roo moves the system
-    through reconfigurations and intersecting \subs manage local data accesses.}
+    \caption{\Hc is an extension of Vertical Paxos wherein the \roo moves the system
+    through reconfigurations, and intersecting \subs manage local data accesses.}
     \label{fig:system}
 \end{figure}
 
@@ -284,12 +284,12 @@ epoch.
 This \emph{siloing} of client accesses simplifies implementation of strong consistency
 guarantees and allows better performance at the cost of restricting multi-object
 transactions.
-% This last sentence is kind of wierd
+% This last sentence is kind of weird
 We use agility to attempt to get this, but allow client-side multi-object transactions.
 
 % This section is supposed to serve as an outline of the section: reconfiguration,
 % then fuzzy transitions, then placement, then delegated voting - but doesn't do it in
-% the order of the section or use section references ... then tries to seque.
+% the order of the section or use section references ... then tries to segue.
 The \roo is a consensus group consisting of delegates (usually subquorum leaders) whose
 primary consensus operation is to commit new epochs.
 As \subs transition to new epochs, they handoff their current state to the \sub(s)
@@ -451,7 +451,7 @@ additional mechanism because of changes in namespace responsibility.
 
 % TODO
 Systems are extremely sensitive to access patterns though most applications and systems
-are opnly optimized for one type of access pattern.
+are only optimized for one type of access pattern.
 Real-world systems have multiple types of access patterns including:
 
 \begin{itemize}
@@ -470,7 +470,7 @@ single region using Raft to maximize throughput.
 To increase durability, data can be placed with a leader and primary backup in a single
 region, and a secondary backup in a remote region.
 Using this scheme it is important to modify the election rules of Raft to decrease the
-probabiliy that the secondary backup is elected leader.
+probability that the secondary backup is elected leader.
 To handle conflicting accesses across regions, ePaxos or mencius can be used to
 optimistically serialize proposals across the wide area.
 
@@ -494,7 +494,8 @@ Safety is guaranteed by tracking \sub dependencies across the epoch boundary.
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.48\textwidth]{figures/namespaceHandoff}
-    \caption{Fuzzy transition.}
+    \caption{Fuzzy transitions allow the system to progress unimpeded by
+    leadership changes.}
     \label{fig:handoff}
 \end{figure}
 
@@ -708,7 +709,7 @@ regain connectivity.
 \section{Implementation}
 \label{section:implementation}
 
-\pjk{description of protocol and implementation should be descrete}
+\pjk{description of protocol and implementation should be discrete}
 
 Alia is implemented with Raft
 
@@ -751,12 +752,12 @@ ascribed to a single central tendency.
     \centering
     \minipage{0.5\textwidth}
         \includegraphics[width=\linewidth]{figures/scaling.pdf}
-        \caption{Performance increases with larger quorum sizes}
+        \caption{Throughput increases with larger quorum sizes.}
         \label{fig:scaling_consensus}
     \endminipage\hfill
     \minipage{0.5\textwidth}%
         \includegraphics[width=\linewidth]{figures/hc_throughput_workload.pdf}
-        \caption{Can handle larger workloads with larger system sizes}
+        \caption{Alia handles larger workloads with larger system sizes.}
         \label{fig:throughput_workload}
     \endminipage
 \end{figure*}
@@ -802,12 +803,12 @@ final experiment.
 \begin{figure}
     \centering
     \includegraphics[width=0.48\textwidth]{figures/ec2_latency_cumfreq.pdf}
-    \caption{Comulative latency of requests}
+    \caption{Cumulative latency of requests decreases with system size.}
     \label{fig:latency}
 \end{figure}
 
 The effect of saturation is also demonstrated in Figure~\ref{fig:latency}, which shows
-cumulative latency distributions for different system sizes holding the  workload
+cumulative latency distributions for different system sizes holding the workload
 (number of concurrent clients) constant.
 The fastest (24/3) shows nearly 80\% of client write requests being serviced in under
 2 msec.
@@ -816,19 +817,19 @@ clients can saturate a single subquorum).
 Because throughput is directly related to commit latency, throughput variability can be
 mitigated by adding additional subquorums to balance load.
 
-\subsection{Adaptibility}
+\subsection{Adaptability}
 \label{section:adaptability}
 
 \begin{figure*}[t]
     \centering
     \minipage{0.5\textwidth}
         \includegraphics[width=\linewidth]{figures/umd_fault_tolerance.pdf}
-        \caption{Reconfiguration to adapt to changing access patterns}
+        \caption{Reconfiguration to adapt to changing access patterns.}
         \label{fig:fault_tolerance}
     \endminipage\hfill
     \minipage{0.5\textwidth}%
         \includegraphics[width=\linewidth]{figures/umd_sawtooth.pdf}
-        \caption{Reconfiguration to take over from failing subquorums}
+        \caption{Reconfiguration to take over from failing subquorums.}
         \label{fig:sawtooth}
     \endminipage
 \end{figure*}
@@ -887,8 +888,8 @@ This may be optimized by having leadership assigned or maintained through root c
 
 In our final implementation we ran our repaired version of HC at a planetary scale.
 We created a system with 105 replicas in 15 regions in 5 continents.
-The system allocated size 3 subquorums round-robin to each region such that the largest s
-ystem was comprised of 6 subquorums per region with 1 hot-spare per region.
+The system allocated size 3 subquorums round-robin to each region such that the largest
+system was comprised of 6 subquorums per region with 1 hot-spare per region.
 Figure~\ref{fig:geoconsensus_throughput} shows the global blast throughput of
 the system, the sum of throughput of client process that fired off 1000 concurrent
 requests, timing the complete response.
@@ -1072,8 +1073,8 @@ changes to the system in real time with fuzzy transitions.
 To ensure correct reasoning of global consistency semantics and reduce the complexity of
 independent-subsystems with different failure modes, \hc ensures that there is an
 intersection of the \roo and subs.
-This interesection requires all nodes to participate in the root quorum, so to scale
-this quorum, we introduce delegated volding to improve globably availability.
+This intersection requires all nodes to participate in the root quorum, so to scale
+this quorum, we introduce delegated voting to improve globally availability.
 Finally, because objects have different requirements for availability or durability,
 data placement rules and subquorum behavior can be adjusted for different geographic
 access patterns.
@@ -1081,7 +1082,7 @@ access patterns.
 % Future work:
 % - investigate the affect of more tiers of consensus
 % - transactions
-% - automatic adaptibility using learning rather than policies and heuristics
+% - automatic adaptability using learning rather than policies and heuristics
 
 
 % TODO: Why are years being omitted from the references?!
