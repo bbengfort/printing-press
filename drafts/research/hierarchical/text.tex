@@ -66,7 +66,7 @@ These systems leverage data centers newly available around the globe,
 increasing local performance by minimizing network distance between users and
 replicas, and offering data recovery in the face of catastrophes such as floods or
 earthquakes.
-Specialized, high-availability data systems~\cite{megastore,tao,akkio,dynamic_placement}
+Specialized, high-availability data systems~\cite{megastore,akkio,dynamic_placement}
 have maximized throughput across the wide area, driving interest in
 geo-replicated systems and making truly international applications increasingly
 feasible.
@@ -749,14 +749,37 @@ rejoin the system as a non-delegate replica.
 \section{Implementation}
 \label{section:implementation}
 
-\pjk{description of protocol and implementation should be discrete}
+% obviously lots of room for expansion here
 
-Alia is implemented with Raft
+Alia implements a replicated key-value store with strong consistency via the \hc protocol
+using Golang and gRPC for communication.
+Alia is designed as a single process, such that an Alia cluster is composed of
+$P$ processes of the same type, each of which manage a partial replica of the object
+space and participate in \emph{both} root consensus and subquorum consensus.
+Consensus and delegated voting are implemented using modified Raft as the underlying
+protocol.
+Each replica implements an event loop that responds to timing events, client requests,
+and messages from peers.
+Events may cause the replica to change state, modify a command log, broadcast messages
+to peers, modify the local store, or respond to a client.
+Because events are crticial to the correctness and safety of the system, all events are
+serialized through a single channel so that they are handled sequentially by the primary
+process.
 
-Only versions are replicated, object data is stored in blobs and replicated using
-eventual consistency techniques.
+In addition to the major changes to base Raft such as allowing replicas to be part of
+multiple \subs simultaneously and to accept delegated votes, we also made many smaller
+changes that had pervasive effects.
+One such change was including the epoch number alongside the term in all log entries
+and using it as an invariant whether a replica is as up to date as another log.
+We allowed aggregation of multiple client requests into a single round by \sub leaders,
+which helped increase throughput and decrease the number of required messages.
+We also implemented hierarchical thrifty communications to minimize the number of
+messages such that \roo would send messages to delegates first, then broadcast to all
+replicas if delegate messages were not acknowledged.
 
-2 phase thrifty messaging: once to leaders then to followers
+% Only versions are replicated, object data is stored in blobs and replicated using
+% eventual consistency techniques.
+% 2 phase thrifty messaging: once to leaders then to followers
 
 \section{Evaluation}
 \label{section:evaluation}
