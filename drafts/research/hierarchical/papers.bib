@@ -1,314 +1,526 @@
 
-@article{spanner,
-  title = {Spanner: {{Google}}'s Globally Distributed Database},
-  volume = {31},
-  url = {http://dl.acm.org/citation.cfm?id=2491245},
-  number = {3},
-  journaltitle = {ACM Transactions on Computer Systems (TOCS)},
-  urldate = {2014-11-06},
-  date = {2013},
-  pages = {8},
-  author = {Corbett, James C. and Dean, Jeffrey and Epstein, Michael and Fikes, Andrew and Frost, Christopher and Furman, J. J. and Ghemawat, Sanjay and Gubarev, Andrey and Heiser, Christopher and Hochschild, Peter and others}
+@inproceedings{akkio,
+  title = {Sharding the Shards: Managing Datastore Locality at Scale with {{Akkio}}},
+  booktitle = {13th {{USENIX Symposium}} on {{Operating Systems Design}} and {{Implementation}} ({{OSDI}} 18)},
+  author = {Annamalai, Muthukaruppan and Ravichandran, Kaushik and Srinivas, Harish and Zinkovsky, Igor and Pan, Luning and Savor, Tony and Nagle, David and Stumm, Michael},
+  date = {2018},
+  pages = {445--460}
 }
-
-@inproceedings{scatter,
-  title = {Scalable Consistency in {{Scatter}}},
-  url = {http://dl.acm.org/citation.cfm?id=2043559},
-  booktitle = {Proceedings of the {{Twenty}}-{{Third ACM Symposium}} on {{Operating Systems Principles}}},
-  publisher = {{ACM}},
-  urldate = {2014-10-27},
-  date = {2011},
-  pages = {15--28},
-  author = {Glendenning, Lisa and Beschastnikh, Ivan and Krishnamurthy, Arvind and Anderson, Thomas}
-}
+% == BibLateX quality report for akkio:
+% ? Unsure about the formatting of the booktitle
 
 @inproceedings{alvaro2013consistency,
   title = {Consistency without Borders},
   booktitle = {Proceedings of the 4th Annual {{Symposium}} on {{Cloud Computing}}},
-  publisher = {{ACM}},
+  author = {Alvaro, Peter and Bailis, Peter and Conway, Neil and Hellerstein, Joseph M},
   date = {2013},
   pages = {23},
-  author = {Alvaro, Peter and Bailis, Peter and Conway, Neil and Hellerstein, Joseph M}
+  publisher = {{ACM}}
 }
 
-@inproceedings{mdcc,
-  title = {{{MDCC}}: {{Multi}}-{{Data Center Consistency}}},
-  booktitle = {Proceedings of the 8th {{ACM European Conference}} on {{Computer Systems}}},
-  publisher = {{ACM}},
-  date = {2013},
-  pages = {113-126},
-  author = {Kraska, Tim and Pang, Gene and Franklin, Michael J. and Madden, Samuel and Fekete, Alan}
-}
-% == BibLateX quality report for mdcc:
-% ? Title looks like it was stored in title-case in Zotero
-
-@inproceedings{raft,
-  title = {In Search of an Understandable Consensus Algorithm},
-  url = {https://www.usenix.org/conference/atc14/technical-sessions/presentation/ongaro},
-  booktitle = {2014 {{USENIX Annual Technical Conference}} ({{USENIX ATC}} 14)},
-  urldate = {2016-05-01},
+@inproceedings{alvin,
+  title = {Be General and Don't Give up Consistency in Geo-Replicated Transactional Systems},
+  booktitle = {International {{Conference}} on {{Principles}} of {{Distributed Systems}}},
+  author = {Turcu, Alexandru and Peluso, Sebastiano and Palmieri, Roberto and Ravindran, Binoy},
   date = {2014},
-  pages = {305--319},
-  author = {Ongaro, Diego and Ousterhout, John}
+  pages = {33--48},
+  publisher = {{Springer}}
 }
-% == BibLateX quality report for raft:
+% == BibLateX quality report for alvin:
 % ? Unsure about the formatting of the booktitle
 
-@inproceedings{calvinfs,
-  title = {{{CalvinFS}}: Consistent Wan Replication and Scalable Metadata Management for Distributed File Systems},
-  url = {https://www.usenix.org/node/188413},
-  booktitle = {13th {{USENIX Conference}} on {{File}} and {{Storage Technologies}} ({{FAST}} 15)},
-  urldate = {2016-11-22},
-  date = {2015},
-  pages = {1--14},
-  author = {Thomson, Alexander and Abadi, Daniel J.}
+@inproceedings{aurora,
+  title = {Amazon Aurora: {{Design}} Considerations for High Throughput Cloud-Native Relational Databases},
+  booktitle = {Proceedings of the 2017 {{ACM International Conference}} on {{Management}} of {{Data}}},
+  author = {Verbitski, Alexandre and Gupta, Anurag and Saha, Debanjan and Brahmadesam, Murali and Gupta, Kamal and Mittal, Raman and Krishnamurthy, Sailesh and Maurice, Sandor and Kharatishvili, Tengiz and Bao, Xiaofeng},
+  date = {2017},
+  pages = {1041--1052},
+  publisher = {{ACM}}
 }
-% == BibLateX quality report for calvinfs:
-% ? Unsure about the formatting of the booktitle
-
-@article{sprenkle_exploring_2004,
-  title = {Exploring {{Availability}} and {{Usage Guarantees}} in {{Resource Allocation Through Leases}}},
-  url = {http://www.cs.wlu.edu/~sprenkle/acad/papers/ses_masters.pdf},
-  journaltitle = {Duke University Computer Science},
-  urldate = {2016-08-08},
-  date = {2004},
-  author = {Sprenkle, Sara E. and others}
-}
-% == BibLateX quality report for sprenkle_exploring_2004:
-% ? Title looks like it was stored in title-case in Zotero
-
-@report{kolbeck_fault-tolerant_2010,
-  title = {Fault-{{Tolerant}} and {{Decentralized Lease Coordination}} in {{Distributed Systems}}},
-  url = {http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.631.9448&rep=rep1&type=pdf},
-  institution = {{Citeseer}},
-  urldate = {2016-08-08},
-  date = {2010},
-  author = {Kolbeck, Bj\"orn and Hogqvist, MIKAEL and Stender, Jan and Hupfeld, Felix}
-}
-% == BibLateX quality report for kolbeck_fault-tolerant_2010:
-% Missing required field 'type'
-% ? Title looks like it was stored in title-case in Zotero
-
-@article{fatlease,
-  title = {{{FaTLease}}: Scalable Fault-Tolerant Lease Negotiation with {{Paxos}}},
-  volume = {12},
-  url = {http://link.springer.com/article/10.1007/s10586-009-0074-2},
-  number = {2},
-  journaltitle = {Cluster Computing},
-  urldate = {2016-08-08},
-  date = {2009},
-  pages = {175--188},
-  author = {Hupfeld, Felix and Kolbeck, Bj\"orn and Stender, Jan and H\"ogqvist, Mikael and Cortes, Toni and Mart\'i, Jonathan and Malo, Jes\'us}
-}
-
-@article{paxos_practical,
-  title = {Paxos Made Practical},
-  url = {http://read.seas.harvard.edu/~kohler/class/08w-dsi/mazieres07paxos.pdf},
-  journaltitle = {Unpublished manuscript},
-  urldate = {2016-05-03},
-  date = {2007},
-  author = {Mazieres, David}
-}
-
-@report{generalized_paxos,
-  title = {Generalized Consensus and {{Paxos}}},
-  url = {http://zoo.cs.yale.edu/classes/cs426/2012/lab/bib/lamport05generalized.pdf},
-  institution = {{Technical Report MSR-TR-2005-33, Microsoft Research}},
-  urldate = {2016-05-03},
-  date = {2005},
-  author = {Lamport, Leslie}
-}
-% == BibLateX quality report for generalized_paxos:
-% Missing required field 'type'
-
-@inproceedings{multicoordinated_paxos,
-  title = {Multicoordinated Paxos},
-  url = {http://dl.acm.org/citation.cfm?id=1281150},
-  booktitle = {Proceedings of the Twenty-Sixth Annual {{ACM}} Symposium on {{Principles}} of Distributed Computing},
-  publisher = {{ACM}},
-  urldate = {2016-05-03},
-  date = {2007},
-  pages = {316--317},
-  author = {Camargos, L\'asaro Jonas and Schmidt, Rodrigo Malta and Pedone, Fernando}
-}
-% == BibLateX quality report for multicoordinated_paxos:
-% ? Unsure about the formatting of the booktitle
-
-@inproceedings{spaxos,
-  title = {S-Paxos: {{Offloading}} the Leader for High Throughput State Machine Replication},
-  url = {http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=6424845},
-  booktitle = {Reliable {{Distributed Systems}} ({{SRDS}}), 2012 {{IEEE}} 31st {{Symposium}} On},
-  publisher = {{IEEE}},
-  urldate = {2016-05-03},
-  date = {2012},
-  pages = {111--120},
-  author = {Biely, Martin and Milosevic, Zoran and Santos, Nuno and Schiper, Andre}
-}
-% == BibLateX quality report for spaxos:
-% ? Unsure about the formatting of the booktitle
-
-@inproceedings{megastore,
-  title = {Megastore: {{Providing Scalable}}, {{Highly Available Storage}} for {{Interactive Services}}.},
-  volume = {11},
-  url = {http://pages.cs.wisc.edu/~akella/CS838/F12/838-CloudPapers/Megastore.pdf},
-  booktitle = {{{CIDR}}},
-  urldate = {2016-05-03},
-  date = {2011},
-  pages = {223--234},
-  author = {Baker, Jason and Bond, Chris and Corbett, James C. and Furman, J. J. and Khorlin, Andrey and Larson, James and Leon, Jean-Michel and Li, Yawei and Lloyd, Alexander and Yushprakh, Vadim}
-}
-% == BibLateX quality report for megastore:
-% ? Unsure about the formatting of the booktitle
-% ? Title looks like it was stored in title-case in Zotero
 
 @inproceedings{boxwood,
   title = {Boxwood: {{Abstractions}} as the {{Foundation}} for {{Storage Infrastructure}}.},
-  volume = {4},
-  url = {https://www.usenix.org/legacy/events/osdi04/tech/full_papers/maccormick/maccormick_html/},
   booktitle = {{{OSDI}}},
-  urldate = {2016-05-03},
+  author = {MacCormick, John and Murphy, Nick and Najork, Marc and Thekkath, Chandramohan A. and Zhou, Lidong},
   date = {2004},
+  volume = {4},
   pages = {8--8},
-  author = {MacCormick, John and Murphy, Nick and Najork, Marc and Thekkath, Chandramohan A. and Zhou, Lidong}
+  url = {https://www.usenix.org/legacy/events/osdi04/tech/full_papers/maccormick/maccormick_html/},
+  urldate = {2016-05-03}
 }
 % == BibLateX quality report for boxwood:
 % ? Unsure about the formatting of the booktitle
 % ? Title looks like it was stored in title-case in Zotero
 
-@article{paxos_simple,
-  title = {Paxos Made Simple},
-  volume = {32},
-  url = {http://www.cs.utexas.edu/users/lorenzo/corsi/cs380d/past/03F/notes/paxos-simple.pdf},
-  number = {4},
-  journaltitle = {ACM Sigact News},
-  urldate = {2014-11-03},
-  date = {2001},
-  pages = {18--25},
-  author = {Lamport, Leslie}
-}
-
-@inproceedings{zookeeper,
-  title = {{{ZooKeeper}}: {{Wait}}-Free {{Coordination}} for {{Internet}}-Scale {{Systems}}.},
-  volume = {8},
-  url = {https://www.usenix.org/event/usenix10/tech/full_papers/Hunt.pdf},
-  booktitle = {{{USENIX Annual Technical Conference}}},
-  urldate = {2016-05-01},
-  date = {2010},
-  pages = {9},
-  author = {Hunt, Patrick and Konar, Mahadev and Junqueira, Flavio Paiva and Reed, Benjamin}
-}
-% == BibLateX quality report for zookeeper:
-% ? Unsure about the formatting of the booktitle
-
-@software{etcd_raft,
-  title = {Etcd: Package Raft},
-  url = {https://godoc.org/github.com/coreos/etcd/raft},
-  version = {v2.3.2},
-  organization = {{CoreOS}},
-  urldate = {2016-04-28},
-  date = {2016-04-21},
-  author = {Mizerany, Blake and Yicheng, Qin and Xiang, Li}
-}
-% == BibLateX quality report for etcd_raft:
-% Unexpected field 'title'
-% Unexpected field 'version'
-% Unexpected field 'organization'
-% Unexpected field 'author'
-
-@inproceedings{mencius,
-  title = {Mencius: Building Efficient Replicated State Machines for {{WANs}}},
-  volume = {8},
-  url = {https://www.usenix.org/legacy/event/osdi08/tech/full_papers/mao/mao_html/},
-  booktitle = {{{OSDI}}},
-  urldate = {2016-05-01},
-  date = {2008},
-  pages = {369--384},
-  author = {Mao, Yanhua and Junqueira, Flavio Paiva and Marzullo, Keith}
-}
-% == BibLateX quality report for mencius:
-% ? Unsure about the formatting of the booktitle
-
-@article{stellar,
-  title = {The Stellar Consensus Protocol: {{A}} Federated Model for Internet-Level Consensus},
-  url = {http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.696.93&rep=rep1&type=pdf},
-  journaltitle = {Draft, Stellar Development Foundation, 15th May, available at: https://www. stellar. org/papers/stellarconsensus-protocol. pdf (accessed 23rd May, 2015)},
-  urldate = {2016-02-04},
+@inproceedings{calvinfs,
+  title = {{{CalvinFS}}: Consistent Wan Replication and Scalable Metadata Management for Distributed File Systems},
+  booktitle = {13th {{USENIX Conference}} on {{File}} and {{Storage Technologies}} ({{FAST}} 15)},
+  author = {Thomson, Alexander and Abadi, Daniel J.},
   date = {2015},
-  author = {Mazieres, David}
+  pages = {1--14},
+  url = {https://www.usenix.org/node/188413},
+  urldate = {2016-11-22}
 }
-% == BibLateX quality report for stellar:
-% ? Possibly abbreviated journal title Draft, Stellar Development Foundation, 15th May, available at: https://www. stellar. org/papers/stellarconsensus-protocol. pdf (accessed 23rd May, 2015)
+% == BibLateX quality report for calvinfs:
+% ? Unsure about the formatting of the booktitle
+
+@inproceedings{chain_replication,
+  title = {Chain {{Replication}} for {{Supporting High Throughput}} and {{Availability}}.},
+  booktitle = {{{OSDI}}},
+  author = {Van Renesse, Robbert and Schneider, Fred B},
+  date = {2004},
+  volume = {4},
+  pages = {91--104}
+}
+% == BibLateX quality report for chain_replication:
+% ? Unsure about the formatting of the booktitle
+% ? Title looks like it was stored in title-case in Zotero
+
+@inproceedings{chubby,
+  title = {The {{Chubby}} Lock Service for Loosely-Coupled Distributed Systems},
+  booktitle = {Proceedings of the 7th Symposium on {{Operating}} Systems Design and Implementation},
+  author = {Burrows, Mike},
+  date = {2006},
+  pages = {335--350},
+  publisher = {{USENIX Association}},
+  url = {http://dl.acm.org/citation.cfm?id=1298487},
+  urldate = {2016-05-01}
+}
+% == BibLateX quality report for chubby:
+% ? Unsure about the formatting of the booktitle
+
+@online{cockroachdb,
+  title = {{{CockroachDB Geo}}-{{Partitioning}}},
+  journaltitle = {Cockroach Labs},
+  url = {https://www.cockroachlabs.com/product/geo-distributed/},
+  urldate = {2020-01-04},
+  langid = {american}
+}
+% == BibLateX quality report for cockroachdb:
+% Unexpected field 'journaltitle'
+% Exactly one of 'date' / 'year' must be present
+% ? Title looks like it was stored in title-case in Zotero
+
+@inproceedings{dynamic_placement,
+  title = {Where in the World Is My Data},
+  booktitle = {Proceedings {{International Conference}} on {{Very Large Data Bases}} ({{VLDB}})},
+  author = {Kadambi, Sudarshan and Chen, Jianjun and Cooper, Brian F. and Lomax, David and Ramakrishnan, Raghu and Silberstein, Adam and Tam, Erwin and Garcia-Molina, Hector},
+  date = {2011}
+}
+
+@inproceedings{dynamo,
+  title = {Dynamo: Amazon's Highly Available Key-Value Store},
+  booktitle = {{{ACM SIGOPS Operating Systems Review}}},
+  author = {DeCandia, Giuseppe and Hastorun, Deniz and Jampani, Madan and Kakulapati, Gunavardhan and Lakshman, Avinash and Pilchin, Alex and Sivasubramanian, Swaminathan and Vosshall, Peter and Vogels, Werner},
+  date = {2007},
+  volume = {41},
+  pages = {205--220},
+  publisher = {{ACM}},
+  url = {http://dl.acm.org/citation.cfm?id=1294281},
+  urldate = {2014-10-15}
+}
+% == BibLateX quality report for dynamo:
+% ? Unsure about the formatting of the booktitle
+
+@article{envoy,
+  title = {Lyft's {{Envoy}}: {{Experiences Operating}} a {{Large Service Mesh}}},
+  author = {Klein, Matt},
+  date = {2017}
+}
+% == BibLateX quality report for envoy:
+% Missing required field 'journaltitle'
+% ? Title looks like it was stored in title-case in Zotero
 
 @inproceedings{epaxos,
   title = {There Is More Consensus in Egalitarian Parliaments},
-  url = {http://dl.acm.org/citation.cfm?id=2517350},
   booktitle = {Proceedings of the {{Twenty}}-{{Fourth ACM Symposium}} on {{Operating Systems Principles}}},
-  publisher = {{ACM}},
-  urldate = {2016-04-27},
+  author = {Moraru, Iulian and Andersen, David G. and Kaminsky, Michael},
   date = {2013},
   pages = {358--372},
-  author = {Moraru, Iulian and Andersen, David G. and Kaminsky, Michael}
+  publisher = {{ACM}},
+  url = {http://dl.acm.org/citation.cfm?id=2517350},
+  urldate = {2016-04-27}
 }
+
+@inproceedings{eris,
+  title = {Eris: {{Coordination}}-Free Consistent Transactions Using in-Network Concurrency Control},
+  booktitle = {Proceedings of the 26th {{Symposium}} on {{Operating Systems Principles}}},
+  author = {Li, Jialin and Michael, Ellis and Ports, Dan RK},
+  date = {2017},
+  pages = {104--120},
+  publisher = {{ACM}}
+}
+
+@software{etcd_raft,
+  title = {Etcd: Package Raft},
+  author = {Mizerany, Blake and Yicheng, Qin and Xiang, Li},
+  date = {2016-04-21},
+  url = {https://godoc.org/github.com/coreos/etcd/raft},
+  urldate = {2016-04-28},
+  organization = {{CoreOS}},
+  version = {v2.3.2}
+}
+% == BibLateX quality report for etcd_raft:
+% Unexpected field 'title'
+% Unexpected field 'author'
+% Unexpected field 'organization'
+% Unexpected field 'version'
 
 @article{fast_paxos,
   title = {Fast Paxos},
-  volume = {19},
-  url = {http://link.springer.com/article/10.1007/s00446-006-0005-x},
-  number = {2},
-  journaltitle = {Distributed Computing},
-  urldate = {2016-04-27},
+  author = {Lamport, Leslie},
   date = {2006},
+  journaltitle = {Distributed Computing},
+  volume = {19},
   pages = {79--103},
-  author = {Lamport, Leslie}
+  url = {http://link.springer.com/article/10.1007/s00446-006-0005-x},
+  urldate = {2016-04-27},
+  number = {2}
 }
 
-@article{raft_refloated,
-  title = {Raft Refloated: Do We Have Consensus?},
-  volume = {49},
-  url = {http://dl.acm.org/citation.cfm?id=2723876},
-  number = {1},
-  journaltitle = {ACM SIGOPS Operating Systems Review},
-  urldate = {2016-04-27},
-  date = {2015},
-  pages = {12-21},
-  author = {Howard, Heidi and Schwarzkopf, Malte and Madhavapeddy, Anil and Crowcroft, Jon}
+@article{fatlease,
+  title = {{{FaTLease}}: Scalable Fault-Tolerant Lease Negotiation with {{Paxos}}},
+  author = {Hupfeld, Felix and Kolbeck, Bj\"orn and Stender, Jan and H\"ogqvist, Mikael and Cortes, Toni and Mart\'i, Jonathan and Malo, Jes\'us},
+  date = {2009},
+  journaltitle = {Cluster Computing},
+  volume = {12},
+  pages = {175--188},
+  url = {http://link.springer.com/article/10.1007/s10586-009-0074-2},
+  urldate = {2016-08-08},
+  number = {2}
 }
+
+@inproceedings{fawn,
+  title = {{{FAWN}}: {{A}} Fast Array of Wimpy Nodes},
+  booktitle = {Proceedings of the {{ACM SIGOPS}} 22nd Symposium on {{Operating}} Systems Principles},
+  author = {Andersen, David G and Franklin, Jason and Kaminsky, Michael and Phanishayee, Amar and Tan, Lawrence and Vasudevan, Vijay},
+  date = {2009},
+  pages = {1--14},
+  publisher = {{ACM}}
+}
+% == BibLateX quality report for fawn:
+% ? Unsure about the formatting of the booktitle
+
+@article{flexible_paxos,
+  title = {Flexible {{Paxos}}: {{Quorum}} Intersection Revisited},
+  author = {Howard, H. and Malkhi, D. and Spiegelman, A.},
+  date = {2016-08},
+  journaltitle = {ArXiv e-prints},
+  adsnote = {Provided by the SAO/NASA Astrophysics Data System},
+  adsurl = {http://adsabs.harvard.edu/abs/2016arXiv160806696H},
+  archiveprefix = {arXiv},
+  keywords = {and Cluster Computing,C.2.4,Computer Science - Distributed,Parallel},
+  primaryclass = {cs.DC}
+}
+% == BibLateX quality report for flexible_paxos:
+% Unexpected field 'adsnote'
+% Unexpected field 'adsurl'
+% Unexpected field 'archiveprefix'
+% Unexpected field 'primaryclass'
+
+@inproceedings{gdpr,
+  title = {Analyzing the {{Impact}} of {{GDPR}} on {{Storage Systems}}},
+  booktitle = {11th {{USENIX Workshop}} on {{Hot Topics}} in {{Storage}} and {{File Systems}} ({{HotStorage}} 19)},
+  author = {Shah, Aashaka and Banakar, Vinay and Shastri, Supreeth and Wasserman, Melissa and Chidambaram, Vijay},
+  date = {2019}
+}
+% == BibLateX quality report for gdpr:
+% ? Unsure about the formatting of the booktitle
+% ? Title looks like it was stored in title-case in Zotero
+
+@report{generalized_paxos,
+  title = {Generalized Consensus and {{Paxos}}},
+  author = {Lamport, Leslie},
+  date = {2005},
+  institution = {{Technical Report MSR-TR-2005-33, Microsoft Research}},
+  url = {http://zoo.cs.yale.edu/classes/cs426/2012/lab/bib/lamport05generalized.pdf},
+  urldate = {2016-05-03}
+}
+% == BibLateX quality report for generalized_paxos:
+% Missing required field 'type'
 
 @inproceedings{gfs,
   title = {The {{Google}} File System},
-  volume = {37},
-  url = {http://dl.acm.org/citation.cfm?id=945450},
   booktitle = {{{ACM SIGOPS Operating Systems Review}}},
-  publisher = {{ACM}},
+  author = {Ghemawat, Sanjay and Gobioff, Howard and Leung, Shun-Tak},
   date = {2003},
+  volume = {37},
   pages = {29--43},
-  keywords = {filesystem,Google},
-  author = {Ghemawat, Sanjay and Gobioff, Howard and Leung, Shun-Tak}
+  publisher = {{ACM}},
+  url = {http://dl.acm.org/citation.cfm?id=945450},
+  keywords = {filesystem,Google}
 }
 % == BibLateX quality report for gfs:
 % ? Unsure about the formatting of the booktitle
 
 @inproceedings{gray_dangers_1996,
   title = {The Dangers of Replication and a Solution},
-  volume = {25},
-  url = {http://dl.acm.org/citation.cfm?id=233330},
   booktitle = {{{ACM SIGMOD Record}}},
-  publisher = {{ACM}},
-  urldate = {2015-04-07},
+  author = {Gray, Jim and Helland, Pat and O'Neil, Patrick and Shasha, Dennis},
   date = {1996},
+  volume = {25},
   pages = {173--182},
-  author = {Gray, Jim and Helland, Pat and O'Neil, Patrick and Shasha, Dennis}
+  publisher = {{ACM}},
+  url = {http://dl.acm.org/citation.cfm?id=233330},
+  urldate = {2015-04-07}
 }
 % == BibLateX quality report for gray_dangers_1996:
+% ? Unsure about the formatting of the booktitle
+
+@article{howard_generalised_2019,
+  title = {A {{Generalised Solution}} to {{Distributed Consensus}}},
+  author = {Howard, Heidi and Mortier, Richard},
+  date = {2019-02-18},
+  url = {http://arxiv.org/abs/1902.06776},
+  urldate = {2019-02-22},
+  archivePrefix = {arXiv},
+  eprint = {1902.06776},
+  eprinttype = {arxiv},
+  keywords = {Computer Science - Distributed; Parallel; and Cluster Computing},
+  langid = {english},
+  primaryClass = {cs}
+}
+% == BibLateX quality report for howard_generalised_2019:
+% Unexpected field 'archivePrefix'
+% Unexpected field 'primaryClass'
+% Missing required field 'journaltitle'
+% ? Title looks like it was stored in title-case in Zotero
+
+@report{kolbeck_fault-tolerant_2010,
+  title = {Fault-{{Tolerant}} and {{Decentralized Lease Coordination}} in {{Distributed Systems}}},
+  author = {Kolbeck, Bj\"orn and Hogqvist, MIKAEL and Stender, Jan and Hupfeld, Felix},
+  date = {2010},
+  institution = {{Citeseer}},
+  url = {http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.631.9448&rep=rep1&type=pdf},
+  urldate = {2016-08-08}
+}
+% == BibLateX quality report for kolbeck_fault-tolerant_2010:
+% Missing required field 'type'
+% ? Title looks like it was stored in title-case in Zotero
+
+@inproceedings{mdcc,
+  title = {{{MDCC}}: {{Multi}}-{{Data Center Consistency}}},
+  booktitle = {Proceedings of the 8th {{ACM European Conference}} on {{Computer Systems}}},
+  author = {Kraska, Tim and Pang, Gene and Franklin, Michael J. and Madden, Samuel and Fekete, Alan},
+  date = {2013},
+  pages = {113--126},
+  publisher = {{ACM}}
+}
+% == BibLateX quality report for mdcc:
+% ? Title looks like it was stored in title-case in Zotero
+
+@inproceedings{megastore,
+  title = {Megastore: {{Providing Scalable}}, {{Highly Available Storage}} for {{Interactive Services}}.},
+  booktitle = {{{CIDR}}},
+  author = {Baker, Jason and Bond, Chris and Corbett, James C. and Furman, J. J. and Khorlin, Andrey and Larson, James and Leon, Jean-Michel and Li, Yawei and Lloyd, Alexander and Yushprakh, Vadim},
+  date = {2011},
+  volume = {11},
+  pages = {223--234},
+  url = {http://pages.cs.wisc.edu/~akella/CS838/F12/838-CloudPapers/Megastore.pdf},
+  urldate = {2016-05-03}
+}
+% == BibLateX quality report for megastore:
+% ? Unsure about the formatting of the booktitle
+% ? Title looks like it was stored in title-case in Zotero
+
+@inproceedings{mencius,
+  title = {Mencius: Building Efficient Replicated State Machines for {{WANs}}},
+  booktitle = {{{OSDI}}},
+  author = {Mao, Yanhua and Junqueira, Flavio Paiva and Marzullo, Keith},
+  date = {2008},
+  volume = {8},
+  pages = {369--384},
+  url = {https://www.usenix.org/legacy/event/osdi08/tech/full_papers/mao/mao_html/},
+  urldate = {2016-05-01}
+}
+% == BibLateX quality report for mencius:
+% ? Unsure about the formatting of the booktitle
+
+@inproceedings{multicoordinated_paxos,
+  title = {Multicoordinated Paxos},
+  booktitle = {Proceedings of the Twenty-Sixth Annual {{ACM}} Symposium on {{Principles}} of Distributed Computing},
+  author = {Camargos, L\'asaro Jonas and Schmidt, Rodrigo Malta and Pedone, Fernando},
+  date = {2007},
+  pages = {316--317},
+  publisher = {{ACM}},
+  url = {http://dl.acm.org/citation.cfm?id=1281150},
+  urldate = {2016-05-03}
+}
+% == BibLateX quality report for multicoordinated_paxos:
+% ? Unsure about the formatting of the booktitle
+
+@article{niobe,
+  title = {Niobe: {{A}} Practical Replication Protocol},
+  author = {MacCormick, John and Thekkath, Chandramohan A. and Jager, Marcus and Roomp, Kristof and Zhou, Lidong and Peterson, Ryan},
+  date = {2008},
+  journaltitle = {ACM Transactions on Storage (TOS)},
+  volume = {3},
+  pages = {1},
+  number = {4}
+}
+
+@article{paxos_practical,
+  title = {Paxos Made Practical},
+  author = {Mazieres, David},
+  date = {2007},
+  journaltitle = {Unpublished manuscript},
+  url = {http://read.seas.harvard.edu/~kohler/class/08w-dsi/mazieres07paxos.pdf},
+  urldate = {2016-05-03}
+}
+
+@article{paxos_simple,
+  title = {Paxos Made Simple},
+  author = {Lamport, Leslie},
+  date = {2001},
+  journaltitle = {ACM Sigact News},
+  volume = {32},
+  pages = {18--25},
+  url = {http://www.cs.utexas.edu/users/lorenzo/corsi/cs380d/past/03F/notes/paxos-simple.pdf},
+  urldate = {2014-11-03},
+  number = {4}
+}
+
+@article{pnuts,
+  title = {{{PNUTS}}: {{Yahoo}}!'s Hosted Data Serving Platform},
+  author = {Cooper, Brian F. and Ramakrishnan, Raghu and Srivastava, Utkarsh and Silberstein, Adam and Bohannon, Philip and Jacobsen, Hans-Arno and Puz, Nick and Weaver, Daniel and Yerneni, Ramana},
+  date = {2008},
+  journaltitle = {Proceedings of the VLDB Endowment},
+  volume = {1},
+  pages = {1277--1288},
+  url = {http://dl.acm.org/citation.cfm?id=1454167},
+  urldate = {2016-04-29},
+  number = {2}
+}
+
+@inproceedings{raft,
+  title = {In Search of an Understandable Consensus Algorithm},
+  booktitle = {2014 {{USENIX Annual Technical Conference}} ({{USENIX ATC}} 14)},
+  author = {Ongaro, Diego and Ousterhout, John},
+  date = {2014},
+  pages = {305--319},
+  url = {https://www.usenix.org/conference/atc14/technical-sessions/presentation/ongaro},
+  urldate = {2016-05-01}
+}
+% == BibLateX quality report for raft:
+% ? Unsure about the formatting of the booktitle
+
+@article{raft_refloated,
+  title = {Raft Refloated: Do We Have Consensus?},
+  author = {Howard, Heidi and Schwarzkopf, Malte and Madhavapeddy, Anil and Crowcroft, Jon},
+  date = {2015},
+  journaltitle = {ACM SIGOPS Operating Systems Review},
+  volume = {49},
+  pages = {12--21},
+  url = {http://dl.acm.org/citation.cfm?id=2723876},
+  urldate = {2016-04-27},
+  number = {1}
+}
+
+@inproceedings{scatter,
+  title = {Scalable Consistency in {{Scatter}}},
+  booktitle = {Proceedings of the {{Twenty}}-{{Third ACM Symposium}} on {{Operating Systems Principles}}},
+  author = {Glendenning, Lisa and Beschastnikh, Ivan and Krishnamurthy, Arvind and Anderson, Thomas},
+  date = {2011},
+  pages = {15--28},
+  publisher = {{ACM}},
+  url = {http://dl.acm.org/citation.cfm?id=2043559},
+  urldate = {2014-10-27}
+}
+
+@article{spanner,
+  title = {Spanner: {{Google}}'s Globally Distributed Database},
+  author = {Corbett, James C. and Dean, Jeffrey and Epstein, Michael and Fikes, Andrew and Frost, Christopher and Furman, J. J. and Ghemawat, Sanjay and Gubarev, Andrey and Heiser, Christopher and Hochschild, Peter and others},
+  date = {2013},
+  journaltitle = {ACM Transactions on Computer Systems (TOCS)},
+  volume = {31},
+  pages = {8},
+  url = {http://dl.acm.org/citation.cfm?id=2491245},
+  urldate = {2014-11-06},
+  number = {3}
+}
+
+@inproceedings{spaxos,
+  title = {S-Paxos: {{Offloading}} the Leader for High Throughput State Machine Replication},
+  booktitle = {Reliable {{Distributed Systems}} ({{SRDS}}), 2012 {{IEEE}} 31st {{Symposium}} On},
+  author = {Biely, Martin and Milosevic, Zoran and Santos, Nuno and Schiper, Andre},
+  date = {2012},
+  pages = {111--120},
+  publisher = {{IEEE}},
+  url = {http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=6424845},
+  urldate = {2016-05-03}
+}
+% == BibLateX quality report for spaxos:
+% ? Unsure about the formatting of the booktitle
+
+@article{sprenkle_exploring_2004,
+  title = {Exploring {{Availability}} and {{Usage Guarantees}} in {{Resource Allocation Through Leases}}},
+  author = {Sprenkle, Sara E. and others},
+  date = {2004},
+  journaltitle = {Duke University Computer Science},
+  url = {http://www.cs.wlu.edu/~sprenkle/acad/papers/ses_masters.pdf},
+  urldate = {2016-08-08}
+}
+% == BibLateX quality report for sprenkle_exploring_2004:
+% ? Title looks like it was stored in title-case in Zotero
+
+@article{stellar,
+  title = {The Stellar Consensus Protocol: {{A}} Federated Model for Internet-Level Consensus},
+  author = {Mazieres, David},
+  date = {2015},
+  journaltitle = {Draft, Stellar Development Foundation, 15th May, available at: https://www. stellar. org/papers/stellarconsensus-protocol. pdf (accessed 23rd May, 2015)},
+  url = {http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.696.93&rep=rep1&type=pdf},
+  urldate = {2016-02-04}
+}
+% == BibLateX quality report for stellar:
+% ? Possibly abbreviated journal title Draft, Stellar Development Foundation, 15th May, available at: https://www. stellar. org/papers/stellarconsensus-protocol. pdf (accessed 23rd May, 2015)
+
+@inproceedings{tango,
+  title = {Tango: {{Distributed}} Data Structures over a Shared Log},
+  booktitle = {Proceedings of the {{Twenty}}-{{Fourth ACM Symposium}} on {{Operating Systems Principles}}},
+  author = {Balakrishnan, Mahesh and Malkhi, Dahlia and Wobber, Ted and Wu, Ming and Prabhakaran, Vijayan and Wei, Michael and Davis, John D and Rao, Sriram and Zou, Tao and Zuck, Aviad},
+  date = {2013},
+  pages = {325--340},
+  publisher = {{ACM}}
+}
+
+@inproceedings{tao,
+  title = {Tao: {{Facebook}}'s {{Distributed Data Store}} for the {{Social Graph}}},
+  booktitle = {Presented as Part of the 2013 {{USENIX Annual Technical Conference}} ({{USENIX ATC}} 13)},
+  author = {Bronson, Nathan and Amsden, Zach and Cabrera, George and Chakka, Prasad and Dimov, Peter and Ding, Hui and Ferris, Jack and Giardullo, Anthony and Kulkarni, Sachin and Li, Harry},
+  date = {2013},
+  pages = {49--60}
+}
+% == BibLateX quality report for tao:
+% ? Unsure about the formatting of the booktitle
+% ? Title looks like it was stored in title-case in Zotero
+
+@inproceedings{tuba,
+  title = {A Self-Configurable Geo-Replicated Cloud Storage System},
+  booktitle = {11th {{USENIX Symposium}} on {{Operating Systems Design}} and {{Implementation}} ({{OSDI}} 14)},
+  author = {Ardekani, Masoud Saeida and Terry, Douglas B.},
+  date = {2014},
+  pages = {367--381}
+}
+% == BibLateX quality report for tuba:
+% ? Unsure about the formatting of the booktitle
+
+@inproceedings{vcorfu,
+  title = {{{vCorfu}}: {{A Cloud}}-{{Scale Object Store}} on a {{Shared Log}}.},
+  booktitle = {{{NSDI}}},
+  author = {Wei, Michael and Tai, Amy and Rossbach, Christopher J and Abraham, Ittai and Munshed, Maithem and Dhawan, Medhavi and Stabile, Jim and Wieder, Udi and Fritchie, Scott and Swanson, Steven and others},
+  date = {2017},
+  pages = {35--49}
+}
+% == BibLateX quality report for vcorfu:
 % ? Unsure about the formatting of the booktitle
 
 @inproceedings{vertical_paxos,
   title = {Vertical Paxos and Primary-Backup Replication},
   booktitle = {Proceedings of the 28th {{ACM}} Symposium on {{Principles}} of Distributed Computing},
-  publisher = {{ACM}},
+  author = {Lamport, Leslie and Malkhi, Dahlia and Zhou, Lidong},
   date = {2009},
   pages = {312--313},
-  author = {Lamport, Leslie and Malkhi, Dahlia and Zhou, Lidong}
+  publisher = {{ACM}}
 }
 % == BibLateX quality report for vertical_paxos:
 % ? Unsure about the formatting of the booktitle
@@ -322,255 +534,17 @@
 % Missing required field 'journaltitle'
 % ? Title looks like it was stored in title-case in Zotero
 
-@article{niobe,
-  title = {Niobe: {{A}} Practical Replication Protocol},
-  volume = {3},
-  number = {4},
-  journaltitle = {ACM Transactions on Storage (TOS)},
-  date = {2008},
-  pages = {1},
-  author = {MacCormick, John and Thekkath, Chandramohan A. and Jager, Marcus and Roomp, Kristof and Zhou, Lidong and Peterson, Ryan}
+@inproceedings{zookeeper,
+  title = {{{ZooKeeper}}: {{Wait}}-Free {{Coordination}} for {{Internet}}-Scale {{Systems}}.},
+  booktitle = {{{USENIX Annual Technical Conference}}},
+  author = {Hunt, Patrick and Konar, Mahadev and Junqueira, Flavio Paiva and Reed, Benjamin},
+  date = {2010},
+  volume = {8},
+  pages = {9},
+  url = {https://www.usenix.org/event/usenix10/tech/full_papers/Hunt.pdf},
+  urldate = {2016-05-01}
 }
-
-@inproceedings{aurora,
-  title = {Amazon Aurora: {{Design}} Considerations for High Throughput Cloud-Native Relational Databases},
-  booktitle = {Proceedings of the 2017 {{ACM International Conference}} on {{Management}} of {{Data}}},
-  publisher = {{ACM}},
-  date = {2017},
-  pages = {1041--1052},
-  author = {Verbitski, Alexandre and Gupta, Anurag and Saha, Debanjan and Brahmadesam, Murali and Gupta, Kamal and Mittal, Raman and Krishnamurthy, Sailesh and Maurice, Sandor and Kharatishvili, Tengiz and Bao, Xiaofeng}
-}
-
-@inproceedings{eris,
-  title = {Eris: {{Coordination}}-Free Consistent Transactions Using in-Network Concurrency Control},
-  booktitle = {Proceedings of the 26th {{Symposium}} on {{Operating Systems Principles}}},
-  publisher = {{ACM}},
-  date = {2017},
-  pages = {104--120},
-  author = {Li, Jialin and Michael, Ellis and Ports, Dan RK}
-}
-
-@inproceedings{akkio,
-  title = {Sharding the Shards: Managing Datastore Locality at Scale with {{Akkio}}},
-  booktitle = {13th {{USENIX Symposium}} on {{Operating Systems Design}} and {{Implementation}} ({{OSDI}} 18)},
-  date = {2018},
-  pages = {445--460},
-  author = {Annamalai, Muthukaruppan and Ravichandran, Kaushik and Srinivas, Harish and Zinkovsky, Igor and Pan, Luning and Savor, Tony and Nagle, David and Stumm, Michael}
-}
-% == BibLateX quality report for akkio:
-% ? Unsure about the formatting of the booktitle
-
-@inproceedings{tuba,
-  title = {A Self-Configurable Geo-Replicated Cloud Storage System},
-  booktitle = {11th {{USENIX Symposium}} on {{Operating Systems Design}} and {{Implementation}} ({{OSDI}} 14)},
-  date = {2014},
-  pages = {367--381},
-  author = {Ardekani, Masoud Saeida and Terry, Douglas B.}
-}
-% == BibLateX quality report for tuba:
-% ? Unsure about the formatting of the booktitle
-
-@inproceedings{dynamic_placement,
-  title = {Where in the World Is My Data},
-  booktitle = {Proceedings {{International Conference}} on {{Very Large Data Bases}} ({{VLDB}})},
-  date = {2011},
-  author = {Kadambi, Sudarshan and Chen, Jianjun and Cooper, Brian F. and Lomax, David and Ramakrishnan, Raghu and Silberstein, Adam and Tam, Erwin and Garcia-Molina, Hector}
-}
-
-@inproceedings{tao,
-  title = {Tao: {{Facebook}}'s {{Distributed Data Store}} for the {{Social Graph}}},
-  booktitle = {Presented as Part of the 2013 {{USENIX Annual Technical Conference}} ({{USENIX ATC}} 13)},
-  date = {2013},
-  pages = {49--60},
-  author = {Bronson, Nathan and Amsden, Zach and Cabrera, George and Chakka, Prasad and Dimov, Peter and Ding, Hui and Ferris, Jack and Giardullo, Anthony and Kulkarni, Sachin and Li, Harry}
-}
-% == BibLateX quality report for tao:
-% ? Unsure about the formatting of the booktitle
-% ? Title looks like it was stored in title-case in Zotero
-
-@article{envoy,
-  title = {Lyft's {{Envoy}}: {{Experiences Operating}} a {{Large Service Mesh}}},
-  date = {2017},
-  author = {Klein, Matt}
-}
-% == BibLateX quality report for envoy:
-% Missing required field 'journaltitle'
-% ? Title looks like it was stored in title-case in Zotero
-
-@online{cockroachdb,
-  langid = {american},
-  title = {{{CockroachDB Geo}}-{{Partitioning}}},
-  url = {https://www.cockroachlabs.com/product/geo-distributed/},
-  journaltitle = {Cockroach Labs},
-  urldate = {2020-01-04}
-}
-% == BibLateX quality report for cockroachdb:
-% Unexpected field 'journaltitle'
-% Exactly one of 'date' / 'year' must be present
-% ? Title looks like it was stored in title-case in Zotero
-
-@inproceedings{gdpr,
-  title = {Analyzing the {{Impact}} of {{GDPR}} on {{Storage Systems}}},
-  booktitle = {11th {{USENIX Workshop}} on {{Hot Topics}} in {{Storage}} and {{File Systems}} ({{HotStorage}} 19)},
-  date = {2019},
-  author = {Shah, Aashaka and Banakar, Vinay and Shastri, Supreeth and Wasserman, Melissa and Chidambaram, Vijay}
-}
-% == BibLateX quality report for gdpr:
-% ? Unsure about the formatting of the booktitle
-% ? Title looks like it was stored in title-case in Zotero
-
-@article{flexible_paxos,
-  title = {Flexible {{Paxos}}: {{Quorum}} Intersection Revisited},
-  shorttitle = {Flexible {{Paxos}}},
-  journal = {ArXiv e-prints},
-  author = {Howard, H. and Malkhi, D. and Spiegelman, A.},
-  month = aug,
-  year = {2016},
-  keywords = {and Cluster Computing,C.2.4,Computer Science - Distributed,Parallel},
-  archiveprefix = {arXiv},
-  primaryclass = {cs.DC},
-  adsurl = {http://adsabs.harvard.edu/abs/2016arXiv160806696H},
-  adsnote = {Provided by the SAO/NASA Astrophysics Data System}
-}
-
-@article{howard_raft_2015,
-  title = {Raft refloated: do we have consensus?},
-  volume = {49},
-  shorttitle = {Raft refloated},
-  timestamp = {2016-05-02T18:51:38Z},
-  number = {1},
-  urldate = {2016-04-27},
-  journal = {ACM SIGOPS Operating Systems Review},
-  author = {Howard, Heidi and Schwarzkopf, Malte and Madhavapeddy, Anil and Crowcroft, Jon},
-  year = {2015},
-  pages = {12--21},
-  file = {Snapshot:/Users/benjamin/Library/Application Support/Zotero/Profiles/i8zmk51x.default/zotero/storage/XVH7AZ2V/citation.html:}
-}
-
-@article{bigtable,
-  title = {Bigtable: {{A}} Distributed Storage System for Structured Data},
-  volume = {26},
-  url = {http://dl.acm.org/citation.cfm?id=1365816},
-  number = {2},
-  journaltitle = {ACM Transactions on Computer Systems (TOCS)},
-  urldate = {2016-05-03},
-  year = {2008},
-  pages = {4},
-  author = {Chang, Fay and Dean, Jeffrey and Ghemawat, Sanjay and Hsieh, Wilson C. and Wallach, Deborah A. and Burrows, Mike and Chandra, Tushar and Fikes, Andrew and Gruber, Robert E.}
-}
-
-@inproceedings{dynamo,
-  title = {Dynamo: Amazon's Highly Available Key-Value Store},
-  volume = {41},
-  url = {http://dl.acm.org/citation.cfm?id=1294281},
-  booktitle = {{{ACM SIGOPS Operating Systems Review}}},
-  publisher = {{ACM}},
-  urldate = {2014-10-15},
-  year = {2007},
-  pages = {205--220},
-  author = {DeCandia, Giuseppe and Hastorun, Deniz and Jampani, Madan and Kakulapati, Gunavardhan and Lakshman, Avinash and Pilchin, Alex and Sivasubramanian, Swaminathan and Vosshall, Peter and Vogels, Werner}
-}
-% == BibLateX quality report for dynamo:
+% == BibLateX quality report for zookeeper:
 % ? Unsure about the formatting of the booktitle
 
 
-@article{pnuts,
-  title = {{{PNUTS}}: {{Yahoo}}!'s Hosted Data Serving Platform},
-  volume = {1},
-  url = {http://dl.acm.org/citation.cfm?id=1454167},
-  number = {2},
-  journaltitle = {Proceedings of the VLDB Endowment},
-  urldate = {2016-04-29},
-  year = {2008},
-  pages = {1277--1288},
-  author = {Cooper, Brian F. and Ramakrishnan, Raghu and Srivastava, Utkarsh and Silberstein, Adam and Bohannon, Philip and Jacobsen, Hans-Arno and Puz, Nick and Weaver, Daniel and Yerneni, Ramana}
-}
-
-@inproceedings{cops,
-  title = {Don't Settle for Eventual: Scalable Causal Consistency for Wide-Area Storage with {{COPS}}},
-  url = {http://dl.acm.org/citation.cfm?id=2043593},
-  booktitle = {Proceedings of the {{Twenty}}-{{Third ACM Symposium}} on {{Operating Systems Principles}}},
-  publisher = {{ACM}},
-  urldate = {2014-11-06},
-  year = {2011},
-  pages = {401--416},
-  author = {Lloyd, Wyatt and Freedman, Michael J. and Kaminsky, Michael and Andersen, David G.}
-}
-
-@inproceedings{van2004chain,
-  title = {Chain {{Replication}} for {{Supporting High Throughput}} and {{Availability}}.},
-  volume = {4},
-  booktitle = {{{OSDI}}},
-  year = {2004},
-  pages = {91-104},
-  author = {Van Renesse, Robbert and Schneider, Fred B}
-}
-% == BibLateX quality report for van2004chain:
-% ? Unsure about the formatting of the booktitle
-% ? Title looks like it was stored in title-case in Zotero
-
-
-@inproceedings{chubby,
-  title = {The {{Chubby}} Lock Service for Loosely-Coupled Distributed Systems},
-  url = {http://dl.acm.org/citation.cfm?id=1298487},
-  booktitle = {Proceedings of the 7th Symposium on {{Operating}} Systems Design and Implementation},
-  publisher = {{USENIX Association}},
-  urldate = {2016-05-01},
-  year = {2006},
-  pages = {335--350},
-  author = {Burrows, Mike}
-}
-% == BibLateX quality report for chubby:
-% ? Unsure about the formatting of the booktitle
-
-
-@inproceedings{vcorfu,
-  title = {{{vCorfu}}: {{A Cloud}}-{{Scale Object Store}} on a {{Shared Log}}.},
-  booktitle = {{{NSDI}}},
-  year = {2017},
-  pages = {35--49},
-  author = {Wei, Michael and Tai, Amy and Rossbach, Christopher J and Abraham, Ittai and Munshed, Maithem and Dhawan, Medhavi and Stabile, Jim and Wieder, Udi and Fritchie, Scott and Swanson, Steven and others}
-}
-% == BibLateX quality report for vcorfu:
-% ? Unsure about the formatting of the booktitle
-
-
-@inproceedings{tango,
-  title = {Tango: {{Distributed}} Data Structures over a Shared Log},
-  booktitle = {Proceedings of the {{Twenty}}-{{Fourth ACM Symposium}} on {{Operating Systems Principles}}},
-  publisher = {{ACM}},
-  year = {2013},
-  pages = {325--340},
-  author = {Balakrishnan, Mahesh and Malkhi, Dahlia and Wobber, Ted and Wu, Ming and Prabhakaran, Vijayan and Wei, Michael and Davis, John D and Rao, Sriram and Zou, Tao and Zuck, Aviad}
-}
-
-@inproceedings{calvindb,
-  title = {Calvin: Fast Distributed Transactions for Partitioned Database Systems},
-  booktitle = {Proceedings of the 2012 {{ACM SIGMOD International Conference}} on {{Management}} of {{Data}}},
-  publisher = {{ACM}},
-  year = {2012},
-  pages = {1--12},
-  author = {Thomson, Alexander and Diamond, Thaddeus and Weng, Shu-Chun and Ren, Kun and Shao, Philip and Abadi, Daniel J}
-}
-
-@inproceedings{hyder-a,
-  title = {Hyder-{{A Transactional Record Manager}} for {{Shared Flash}}.},
-  volume = {11},
-  booktitle = {{{CIDR}}},
-  year = {2011},
-  pages = {9--12},
-  author = {Bernstein, Philip A and Reid, Colin W and Das, Sudipto}
-}
-% == BibLateX quality report for hyder-a:
-% ? Unsure about the formatting of the booktitle
-% ? Title looks like it was stored in title-case in Zotero
-@inproceedings{fawn,
-  title = {{{FAWN}}: {{A}} Fast Array of Wimpy Nodes},
-  booktitle = {Proceedings of the {{ACM SIGOPS}} 22nd Symposium on {{Operating}} Systems Principles},
-  publisher = {{ACM}},
-  year = {2009},
-  pages = {1--14},
-  author = {Andersen, David G and Franklin, Jason and Kaminsky, Michael and Phanishayee, Amar and Tan, Lawrence and Vasudevan, Vijay}
-}
-% == BibLateX quality report for fawn:
-% ? Unsure about the formatting of the booktitle

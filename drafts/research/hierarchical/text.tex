@@ -1,4 +1,4 @@
-\documentclass[11pt,conference]{IEEEtran}
+\documentclass[10pt,conference]{IEEEtran}
 
 % IEEE standard packages
 \usepackage{cite}
@@ -53,10 +53,13 @@ University of Maryland, College Park, MD, USA\\
 hierarchical consensus, geographic replication, delegated voting, strong consistency
 \end{IEEEkeywords}
 
+% NOTES:
+
+% - tags and tagspace is out, objects and namespace partition is in
+% - there are a lot of places to expand, but we are space limited for ICDCS
+
 \section{Introduction}
-% The intro seems like a very good narrative and captures all of the moving pieces
-% I'm worried that we do not do enough to describe our system in a meaningful way
-% Other papers like Akkio have 2 page intros though ...
+\label{section:intro}
 
 Geographically distributed data systems now commonly span continents and oceans.
 These systems leverage data centers newly available around the globe,
@@ -75,40 +78,30 @@ hardware and engineering involving multiple independent subsystems with differen
 failure modes, which, while providing strong consistency to application developers, do
 so by hiding both replication and infrastructure complexity.
 
-Unfortunately, this complexity is increasingly necessary for modern application 
+Unfortunately, this complexity is increasingly necessary for modern application
 development.
 Traditional monolithic applications are being replaced by microservice architectures
 and cloud-native service meshes~\cite{envoy} that make infrastructure directly visible
 to applications.
 Developers in turn leverage this visibility to scale applications, for instance using
-service meshes to maintain and optimize service-specific communication, minimize 
-downtime, and improve system flexibility.
+service meshes to maintain and optimize service-specific communication, minimize
+downtime, localize data to users, and improve system flexibility.
 This visibility is also critical to meeting the demands of increasing privacy
-regulations, which require applications developers to finely control data 
+regulations, which require applications developers to finely control data
 placement based upon differing legal obligations of the locales of users~\cite{gdpr}.
 Thus, while managed data services provide strong consistency, their rigidity and
 opaqueness are not flexible enough for developers who require strong consistency
 at a higher level of the application stack.
 
-This paper presents a new protocol, \emph{\hc}, motivated by the need for a simpler 
+This paper presents a new protocol, \emph{\hc}, motivated by the need for a simpler
 and more general-purpose approach to building large, geographically replicated
 systems.
-% Don't think we need this anymore - covered in paras 5&6
-% Hierarchical consensus, described more fully in Section~\ref{section:hc},
-% comprises four key contributions; 
-% first, \emph{reconfigurable consensus}, which allows systems to adapt to changing
-% quorum membership, including dynamic replacement and expansion; 
-% second, \emph{delegated voting}, which allows decisions to be coordinated at the
-% root (i.e. master) quorum, but executed by informed hyperlocal subquora;
-% third \emph{fuzzy transitions}, which allow the system to progress unimpeded by
-% leadership changes and reconfigurations; 
-% nd finally, \emph{flexible data placement}, which facilitates a greater proportion
-% of direct accesses.
 The engineering-based solutions of managed geo-distributed data services rely on
-multiple, independent processes and quorums together with expensive data-center hardware
-to synchronize time, allocate locks, manage transactions, and recover from failure.
-We instead propose a \emph{single, system-wide consensus protocol} that coordinates both replica
-placement and data accesses.
+multiple, independent microservices and quorums together with expensive data-center
+hardware to synchronize time, allocate locks, manage transactions, and recover from
+failure.
+We instead propose a \emph{single, system-wide consensus protocol} that coordinates both
+replica placement and data accesses.
 By ensuring that all coordination occurs through a single consensus activity rather
 than a fleet of small, independent quorums, it is easier to reason about the
 consistency of the system even in a network environment prone to correlated failures,
@@ -126,36 +119,34 @@ considers safety in the case of one or two fail-stop node failures.
 Recent research has explored the problem of geo-distributed
 consensus~\cite{mencius,epaxos}, but primarily considers the problem of high-latency
 links.
+% We imply that the above algorithms do not scale, we may need to explictly state and
+% cite flexible paxos or our own research in \ref{fig:scaling_consensus}.
 However, geo-replication implies scale.
 Services running around the globe require dozens if not hundreds of replicas and
 introduce new failure modes such as network partitions, where sections of the system
 operate independently without fail-stop failure, and highly variable latency that
 inhibit quorum progress.
+% the next sentence seems a little repetitious - revise for camera ready
 To scale systems beyond a handful of replicas, current
 systems~\cite{spanner,scatter,mdcc,calvinfs} use Paxos as a component, instantiated
 across multiple transactions, shards, or tablets to manage small subsystems
-independently, leading to increased complexity and reduced transparency.
+independently, making it difficult to reason about consistency.
 
 % the below paragraph needs help
-We introduce a novel approach to scale consensus beyond a handful of nodes:
-\emph{\hc}, wherein the consensus problem is effectively decomposed into process
-units, each of which can be handled by provenly safe algorithms, but which also
-intersect in a hierarchy of quorums that ensure all system-wide consensus
-decisions are totally ordered.
+\Hc introduces a novel approach to scale consensus beyond a handful of nodes, wherein
+the consensus problem is effectively decomposed into process units.
 This is achieved with a multi-group coordination protocol that configures and
 mediates \subs through a \roo.
 The \roo guarantees correctness by pivoting the system through \emph{reconfigurations}
-that place replicas into \subs, mapping them to partitions of the object namespace. 
-Each \sub serializes accesses to its mapped objects.
-\pjk{Sometimes we talk about tags, sometimes objects, need to
-  explicitly connect them}
-%  to
-% handle direct data accesses.
+that place replicas into \subs, mapping them to partitions of the object namespace.
+Each \sub serializes accesses to its mapped objects using provenly safe algorithms,
+placed to maximize throughput or durability.
+To ensure that all system-wide consensus decisions are totally ordered with respect to
+changes in reconfiguration, all \subs intersect the \roo in a hierarchy of quorums.
 
 The \roo is composed of all replicas in the system.
-Though decisions made by the \roo, i.e. system reconfigurations, are rare
-with respect to data accesses, we introduce \emph{delegated voting} to optimize quorum
-decisions at the root.
+Though decisions made by the \roo are rare with respect to data accesses, we introduce
+\emph{delegated voting} to optimize quorum decisions at the root.
 Much of the system's complexity comes from handshaking between the \roo and \subs during
 reconfiguration.
 These handshakes are made easier and far more efficient by using \emph{fuzzy transitions},
@@ -181,6 +172,7 @@ We demonstrate its advantages through an implementation scaling to hundreds of r
 across more than a dozen availability zones around the world using Amazon EC2.
 
 % TODO: do we need rest of paper outline or contributions here?
+% NOTE: we've left out the paper outline and specific contributions due to space
 
 % Contributions:
 % - Reconfigurable consensus + adaptability
@@ -188,12 +180,53 @@ across more than a dozen availability zones around the world using Amazon EC2.
 % - Fuzzy transitions to allow progress
 % - Access/policy optimized data placement rules
 
+\section{Background}
+\label{section:background}
+% This is a very short initial background section, mostly because of space constraints.
+% With a longer page limit, I recommend expanding this section a bit
+
+Distributed consensus algorithms ensure that multiple replicas maintain an identical
+state by applying commands in the same order, ensuring a consistent, externalizable
+view of the system when any replica is queried.
+Most of these algorithms are based on Paxos~\cite{paxos_simple}, which ensures that a
+distributed log of ordered commands is maintained even if $f$ replicas fail-stop.
+This is achieved with quorums of $2f+1$ replicas that write an entry into the log using
+a 2 phase ballotting process: \texttt{PREPARE} and \texttt{ACCEPT}.
+The \texttt{PREPARE} phase is designed to nominate an open slot in the log at position
+$i$ to place the command and to detect any conflicting commands that may already
+exist in that slot; the \texttt{ACCEPT} phase commits the command in that slot.
+In both phases a majority of replicas must respond for progress to be made.
+
+There are two primary optimizations to the basic consensus algorithm: leader election
+and fast path execution.
+Leader-oriented consensus protocols elide the \texttt{PREPARE} phase by specifically
+selecting a replica that has sole responsiblity of slot nomination.
+Some variants such as Raft~\cite{raft} elect a leader that can nominate all slots for
+a time-limited duration, where as others like Mencius~\cite{mencius} use a round-robin
+approach to assigning leadership.
+Fast path execution such as Fast Paxos~\cite{fast_paxos} and EPaxos~\cite{epaxos}
+optimistically push through commits on the \texttt{PREPARE} phase and use conflict
+detection mechanisms to determine if a slow path \texttt{ACCEPT} is required.
+Both of these optimizations are designed to reduce communication rounds in the common
+case, while still maintaining safety when $f$ replicas fail, however none of these
+optimizations describe how to scale consensus beyond $2f+1$ replicas.
+
+Vertical Paxos~\cite{vertical_paxos,niobe} describes how to scale consensus groups by
+allowing an auxillary master quorum to execute safe reconfiguration directives in the
+middle of consensus decisions.
+The replicated state machine process is extended from a single log to a grid where
+commands are placed both horizontally as a sequence of consensus instances
+(configurations) and vertically as increasing ballot numbers (log indices).
+Because consensus instances are disjoint inside of a single configuration, Vertical
+Paxos creates a total ordering of commands that is guaranteed to bring the system to
+an identical state no matter the point in execution.
+By allowing multiple, active consensus instances, Vertical Paxos decouples command
+execution and state transfer from reconfiguration, allowing the system to arbitrarily
+scale.
+
 \section{Hierarchical Consensus}
 \label{section:hc}
-\pjk{Is this a description of a  protocol or an implementation?  They should be
-  discrete, even if the implementation is short (maybe mostly a description
-  of what changes in the implementation from a straightforward
-  transcription of the protocol.}
+
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.48\textwidth]{figures/election3}
@@ -249,6 +282,8 @@ of restricting multi-object transactions.
 We use agility to attempt to get this, but allow multi-object transactions.
 
 \subsection{Delegated Voting}
+\label{section:delegation}
+
 % This is about root quorum operations
 From a logical perspective, the root quorum's membership is the set of
 all system replicas, at all times.
@@ -285,7 +320,7 @@ replica as its delegate until some future epoch is reached.
 Replicas may only delegate their vote once per epoch and replicas are
 not required to delegate their vote.
 
-The root leader can simplify this process by 
+The root leader can simplify this process by
 % using reconfigurations
  identifying
 replicas that have previously been highly available members of the root quorum.
@@ -296,7 +331,7 @@ If no hints are provided, then replica followers generally delegate
 their vote to the term 1 leader and hot spares to the closest subquorum
 leader.
 
-% Delegation 
+% Delegation
 % does add one complication:
 The root quorum leader must
 know all vote delegations in order to request votes when committing epoch
@@ -308,7 +343,7 @@ replicas.}
 This is true even for \emph{hot spares}, which are not currently
 in any subquorum.
 Delegates reply with the
-unique ids of the replicas they represent 
+unique ids of the replicas they represent
 so that root consensus decisions are still made using a majority of
 all system replicas.
 
@@ -329,6 +364,8 @@ the speed of root quorum operations is unchanged.
 % what happens if there is only one delegate?
 
 \subsection{Reconfiguration}
+\label{section:reconfiguration}
+
 % This is about root quorum operations
 
 Every epoch represents a new configuration of the system as designated
@@ -377,6 +414,7 @@ across the transition, an \texttt{epoch-change} may still require
 additional mechanism because of changes in namespace responsibility.
 
 \subsection{Data Placement}
+\label{section:placement}
 
 % TODO
 Systems are extremely sensitive to access patterns though most applications and systems
@@ -404,6 +442,7 @@ To handle conflicting accesses across regions, ePaxos or mencius can be used to
 optimistically serialize proposals across the wide area.
 
 \subsection{Fuzzy Transitions}
+\label{section:fuzzy}
 
 Epoch handshakes are required whenever the namespace-to-\sub mapping changes across an
 epoch boundary.
@@ -474,6 +513,7 @@ Smaller changes concern the mapping of requests and responses to the appropriate
 consensus group.
 
 \section{Fault Tolerance}
+\label{section:ft}
 
 We assert that consensus at the leaf replicas is correct and safe because decisions are
 implemented using well-known leader-oriented consensus approaches.
@@ -505,6 +545,7 @@ acquired portions of the namespace until after completing all appropriate handsh
 \end{table*}
 
 \subsection{Failures}
+\label{section:failure}
 
 During failure-free execution, the \roo partitions the system into
 disjoint \subs, assigns \emph{\sub leaders}, and assigns partitions
@@ -557,6 +598,8 @@ eventually times out and moves into a new epoch with that portion assigned to an
 \sub.
 
 \subsection{The Nuclear Option}
+\label{section:nuclear}
+
 Singleton consensus protocols, including Raft, can tolerate just under half of the entire system
 failing.
 As described above, HC's structure makes it more vulnerable to clustered failures.
@@ -629,35 +672,42 @@ subgroups.
 Subsequent epoch changes might re-integrate the new hot spares if the replicas
 regain connectivity.
 
-\section{Evaluation}
+\section{Implementation}
+\label{section:implementation}
 
-HC was designed to adapt both to dynamic workloads as well as variable network 
+\pjk{description of protocol and implementation should be descrete}
+
+\section{Evaluation}
+\label{section:evaluation}
+
+HC was designed to adapt both to dynamic workloads as well as variable network
 conditions.
-We therefore evaluate HC in three distinct environments: a homogeneous data center, a 
+We therefore evaluate HC in three distinct environments: a homogeneous data center, a
 heterogeneous real-world network, and a globally distributed cloud network.
-The homogeneous cluster is hosted on Amazon EC2 and includes 26 ``t2.medium'' instances: 
-dual-core virtual machines running in a single VPC with inter-machine latencies 
-($\lambda$) normally distributed with a mean, $\lambda_{\mu}=0.399ms$ and standard 
+The homogeneous cluster is hosted on Amazon EC2 and includes 26 ``t2.medium'' instances:
+dual-core virtual machines running in a single VPC with inter-machine latencies
+($\lambda$) normally distributed with a mean, $\lambda_{\mu}=0.399ms$ and standard
 deviation, $\lambda_{\sigma}=0.216ms$.
-The heterogeneous cluster (UMD) consists of several local machines distributed across a 
+The heterogeneous cluster (UMD) consists of several local machines distributed across a
 wide area, with inter-machine latencies ranging from
 $\lambda_{\mu}=2.527ms$,
 $\lambda_{\sigma}=1.147ms$ to $\lambda_{\mu}=34.651ms$,
 $\lambda_{\sigma}=37.915ms$.
-The variability of this network also poses challenges that HC is uniquely suited to 
+The variability of this network also poses challenges that HC is uniquely suited to
 handle via root quorum-guided adaptation.
-We explore two distinct scenarios -- sawtooth and repartitioning -- using this cluster; 
+We explore two distinct scenarios -- sawtooth and repartitioning -- using this cluster;
 all other experiments were run on the EC2 cluster.
 
-In our final experiment, we explore the use of hierarchical consensus in an extremely 
-large, planetary-scale system comprised of 105 replicas in 15 data centers in 5 
-continents spanning the northern hemisphere and South America. This experiment was also 
-hosted on EC2 ``t2.medium`` instances in each of the regions available to us at the time 
-of this writing. In this context, reporting average latencies is difficult as 
-inter-region latencies depend more on network distance than can be meaningfully 
+In our final experiment, we explore the use of hierarchical consensus in an extremely
+large, planetary-scale system comprised of 105 replicas in 15 data centers in 5
+continents spanning the northern hemisphere and South America. This experiment was also
+hosted on EC2 ``t2.medium`` instances in each of the regions available to us at the time
+of this writing. In this context, reporting average latencies is difficult as
+inter-region latencies depend more on network distance than can be meaningfully
 ascribed to a single central tendency.
 
 \subsection{Basic Performance}
+\label{section:performance}
 
 \begin{figure*}[t]
     \centering
@@ -674,41 +724,41 @@ ascribed to a single central tendency.
 \end{figure*}
 
 HC is partially motivated by the need to scale strong consistency to large cluster sizes.
-We based our work on the assumption that consensus performance decreases as the quorum 
+We based our work on the assumption that consensus performance decreases as the quorum
 size increases, which we confirm empirically in Figure~\ref{fig:scaling_consensus}.
-This figure shows the maximum throughput against system size for a variety of workloads, 
+This figure shows the maximum throughput against system size for a variety of workloads,
 up to 120 concurrent clients.
-A workload consists of one or more clients continuously sending writes of a specific 
+A workload consists of one or more clients continuously sending writes of a specific
 object or objects to the cluster without pause.
 
-Standard consensus algorithms, Raft in particular, scale poorly with uniformly 
+Standard consensus algorithms, Raft in particular, scale poorly with uniformly
 decreasing throughput as nodes are added to the cluster.
-Commit latency increases with quorum size as the system has to wait for more responses 
+Commit latency increases with quorum size as the system has to wait for more responses
 from peers, thereby decreasing overall throughput.
-Figures~\ref{fig:scaling_consensus} and~\ref{fig:throughput_workload} 
+Figures~\ref{fig:scaling_consensus} and~\ref{fig:throughput_workload}
 clearly show the multiplicative advantage of HC's hierarchical structure.
-Note that though HC is not shown to scale linearly in these figures, this is due to 
+Note that though HC is not shown to scale linearly in these figures, this is due to
 performance bottlenecks of the networking implementation in these experiments.
 In our final experiment, we show linear scaling with our latest implementation of HC.
 
 There are at least two factors limiting the HC throughput shown in our initial experiments.
 First, the HC subquorums for the larger system sizes are not saturated.
-A single 3-node subquorum saturates at around 25 clients and this experiment has only 
+A single 3-node subquorum saturates at around 25 clients and this experiment has only
 about 15 clients per subquorum for the largest cluster size.
 We ran experiments with 600 clients, saturating all subquorums even in the 24-node case.
-This throughput peaked at slightly over 50,000 committed writes per second, better but 
+This throughput peaked at slightly over 50,000 committed writes per second, better but
 still lower than the linear scaling we had expected.
 
 We think the reason for this ceiling is hinted at by Figure~\ref{fig:throughput_workload}.
 This figure shows increasingly larger variability with increasing system sizes.
-A more thorough examination of the data shows widely varying performance across 
+A more thorough examination of the data shows widely varying performance across
 individual subquorums in the larger configurations.
-After instrumenting the experiments to diagnose the problem, we determined it was a bug 
+After instrumenting the experiments to diagnose the problem, we determined it was a bug
 in the networking code, which we repaired and improved.
-By aggregating append entries messages from clients while consensus messages were 
-in-flight, we managed to dramatically increase the performance of single quorums and 
+By aggregating append entries messages from clients while consensus messages were
+in-flight, we managed to dramatically increase the performance of single quorums and
 reduce the number of messages sent.
-This change also had the effect of ensuring that the variability was decreased in our 
+This change also had the effect of ensuring that the variability was decreased in our
 final experiment.
 
 \begin{figure}
@@ -718,17 +768,18 @@ final experiment.
     \label{fig:latency}
 \end{figure}
 
-The effect of saturation is also demonstrated in Figure~\ref{fig:latency}, which shows 
-cumulative latency distributions for different system sizes holding the  workload 
+The effect of saturation is also demonstrated in Figure~\ref{fig:latency}, which shows
+cumulative latency distributions for different system sizes holding the  workload
 (number of concurrent clients) constant.
-The fastest (24/3) shows nearly 80\% of client write requests being serviced in under 
+The fastest (24/3) shows nearly 80\% of client write requests being serviced in under
 2 msec.
-Larger system sizes are faster because the smaller systems suffer from contention (25 
+Larger system sizes are faster because the smaller systems suffer from contention (25
 clients can saturate a single subquorum).
-Because throughput is directly related to commit latency, throughput variability can be 
+Because throughput is directly related to commit latency, throughput variability can be
 mitigated by adding additional subquorums to balance load.
 
 \subsection{Adaptibility}
+\label{section:adaptability}
 
 \begin{figure*}[t]
     \centering
@@ -749,44 +800,45 @@ mitigated by adding additional subquorums to balance load.
             heuristic from what was actually done (was it all just
             scripted or is there a heuristic?)}
 
-Besides pure performance and scaling, HC is also motivated by the need to adapt to 
+Besides pure performance and scaling, HC is also motivated by the need to adapt to
 varying environmental conditions.
-In the next set of experiments, we explore two common runtime scenarios that motivate 
+In the next set of experiments, we explore two common runtime scenarios that motivate
 adaptation: shifting client workloads and failures.
-We show that HC is able to adapt and recover with little loss in performance. These 
-scenarios are shown in Figures~\ref{fig:sawtooth} and 
-\ref{fig:fault_tolerance} as throughput over time, where vertical dotted 
+We show that HC is able to adapt and recover with little loss in performance. These
+scenarios are shown in Figures~\ref{fig:sawtooth} and
+\ref{fig:fault_tolerance} as throughput over time, where vertical dotted
 lines indicate an epoch change.
 
-The first scenario, described by the time series in Figure~\ref{fig:fault_tolerance} 
+The first scenario, described by the time series in Figure~\ref{fig:fault_tolerance}
 shows an HC 3-replica configuration moving through two epoch changes.
 Each epoch change is triggered by the need to localize tags accessed by
 clients to nearby subquorums.
 % The experiment was run over machines with widely varying latency.
-The scenario shown starts with all clients co-located with the subquorum serving the tag 
+The scenario shown starts with all clients co-located with the subquorum serving the tag
 they are accessing.
-However, clients incrementally change their access patterns first to a tag located on 
+However, clients incrementally change their access patterns first to a tag located on
 one remote subquorum, and then to the tag owned by the other.
-In both cases, the root quorum adapts the system by repartitioning the tagspace such 
+In both cases, the root quorum adapts the system by repartitioning the tagspace such
 that the tag defining their current focus is served by the co-located subquorum.
 
-Figure~\ref{fig:fault_tolerance} shows a 3-subquorum configuration where one 
+Figure~\ref{fig:fault_tolerance} shows a 3-subquorum configuration where one
 entire subquorum becomes partitioned from the others.
-After a timeout, the root uses an epoch change to re-allocate the tag of the partitioned 
+After a timeout, the root uses an epoch change to re-allocate the tag of the partitioned
 subquorum over the two remaining subquorums.
-The partitioned subquorum eventually has an heuristic \emph{obligation timeout}, after 
+The partitioned subquorum eventually has an heuristic \emph{obligation timeout}, after
 which the  root quorum is not obliged to leave the tag with the current subquorum.
 The tag may then be re-assigned to any other subquorum.
-Timeouts are structured such that by the time an obligation timeout fires, the root 
+Timeouts are structured such that by the time an obligation timeout fires, the root
 quorum has already re-mapped that subquorum's tag to other subquorums.
 As a result, the system is able to recover from the partition as fast as possible.
-In this figure, the repartition occurs through two epoch changes, the first allocating 
-part of the tagspace to the first subquorum, and the second allocating the rest of the 
+In this figure, the repartition occurs through two epoch changes, the first allocating
+part of the tagspace to the first subquorum, and the second allocating the rest of the
 tag to the other.
 Gaps in the graph are periods where the subquorums are electing local leaders.
 This may be optimized by having leadership assigned or maintained through root consensus.
 
 \subsection{Planet Scale Consensus}
+\label{section:scaling}
 
 \begin{figure}
     \centering
@@ -799,29 +851,30 @@ In our final implementation we ran our repaired version of HC at a planetary sca
 We created a system with 105 replicas in 15 regions in 5 continents.
 The system allocated size 3 subquorums round-robin to each region such that the largest s
 ystem was comprised of 6 subquorums per region with 1 hot-spare per region.
-Figure~\ref{fig:geoconsensus_throughput} shows the global blast throughput of 
-the system, the sum of throughput of client process that fired off 1000 concurrent 
+Figure~\ref{fig:geoconsensus_throughput} shows the global blast throughput of
+the system, the sum of throughput of client process that fired off 1000 concurrent
 requests, timing the complete response.
-To mitigate the effect of global latency, each region ran independent blast clients to 
+To mitigate the effect of global latency, each region ran independent blast clients to
 its local subquorums, forwarding to remote quorums where necessary.
-To ensure that the system was fully throttled during the throughput experiment, we timed 
-the clients to execute simultaneously using the AWS Time Sync service to ensure that 
+To ensure that the system was fully throttled during the throughput experiment, we timed
+the clients to execute simultaneously using the AWS Time Sync service to ensure that
 clocks were within 100 nanoseconds of each other.
 In these results we show that our HC implementation does indeed scale linearly.
 Adding more nodes to the system increases the fault tolerance (e.g. by allocating hot s
-pares) if enough nodes are added to add another subquorum, the capacity of the system to 
+pares) if enough nodes are added to add another subquorum, the capacity of the system to
 handle client requests is also increased.
 
-\section{Related Works}
+\section{Related Work}
+\label{section:related}
 
-% HC is a protocol for composing and coordinating consensus groups, maintaining 
+% HC is a protocol for composing and coordinating consensus groups, maintaining
 % consistency invariants over large systems, and adapt to changing conditions and
 % application loads.
 
 The principal contribution of this paper, \hc, follows from the
-large body of work on improving throughput in distributed consensus 
-over the Paxos protocol~\cite{paxos_simple,epaxos,flexible_paxos,generalized_paxos}, 
-and on Raft~\cite{raft,howard_raft_2015}, which focus primarily on fast vs.
+large body of work on improving throughput in distributed consensus
+over the Paxos protocol~\cite{paxos_simple,epaxos,flexible_paxos,generalized_paxos},
+and on Raft~\cite{raft,raft_refloated}, which focus primarily on fast vs.
 slow path consensus, eliding phases with dependency resolution, and load
 balancing.
 
@@ -837,15 +890,14 @@ still maintaining global consistency guarantees.
 
 The global consistency guarantees of HC are in direct contrast to other
 systems that scale by exploiting multiple consensus
-instances~\cite{bigtable,mdcc,spanner} on a per-object basis.
+instances~\cite{mdcc,spanner} on a per-object basis.
 These systems retain the advantage of small quorum sizes but cannot provide
 system-wide consistency invariants.
 Another set of systems uses quorum-based decision-making but relaxes
-consistency guarantees~\cite{dynamo,pnuts,cops}; others provide no way to
+consistency guarantees~\cite{dynamo,pnuts}; others provide no way to
 pivot the entire system to a new configuration~\cite{scatter}.
-Chain replication~\cite{van2004chain} and Vertical Paxos~\cite{vertical_paxos}
-are among approaches that control Paxos instances through other consensus
-decisions.
+Chain replication~\cite{chain_replication} and Vertical Paxos~\cite{vertical_paxos,niobe}
+are among approaches that control Paxos instances through other consensus decisions.
 However, HC differs in the deep integration of the two different levels.
 Whereas these approaches are top down, HC consensus decisions at the root
 level replace system configuration at the \sub level, and vice versa.
@@ -862,7 +914,7 @@ by detecting changes in network conditions.
 
 Recent work has similarly explored a more strategic approach to data placement;
 Akkio~\cite{akkio}, for instance, optimizes shard placement using access
-latency as the cost function. 
+latency as the cost function.
 HC goes a step further, offering not optimization but rather fine grain control
 over data placement, which allows applications to determine their own
 use-case specific cost functions and heuristics.
@@ -879,14 +931,15 @@ the data center to rich dynamic environments with heterogeneity on all levels.
 Finally, shared logs have proven useful in a number of settings from fault
 tolerance to correctness guarantees.
 However, keeping such logs consistent in even a single consensus instance has
-proven difficult~\cite{chubby,gfs,zookeeper}.
+proven difficult~\cite{chubby,zookeeper}.
 More recent systems are leveraging hardware support to provide fast access to
-shared logs~\cite{vcorfu,tango,calvindb,calvinfs,hyder-a,fawn}.
+shared logs~\cite{vcorfu,tango,fawn}.
 To our knowledge, HC is the first work to propose synchronizing shared logs
 across multiple discrete consensus instances in the wide area.
 
 
 \section{Discussion}
+\label{section:discussion}
 
 Alia takes a different approach to implementing geo-distributed systems, focusing
 on a system's ability to be \emph{flexible}.
@@ -957,6 +1010,7 @@ for the global system can be exported on demand.
 
 
 \section{Conclusion}
+\label{section:conclusion}
 
 The next generation of distributed systems will be geographically replicated around the
 planet in order to provide better performance by preventing bottlenecks and localizing
