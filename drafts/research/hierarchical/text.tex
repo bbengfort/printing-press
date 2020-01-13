@@ -628,17 +628,17 @@ processes fail.
       \sub peer & request replica repartition from \roo \\
       \sub leader & local election, request replacement from \roo \\
       root leader & root election (with delegations)\\
-      majority of majority of \subs & (nuclear option) root election after delegations
-                                      timed out \\
+      delegate & root election(s) until delegations busted \\
+      all delegates (assassination) & root election after disaster timeout \\
     \end{tabular}
-    \label{tab:categories}
+    \label{tab:failure_types}
   \end{table*}
 
 During failure-free execution, the \roo partitions the system into
-disjoint \subs, assigns \emph{\sub leaders}, and assigns partitions
-of the tagspace to \subs.
+disjoint \subs, assigns \emph{\sub leaders}, and assigns shards
+of the namespace to \subs.
 Each \sub coordinates and responds to accesses for objects in its assigned
-tagspace.
+shard.
 We define the system's \emph{safety} property as guaranteeing that
 non-linearizable (or non-sequentially-consistent)
 event orderings can never be observed.
@@ -646,7 +646,10 @@ We define the system's \emph{progress} property as the system having enough
 live replicas to commit votes or operations in the \roo.
 
 The system can suffer several types of failures, as shown in
-Table~\ref{tab:categories}.
+Table~\ref{tab:failure_types}.
+We assume that each of these failure types are detected by the absence of communication
+and that replicas may automatically rejoin the system once communication is 
+re-established.
 Failures of \sub and \roo leaders are handled through the normal consensus
 mechanisms.
 Failures of \sub peers are handled by the local leader petitioning the \roo to
