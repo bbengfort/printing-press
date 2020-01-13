@@ -230,6 +230,11 @@ consensus to hundreds of nodes across the wide area.
 \section{Hierarchical Consensus}
 \label{section:hc}
 
+% currently missing
+% - access of related objects in a single \sub
+% - remote reads and writes
+% - transactions
+
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.48\textwidth]{figures/election3}
@@ -581,40 +586,53 @@ multiple distinct shared logs.
 Smaller changes concern the mapping of requests and responses to the appropriate
 consensus group.
 
-\section{Fault Tolerance}
+\section{Safety and Fault Tolerance}
 \label{section:ft}
 
-We assert that consensus at the leaf replicas is correct and safe because decisions are
-implemented using well-known leader-oriented consensus approaches.
-Hierarchical consensus therefore has to demonstrate linearizable correctness and safety
-between \subs for a single epoch and between epochs.
+% This section has been dramatically shortened and does not include consistency
+% guarantees, e.g. the explanation of grid logs in Vertical Paxos
+
+We assert that consensus at the leaf quorums is correct and safe because decisions are
+implemented using well-known consensus approaches.
+\Hc therefore has to demonstrate linearizable correctness and safety between \subs for a
+single epoch and between epochs during transitions.
 Briefly, linearizability requires external observers to view operations to objects as
 instantaneous events.
 Within an epoch, subquorum leaders serially order local accesses, thereby guaranteeing
 linearizability for all replicas in that quorum.
+All accesses are redirected to the \sub that governs that part of the namespace,
+therefore inside of an epoch, external observers can only observe a single total ordering
+to each object.
 % Remote accesses and the internal invariant also enforce linearizability of accesses
 % between \subs.
 
-Epoch transitions raise the possibility of portions of the namespace being re-assigned from one \sub to
-another, with each \sub making the transition independently.
+Epoch transitions raise the possibility of portions of the namespace being re-assigned
+from one \sub to another, with each \sub making the transition independently.
 Correctness is guaranteed by an invariant requiring \subs to delay serving newly
 acquired portions of the namespace until after completing all appropriate handshakes.
-
-\begin{table*}[t]
-  \centering
-  \begin{tabular}{l|l} \hline
-    \mcn{Failure Type} & \mcn{Response} \\ \hline
-    \sub peer & request replica repartition from \roo \\
-    \sub leader & local election, request replacement from \roo \\
-    root leader & root election (with delegations)\\
-    majority of majority of \subs & (nuclear option) root election after delegations
-                                    timed out \\
-  \end{tabular}
-  \label{tab:categories}
-\end{table*}
+Between epochs, it is possible to construct a single total ordering of all accesses
+using a log grid such that epochs represent the horizontal index and each \sub
+log represents the vertical index as described in Vertical Paxos~\cite{vertical_paxos}.
+Serializing accesses across multiple objects can be accomplished by ensuring that those
+objects are placed in the same namespace.
+Therefore to prove safety, \hc must demonstrate that it operates correctly when replica
+processes fail.
 
 \subsection{Failures}
 \label{section:failure}
+
+\begin{table*}[t]
+    \centering
+    \begin{tabular}{l|l} \hline
+      \mcn{Failure Type} & \mcn{Response} \\ \hline
+      \sub peer & request replica repartition from \roo \\
+      \sub leader & local election, request replacement from \roo \\
+      root leader & root election (with delegations)\\
+      majority of majority of \subs & (nuclear option) root election after delegations
+                                      timed out \\
+    \end{tabular}
+    \label{tab:categories}
+  \end{table*}
 
 During failure-free execution, the \roo partitions the system into
 disjoint \subs, assigns \emph{\sub leaders}, and assigns partitions
