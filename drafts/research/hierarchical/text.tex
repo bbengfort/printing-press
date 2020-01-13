@@ -223,6 +223,9 @@ an identical state no matter the point in execution.
 By allowing multiple, active consensus instances, Vertical Paxos decouples command
 execution and state transfer from reconfiguration, allowing the system to arbitrarily
 scale.
+While Vertical Paxos considers scaling consensus and other algorithms such as EPaxos and
+Mencius consider geo-distributed consensus, no consensus protocol tackles scaling
+consensus to hundreds of nodes across the wide area.
 
 \section{Hierarchical Consensus}
 \label{section:hc}
@@ -230,56 +233,77 @@ scale.
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.48\textwidth]{figures/election3}
-    \caption{Replicas participate in intersecting tiers of consensus.}
+    \caption{\Hc is an extension of Vertical Paxos such that the \roo moves the system
+    through reconfigurations and intersecting \subs manage local data accesses.}
     \label{fig:system}
 \end{figure}
 
-Hierarchical consensus is an implementation and extension of Vertical
-Paxos~\cite{vertical_paxos} that organizes replicas into two tiers of
-quorums, each responsible for fundamentally different decisions, as shown
-in Figure \ref{fig:system}.
-The lower tier consists of multiple independent subquorums, each committing
+\Hc and Alia are an extension and implementation of Vertical Paxos that are specifically
+designed for scalable, geo-distributed consensus.
+Like Vertical Paxos, \hc (HC) organizes replicas into two tiers of quorums, each
+responsible for fundamentally different decisions, as shown in Figure \ref{fig:system}.
+The lower tier consists of multiple independent subquorums, each committing data access
 operations to local shared logs.
-The upper, root quorum, consists of subquorum peers, usually their leaders,
-delegated to represent the subquorum and hot spares in root elections and
-commits.
-Hierarchical consensus's main function is to export a linearizable abstraction
-of shared accesses to some underlying substrate, such as a distributed
-object store or file system.
-We assume that nodes hosting object stores, applications, and HC are
-frequently co-located across the wide area.
+The upper, root quorum, consists of subquorum peers, usually their leaders, delegated to
+represent the subquorum and hot spares in root elections and reconfiguration commits.
+\Hc's main function is to export a linearizable abstraction of shared accesses to some
+underlying substrate, such as a distributed object store or file system.
+We assume that nodes hosting object stores, applications, and HC are frequently
+co-located across the wide area and introduce our object store implementation, Alia,
+in Section~\ref{section:implementation}.
+% Should we use \textsection instead of "Section" for cross references?
+% The intro section should be expanded with system assumptions, e.g.
 
-The root quorum's primary responsibilities are mapping replicas to individual
-subquorums and mapping subquorums to tags within the namespace.
-Each such map defines a distinct epoch \pjk{first mention, not defined}, $e_x$, a monotonically increasing
-representation of the term of the configuration of subquorums and tags,
-$Q_x$.
-The root quorum is a consensus group consisting of subquorum leaders.
-Somewhat like subquorums, the membership of the root quorum is not defined
-by the quorum itself, but in this case by leader election or peer delegations
-in the lower tier.
-While the root quorum is composed of all replicas in the system, only this
-subset of replicas actively participates in root quorum decision making,
-in the common case.
+The \roo's primary responsibility is to manage the configuration of $p$ distinct
+processes, each of which maintain their own local state and can handle access requests
+from users to objects represented by a namespace, $N$.
+It does this by mapping processes to \subs and mapping \subs to partitions of the
+namespace, allocating all extra processes as \emph{hot spares}, which stand by to be
+placed in a \sub on individual process failure.
+Each distinct mapping of the namespace to replicas is a single configuration and is
+represented by an \emph{epoch}, $e$, a monotonically increasing index that describes
+the horizontal position of the Vertical Paxos grid, and is used by the system to
+guarantee safety.
+The set of \subs specified by each epoch is represented by $Q_e$ such that an individual
+\sub is identified as $q_{i,e}$.
+% In this paper, we describe the system as $p/\|q\|$ where $\|q\|$ is the expected size of
+% each \sub, usually $2f+1$ where $f$ is the tolerated failure of any individual \sub, e.g. a
+% $30/5$ system has 25 processes that can be mapped to up to 6 \subs with 5 replicas each,
+% tolerating $f=2$ failures per \sub.
 
-The root quorum partitions (shards) the namespace across multiple
-subquorums, each with a disjoint portion as its scope.
-The namespace is decomposed into a set of tags, $T$ where each tag $t_i$
-is a disjoint subset of the namespace.
-% Ben: above Pete says T=t_i summation
+The \roo partitions (shards) the namespace across $Q_e$ by mapping a subset of the
+namespace across the \subs, $n_i \mapsto q_{i,e}$, ensuring that each shard of the
+namespace is a disjoint subset such that
+$\forall n_i \in N_e$ $\exists! q_{i,e} \mapsto n_i$.
+The intent of subquorum localization is ensure that the \emph{domain} of a client, the
+portion of the namespace it accesses, is entirely within the scope of a local, or
+nearby, subquorum.
+To the extent that this is true across the entire system, each client interacts with
+only one subquorum, and subquorums do not interact at all during execution of a single
+epoch.
+This \emph{siloing} of client accesses simplifies implementation of strong consistency
+guarantees and allows better performance at the cost of restricting multi-object
+transactions.
+% This last sentence is kind of wierd
+We use agility to attempt to get this, but allow client-side multi-object transactions.
 
-Tags are mapped to subquorums in each epoch, $Q_x \mapsto T_x$ such that
-$\forall t \in T_x$ $\exists! q_{i,x} \mapsto t$.
-The intent of subquorum localization is ensure that the \emph{domain} of
-a client, the portion of the namespace it accesses, is entirely within
-the scope of a local, or nearby, subquorum.
-To the extent that this is true across the entire system, each client
-interacts with only one subquorum, and subquorums do not interact at all
-during execution of a single epoch.
-This \emph{siloing} of client accesses simplifies implementation of
-strong consistency guarantees and allows better performance at the cost
-of restricting multi-object transactions.
-We use agility to attempt to get this, but allow multi-object transactions.
+% This section is supposed to serve as an outline of the section: reconfiguration,
+% then fuzzy transitions, then placement, then delegated voting - but doesn't do it in
+% the order of the section or use section references ... then tries to seque.
+The \roo is a consensus group consisting of delegates (usually subquorum leaders) whose
+primary consensus operation is to commit new epochs.
+As \subs transition to new epochs, they handoff their current state to the \sub(s)
+newly responsible for managing that portion of the namespace, ensuring that no portion
+of the namespace can be accessed concurrently in two different epochs.
+For understandability we describe the \hc in leader-oriented terms, though there is no
+requirement for either the \roo or the \subs to implement leader-oriented consensus.
+Further, we propose that \subs should be assigned the consensus algorithm that best
+optimizes for the durability and throughput requirements of the shards they manage.
+While the root quorum is composed of all replicas in the system, only a subset of
+replicas actively participates in root quorum decision making, in the common case.
+Using these mechanisms, \hc prioritizes flexibility and transparency, ensuring the
+system is safe while able to make progress and can be managed easily while scaled to
+very large consensus groups across continents and oceans.
 
 \subsection{Delegated Voting}
 \label{section:delegation}
@@ -677,6 +701,11 @@ regain connectivity.
 
 \pjk{description of protocol and implementation should be descrete}
 
+Alia is implemented with Raft
+
+Only versions are replicated, object data is stored in blobs and replicated using
+eventual consistency techniques.
+
 \section{Evaluation}
 \label{section:evaluation}
 
@@ -1019,7 +1048,7 @@ of catastrophic failure.
 We have presented \hc, an implementation and extension of Vertical Paxos, that is
 designed to scale coordination and transparently provide strong consistency in order to
 build and deploy systems that span globe.
-\Hc is a framework of intersecting tiers of quorums whose primary benefit is flexiblity,
+\Hc is a framework of intersecting tiers of quorums whose primary benefit is flexibility,
 which allows large systems to dynamically adapt to changing conditions, improving both
 performance and maintainability.
 
@@ -1045,8 +1074,8 @@ access patterns.
 % - transactions
 % - automatic adaptibility using learning rather than policies and heuristics
 
-\pjk{Add years to refs.}
 
+% TODO: Why are years being omitted from the references?!
 \bibliographystyle{plain}
 \bibliography{papers}
 
