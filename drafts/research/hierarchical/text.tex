@@ -407,7 +407,7 @@ the system to an optimal state given current network conditions.
 \subsection{Reconfiguration}
 \label{section:reconfiguration}
 
-% This is about root quorum operations
+% this section could probably be expanded a lot
 
 Every epoch represents a new configuration of the system as designated
 by the root leader.
@@ -418,15 +418,17 @@ An epoch change is initiated by the root leader in response to one of
 several events, including:
 
 \begin{itemize}
-    \item a namespace repartition request from a subquorum leader
-    \item notification of join requests by new replicas
+    % not sure if the below actually works as described ... delegated joint consensus
+    % may be required -- leaving out to be safe rather than sorry.
+    % \item notification of join requests by new replicas
     \item notification of failed replicas
-    \item changing network conditions that suggest re-assignment of replicas
-    \item manual reconfigurations, e.g. to localize data
+    \item a namespace repartition request to optimize data accesses or minimize conflicts
+    \item changing network conditions that suggest re-assignment to improve \sub throughput
+    \item application initiated reconfigurations to localize data, increase durability, or enforce policies
 \end{itemize}
 
 The root leader transitions to a new epoch through the normal commit
-phase in the root quorum.
+phase in the \roo.
 The command proposed by the leader is an enumeration of the new subquorum
 partition, namespace partition, and assignment of namespace portions to
 specific subquorums.
@@ -457,33 +459,59 @@ additional mechanism because of changes in namespace responsibility.
 \subsection{Data Placement}
 \label{section:placement}
 
-% TODO
-Though most systems are optimized for only one type of access pattern, real-world
-applications vary in their needs for availability and durability, and manifest
-markedly different patterns of accesses, including:
+% NOTE: we have a figure for data placement that is not used for space.
+
+Reconfiguration by the \roo not only allows the system to transparently scale consensus
+operations, but also provides applications the ability to directly specify how and where
+consensus operations should be placed.
+Although epoch changes are relatively heavy weight, the design of \hc allows them to be
+routine.
+Most systems are optimized for only one type of data placement, however real-world
+applications vary in their needs for availability and durability, often on a per-object
+basis.
+Applications may also observe markedly different access patterns that change during the
+course of operation, including:
 
 \begin{itemize}
     \item single ownership: objects are accessed in one region and do not migrate.
-    \item revolving access: objects are accessed from multiple regions, but only
-    during daylight hours.
-    \item conflicting access: objects are continuously accessed from multiple regions.
+    \item revolving access: objects are accessed from a primary region that changes over time.
+    \item conflicting access: objects are continuously accessed simultaneously from multiple regions.
 \end{itemize}
 
-Because \subs operate independently for a specific portion of the namespace for an
-entire epoch, reconfiguration can be used to determine optimal placement rules
-for access patterns and durability requirements.
-
-To maximize throughput with no need for strong durability, a \sub can be placed in a
-single region using Raft.
+% probably should be 2 paragraphs but concatenated for space reasons
+These access patterns imply not only the optimal placement of replicas in specific
+geographic regions, but also the consensus protocol that should be used to maximize
+throughput.
+For example, if commit latency for significant numbers of accesses to a small set of
+objects outweighs durability requirements, a \sub can be placed in a single region using
+Raft, which serializes all accesses through a single leader and is immune to conflicting
+reads and writes.
 To increase durability, data can be placed with a leader and primary backup in a single
 region, and a secondary backup in a remote region (it is important with this scheme to
 modify the election rules of Raft to decrease the probability that the secondary backup
 is elected leader).
 To handle conflicting accesses across regions, ePaxos or Mencius can be used to
 optimistically serialize proposals across the wide area.
+\Hc requires no special modifications to \sub operation, only requiring that \subs
+intersect with the \roo and that delegation and transitions are implemented correctly.
+As a result, the \roo can specify not only the placement of namespace shards with the
+replica, but also the consensus algorithm that governs them.
+We envision the \roo as a distributed system management framework that is not only able 
+to apply policy changes efficiently, but also to monitor real-time performance and to
+make adaptations on demand.
+Adaptations are the key to the protocols flexibility but also ensure that the system is
+lightweight enough to be managed at a global scale without significant resources.
 
 \subsection{Fuzzy Transitions}
 \label{section:fuzzy}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.48\textwidth]{figures/namespaceHandoff}
+    \caption{Fuzzy transitions allow the system to progress unimpeded by
+    leadership changes.}
+    \label{fig:handoff}
+\end{figure}
 
 Epoch handshakes are required whenever the namespace-to-\sub mapping changes across an
 epoch boundary.
@@ -499,13 +527,7 @@ cease such as currently running transactions\footnote{The HC protocol
 discussed in this paper does not currently support transactions.}.
 Safety is guaranteed by tracking \sub dependencies across the epoch boundary.
 
-\begin{figure}[t]
-    \centering
-    \includegraphics[width=0.48\textwidth]{figures/namespaceHandoff}
-    \caption{Fuzzy transitions allow the system to progress unimpeded by
-    leadership changes.}
-    \label{fig:handoff}
-\end{figure}
+
 
 Figure~\ref{fig:handoff} shows an epoch transition where the scopes of
 $q_i$, $q_j$, and $q_k$ change across the transition as follows:
@@ -723,6 +745,8 @@ Alia is implemented with Raft
 
 Only versions are replicated, object data is stored in blobs and replicated using
 eventual consistency techniques.
+
+2 phase thrifty messaging: once to leaders then to followers
 
 \section{Evaluation}
 \label{section:evaluation}
