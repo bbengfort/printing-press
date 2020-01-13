@@ -308,17 +308,26 @@ very large consensus groups across continents and oceans.
 \subsection{Delegated Voting}
 \label{section:delegation}
 
-% This is about root quorum operations
-From a logical perspective, the root quorum's membership is the set of
-all system replicas, at all times.
-However, running consensus elections across large systems is inefficient
-in the best of cases, and prohibitively slow in a geo-replicated
-environment.
-Root quorum decision-making is kept tractable by having replicas
-\emph{delegate} their votes, usually to their local leaders, for a finite
-duration of epochs.
-With leader delegation, the root membership effectively consists of the
-set of subquorum leaders.
+From a logical perspective, the \roo's membership is the set of all system replicas, at
+all times.
+This ensures that all \subs intersect with the \roo such that all commands are totally
+ordered and to improve the overall fault tolerance and flexibility of the system,
+eliminating the \roo as a potential bottleneck.
+However, running consensus elections across large systems is inefficient in the best of
+cases, and prohibitively slow in a geo-replicated environment.
+Root quorum decision-making is kept tractable by having replicas \emph{delegate} their
+votes, usually to their local leaders, for a finite duration.
+With leader delegation, the root membership effectively consists of the set of \sub
+leaders in the ideal case.
+Because \subs themselves are geographically distributed and placed to optimize system
+specific policies, the \roo represents a simplified snapshot of the overall operation
+and as the network environment and access patterns change, so to does the \roo.
+To simplify the discussion of delegated voting, we assume a leader-oriented consensus
+protocol that operates similarly to Raft, using heartbeats and timeouts to detect
+failure.
+
+The \roo elects a leader for a root term
+
 Each leader votes with a count describing its own and peer votes from its
 subquorum and from hot spares that have delegated to it.
 A quorum leader is elected to indefinitely assign log entries to slots
