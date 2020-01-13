@@ -407,7 +407,8 @@ the system to an optimal state given current network conditions.
 \subsection{Reconfiguration}
 \label{section:reconfiguration}
 
-% this section could probably be expanded a lot
+% this section could probably be expanded a lot for example:
+% what happens if a \sub is partitioned? Can a reconfiguration be issued?
 
 Every epoch represents a new configuration of the system as designated
 by the root leader.
@@ -460,6 +461,7 @@ additional mechanism because of changes in namespace responsibility.
 \label{section:placement}
 
 % NOTE: we have a figure for data placement that is not used for space.
+% this section could also use a lot of expansion.
 
 Reconfiguration by the \roo not only allows the system to transparently scale consensus
 operations, but also provides applications the ability to directly specify how and where
@@ -505,46 +507,51 @@ lightweight enough to be managed at a global scale without significant resources
 \subsection{Fuzzy Transitions}
 \label{section:fuzzy}
 
+% this section absolutely needs to be expanded with hand-off details including:
+% - tombstones
+% - retries and forwarding
+% - what if the transitioning \sub is not available?
+% - where does data reside and where does it go?
+% - optimistic replication of data objects to optimize transitions
+
 \begin{figure}
     \centering
     \includegraphics[width=0.48\textwidth]{figures/namespaceHandoff}
-    \caption{Fuzzy transitions allow the system to progress unimpeded by
-    leadership changes.}
+    \caption{Fuzzy transitions allow the system to safely make progress unimpeded by
+    leadership changes in either the \roo or \sub.}
     \label{fig:handoff}
 \end{figure}
 
 Epoch handshakes are required whenever the namespace-to-\sub mapping changes across an
 epoch boundary.
-HC separates epoch transition announcements in the
-\roo from implementation in \subs.
-Epoch transitions are termed \emph{fuzzy} because
-\subs need not all transition synchronously.
+HC separates epoch transition announcements in the \roo from implementation in \subs.
+Epoch transitions are termed \emph{fuzzy} because \subs need not all transition
+synchronously.
 There are many reasons why a \sub might be slow.
-Communication delays and partitions might delay notification.
-Temporary failures might block local commits.
+Communication delays and partitions might delay notification or temporary failures might
+block local commits.
 A \sub might also delay transitioning to allow a local burst of activity to
 cease such as currently running transactions\footnote{The HC protocol
 discussed in this paper does not currently support transactions.}.
 Safety is guaranteed by tracking \sub dependencies across the epoch boundary.
 
-
-
 Figure~\ref{fig:handoff} shows an epoch transition where the scopes of
-$q_i$, $q_j$, and $q_k$ change across the transition as follows:
+$q_i$, $q_j$, and $q_k$ change across the transition to epoch $e$ as follows:
 
 \begin{align*}
   \label{eq:3}
-  q_{i,x-1} = t_a, t_b  &\longrightarrow q_{i,x} = t_a\\
-  q_{j,x-1} = t_c, t_d  &\longrightarrow q_{j,x} = t_c,t_d,t_f\\
-  q_{k,x-1} = t_e, t_f  &\longrightarrow q_{k,x} = t_d,t_e
+  q_{i,e-1} = n_a, n_b  &\longrightarrow q_{i,e} = n_a\\
+  q_{j,e-1} = n_c, n_d  &\longrightarrow q_{j,e} = n_c,n_d,n_f\\
+  q_{k,e-1} = n_e, n_f  &\longrightarrow q_{k,e} = n_d,n_e
 \end{align*}
 
 All three \subs learn of the epoch change at the same time, but become ready
 with varying delays.
 These delays could be because of network lags or ongoing local activity.
-\Sub $q_i$ gains no new tags across the transition and moves immediately to the new epoch.
+\Sub $q_i$ gains no new objects across the transition and moves immediately to the new
+epoch.
 \Sub $q_j$'s readiness is slower, but then it sends requests to the
-owners of both the new tags it acquires in the new epoch.
+owners of both the new objects it acquires in the new epoch.
 Though $q_i$ responds immediately, $q_k$ delays its response until locally
 operations conclude.
 Once both handshakes are received, $q_j$ moves into the new epoch, and $q_k$
@@ -562,17 +569,15 @@ be part of multiple \subs at a time}.
 This overlap is possible because replicas may be mapped to distinct subgroups
 from one epoch to the next.
 Consider $q_k$ in Figure~\ref{fig:handoff} again.
-Assume the epochs shown are $e_x$ and $e_{x+1}$.
-A single replica, $r_a$, may be remapped from \sub $q_{k,x}$ to \sub $q_{i,x+1}$ across the
-transition.
-\Sub $q_{k,x}$ is late to transition, but $q_{i,x+1}$ begins the new epoch
+A single replica process, $p$, may be remapped from \sub $q_{k,e-1}$ to \sub $q_{i,e}$
+across the transition.
+\Sub $q_{k,e-1}$ is late to transition, but $q_{i,e}$ begins the new epoch
 almost immediately.
-Requiring $r_a$ to participate in a single \sub at a time would potentially delay
-$q_{i,x+1}$'s transition and impose artificial synchronicity constraints on the
+Requiring $p$ to participate in a single \sub at a time would potentially delay
+$q_{i,e}$'s transition and impose artificial synchronicity constraints on the
 system.
-One of the many changes we made in the base Raft protocol is to
-allow a replica to have multiple distinct shared
-logs.
+One of the many changes we made in the base Raft protocol is to allow a replica to have
+multiple distinct shared logs.
 Smaller changes concern the mapping of requests and responses to the appropriate
 consensus group.
 
