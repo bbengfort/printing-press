@@ -326,75 +326,83 @@ To simplify the discussion of delegated voting, we assume a leader-oriented cons
 protocol that operates similarly to Raft, using heartbeats and timeouts to detect
 failure.
 
-The \roo elects a leader for a root term
+The \roo elects a leader for a root term, $r$ and broadcasts this term along with
+routine heartbeats that keep the leader term alive.
+Each replica has a delegated term, $d$, on root heartbeat, if $r>d$, then the replica
+sets $d=r$ and marks its vote as no longer delegated.
+If the replica is not delegated it can issue a delegate request to local replicas for a
+delegate term, $d_t=d+j$ where $j$ defines how many root elections the delegation will
+survive.
+Usually, $j=1$, but can be increased if intermittent failure in the root quorum is
+expected (to allow the delegates to smoothly transition to new leaders without
+redelegation).
+When a delegate request is received, the replica can delegate iff $d_t>d$ and marks
+itself as delegated, otherwise it reports the current term to the delegate candidate.
+A \emph{delegate} is any replica that is able to vote in root term $r$, e.g. any replica
+whose $d>r$.
 
-Each leader votes with a count describing its own and peer votes from its
-subquorum and from hot spares that have delegated to it.
-A quorum leader is elected to indefinitely assign log entries to slots
-(access operations for subquorums, epoch configurations for the root
-quorum).
-If the leader fails, then so long as the quorum has enough online peers,
-they can elect a new leader.
-When a failed leader comes back online, it rejoins the quorum as a
-follower.
-The larger the size of the quorum, the more failures it is able to
-tolerate.
+During a consensus operation in the \roo for either a root leader election or an epoch
+change, the root leader or candidate broadcasts a request to \emph{all replicas} with
+its current term.
+Replicas only reply to the vote if $d \ge r$ and they have not delegated their vote.
+We consider it possible, depending on the implementation, that duplicate votes might be
+received, therefore to ensure safety, the root leader or candidate must account for
+which replicas have voted, keeping only the votes for the highest delegated term.
+This is true even for hot spares, which are not currently in any subquorum.
+Delegates reply with the unique ids of the replicas they represent so that root
+consensus decisions are still made using a majority of all system replicas.
+This is correct because vote requests now reach all replicas, and because replicas whose
+votes have been delegated merely ignore the request.
+We argue that it is also efficient, as a commit's efficiency depends only on receipt of
+a majority of the votes.
 
-Delegation ensures that root quorum membership is always the entire
-system and remains unchanged over subquorum leader elections and even
-reconfiguration.
-Delegation is essentially a way to optimistically shortcut contacting
-every replica for each decision.
-Subquorum repartitioning merely implies that a given replica's vote
-might need to be delegated to a different leader.
-To ensure that delegation happens correctly and without requiring
-coordination, we simply allow a replica to directly designate another
-replica as its delegate until some future epoch is reached.
-Replicas may only delegate their vote once per epoch and replicas are
-not required to delegate their vote.
+Delegation ensures that root quorum membership is always the entire system and remains
+unchanged over subquorum leader elections and even reconfiguration.
+Delegation is essentially a way to optimistically shortcut contacting every replica for
+each decision.
+Large consensus groups are generally slow, not just because of communication latency,
+but because large groups in a heterogeneous setting are more likely to include replicas
+on very slow hosts or networks.
+In the usual case for our protocol, the root leader still only needs to wait for votes
+from the subquorum leaders.
+Leaders are generally those that respond more quickly to timeouts, so the speed of root
+quorum operations is unchanged.
+Note that because the root term only increments when the root leader changes,
+epoch decisions are the commonly delegated votes.
 
-The root leader can simplify this process by
-% using reconfigurations
- identifying
-replicas that have previously been highly available members of the root quorum.
-Replicas can delegate their vote to the closest replica on this list,
-if they not already
-delegated for the epoch.
-If no hints are provided, then replica followers generally delegate
-their vote to the term 1 leader and hot spares to the closest subquorum
-leader.
+Delegation can also be seen as a \texttt{PRE-PREPARE} phase before the root leader
+election (e.g. the root quorum \texttt{PREPARE}).
+If a root election timeout expires, \textbf{only a delegate can become a root candidate}
+(including replicas that vote only for themselves).
+This means that at least one root election will occur with delegation, prompting
+redelegation requests that are generally far in advance of new elections. In normal
+operation, with limited failure, all root decions are delegated.
+However, if the delegates representing a majority of the system fail, so long as there
+is at least one live delegate, the root term will increase until all delegations are
+busted, causing all replicas to redelgate their votes to a live replica, or to simply
+vote for themselves.
+There is one critical edge case, all delegates failing simultaneously, which we discuss
+in Section~\ref{section:assassination}.
 
-% Delegation
-% does add one complication:
-The root quorum leader must
-know all vote delegations in order to request votes when committing epoch
-changes.
-\sys deals with this issue by simplifying our protocol:
-instead of sending vote requests just to subquorum leaders,
-\textbf{the root quorum leader sends vote requests to all system
-replicas.}
-This is true even for \emph{hot spares}, which are not currently
-in any subquorum.
-Delegates reply with the
-unique ids of the replicas they represent
-so that root consensus decisions are still made using a majority of
-all system replicas.
-
-This is correct because vote requests now reach all replicas, and
-because replicas whose votes have been delegated merely ignore the
-request.
-We argue that it is also efficient, as a commit's efficiency depends
-only on receipt of a majority of the votes.
-Large consensus groups are generally slow, not just because of
-communication latency, but because large groups in a heterogeneous
-setting are more likely to include replicas on very slow hosts or
-networks.
-In the usual case for our protocol, the root leader still only needs
-to wait for votes from the subquorum leaders.
-Leaders are generally those that respond more quickly to timeouts, so
-the speed of root quorum operations is unchanged.
-
-% what happens if there is only one delegate?
+The optimal \roo configuration is to have all \sub leaders as delegates with hot spares
+delegated evenly to local delegates.
+This configuration balances the fault tolerance of the \roo with the throughput of
+decision making, however this configuration is not guaranteed by the protocol described
+above.
+Our approach employs heuristic mechanisms such as network distance or maximum delegation
+to ensure the efficiency of delegated voting and to limit delegation inside of single
+regions only.
+The \roo leader can simplify this process by identifying replicas that have previously
+been highly available members of the root quorum.
+If the \roo leader identifies a poor delegation state, it simply initiates a root leader
+election for itself, incrementing $r$, and causing replicas to redelegate after the
+election.
+On epoch change, the root leader can hint to the reconfigured \subs the best replicas
+to delegate to if they are not already delegated for the epoch.
+If no hints are provided, then replica followers generally delegate their vote to the
+term 1 leader and hot spares to the closest subquorum leader.
+Generally, the reconfigurations that occur during epoch changes allow the \roo to move
+the system to an optimal state given current network conditions.
 
 \subsection{Reconfiguration}
 \label{section:reconfiguration}
@@ -631,8 +639,8 @@ Total \sub failure can temporarily cause a portion of the namespace to be unserv
 eventually times out and moves into a new epoch with that portion assigned to another
 \sub.
 
-\subsection{The Nuclear Option}
-\label{section:nuclear}
+\subsection{Assassination}
+\label{section:assassination}
 
 Singleton consensus protocols, including Raft, can tolerate just under half of the entire system
 failing.
