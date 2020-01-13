@@ -450,28 +450,28 @@ additional mechanism because of changes in namespace responsibility.
 \label{section:placement}
 
 % TODO
-Systems are extremely sensitive to access patterns though most applications and systems
-are only optimized for one type of access pattern.
-Real-world systems have multiple types of access patterns including:
+Though most systems are optimized for only one type of access pattern, real-world
+applications vary in their needs for availability and durability, and manifest
+markedly different patterns of accesses, including:
 
 \begin{itemize}
-    \item single ownership: objects are accessed in one region and do not migrate
-    \item revolving access: object accesses migrate through space and time, e.g. objects
-    are more frequently accessed during daylight hours.
-    \item conflicting access: objects are continuously accessed from multiple regions
+    \item single ownership: objects are accessed in one region and do not migrate.
+    \item revolving access: objects are accessed from multiple regions, but only
+    during daylight hours.
+    \item conflicting access: objects are continuously accessed from multiple regions.
 \end{itemize}
 
 Because \subs operate independently for a specific portion of the namespace for an
-entire epoch, reconfiguration can be used to determine placement rules that best
-optimize for access patterns and durability requirements.
+entire epoch, reconfiguration can be used to determine optimal placement rules
+for access patterns and durability requirements.
 
 To maximize throughput with no need for strong durability, a \sub can be placed in a
-single region using Raft to maximize throughput.
+single region using Raft.
 To increase durability, data can be placed with a leader and primary backup in a single
-region, and a secondary backup in a remote region.
-Using this scheme it is important to modify the election rules of Raft to decrease the
-probability that the secondary backup is elected leader.
-To handle conflicting accesses across regions, ePaxos or mencius can be used to
+region, and a secondary backup in a remote region (it is important with this scheme to
+modify the election rules of Raft to decrease the probability that the secondary backup
+is elected leader).
+To handle conflicting accesses across regions, ePaxos or Mencius can be used to
 optimistically serialize proposals across the wide area.
 
 \subsection{Fuzzy Transitions}
