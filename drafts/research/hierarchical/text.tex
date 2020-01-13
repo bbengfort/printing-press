@@ -259,7 +259,7 @@ in Section~\ref{section:implementation}.
 % Should we use \textsection instead of "Section" for cross references?
 % The intro section should be expanded with system assumptions, e.g.
 
-The \roo's primary responsibility is to manage the configuration of $p$ distinct
+The \roo's primary responsibility is to manage the configuration of $P$ distinct
 processes, each of which maintain their own local state and can handle access requests
 from users to objects represented by a namespace, $N$.
 It does this by mapping processes to \subs and mapping \subs to partitions of the
@@ -649,7 +649,7 @@ live replicas to commit votes or operations in the \roo.
 The system can suffer several types of failures, as shown in
 Table~\ref{tab:failure_types}.
 We assume that each of these failure types are detected by the absence of communication
-and that replicas may automatically rejoin the system once communication is 
+and that replicas may automatically rejoin the system once communication is
 re-established.
 Failures of \sub and \roo leaders are handled through the normal consensus
 mechanisms.
@@ -661,8 +661,10 @@ above.
 necessary when individual \subs break down.
 
 HC's structure means that some faults are more important than others.
-Proper operation of the \roo requires the majority of replicas in the majority of \subs to
-be non-faulty.
+Proper operation of the \roo requires the delegates representing the majority of
+replicas to be non-faulty.
+We consider the case where all replicas are assigned to a \sub and the delegates are
+the \sub leaders.
 Given a system with $2m+1$ \subs, each of $2n+1$ replicas, the entire
 system's progress can be halted with as few as $(m+1)(n+1)$ well-chosen
 failures.
@@ -677,91 +679,72 @@ At maximum, HC's basic protocol can tolerate up to:
 f_{best} = (m+1)*n + m*(2n+1) = 3mn+m+n
 \end{align*}
 failures.
-As an example, a 25/5 system can tolerate at least 8 and
-up to 16 failures out of 25 total replicas.
-A 21/3 system can tolerate at least 7, and a maximum of 12,
-failures out of 21 total replicas.
-Individual \subs might
-still be able to perform local operations despite an impasse at the global level.
-
-Total \sub failure can temporarily cause a portion of the namespace to be unserved. However, the \roo
-eventually times out and moves into a new epoch with that portion assigned to another
-\sub.
+As an example, a $m=12$ with $n=2$ system is composed of 25 total replicas that operate
+\subs of 5 replicas each and can tolerate at least 8 and up to 16 failures.
+An $m=10$, $n=1$ system can tolerate at least 7, and a maximum of 12, failures out of
+21 total replicas and \subs of 3 replicas.
+Individual \subs might still be able to perform local operations despite an impasse at
+the global level.
+Total \sub failure can temporarily cause a portion of the namespace to be unserved.
+However, the \roo eventually times out and elects a new leader, which busts the
+delegations and allows a reconfiguration that will allow the system to operate normally.
 
 \subsection{Assassination}
 \label{section:assassination}
 
-Singleton consensus protocols, including Raft, can tolerate just under half of the entire system
-failing.
+% this section also probably needs to be expanded and refined a lot.
+
+Singleton consensus protocols, including Raft and EPaxos, can tolerate just under half
+of the entire system failing.
 As described above, HC's structure makes it more vulnerable to clustered failures.
-Therefore we define a \emph{nuclear option}, which uses direct consensus
+Therefore we define a \emph{disaster timeout}, which uses direct consensus
 decision among all system replicas to tolerate any $f$ replicas
 failing out of $2f+1$ total replicas in the system.
+In particular, we are concerned about the edge case where all delgates simultaneously
+fail, an irregular occurrence that eliminates the root leader and all possible root
+leader candidates such that the root term would never be incremented to bust delegation.
+Because of the specificity of such a failure, we describe it as \emph{assassination}.
 
-A nuclear vote is triggered by the failure of a root leader election.
-A \emph{nuclear candidate}
-increment's its term for the \roo and broadcasts a request for votes to all
-system replicas.
-The key difficulty is in preventing delegated votes and
-nuclear votes from reaching conflicting decisions.
-Such situations might occur when temporarily unavailable \sub leaders regain connectivity
+The disaster vote is triggered by the absence of communication from the root leader for
+a time period significantly longer than it would normaly take to simply elect a new
+root leader from the available delegates.
+Any replica may become a root leader candidate if this timeout occurs by incrementing
+its term for the \roo quorum such that $r > d$.
+The key difficulty is in preventing delegated votes and disaster votes from reaching
+conflicting decisions.
+Such situations might occur when temporarily unavailable delegates regain connectivity
 and allow a wedged \roo to unblock.
-Meanwhile, a nuclear vote might be concurrently underway.
+Meanwhile, a disaster vote might be concurrently underway.
 
+% not 100% sure the below is correct, but headed over the edge anyway
+% also, long para for space reasons
 Replica delegations are defined as intervals over specific slots.
 Using local \sub slots would fall prey to the above problem, so we define
-delegations as a small number (often one) of root slots, which usually
-correspond to distinct epochs.
+delegations as a small number (often one) of root terms.
 During failure-free operation, peers delegate to their leaders and are all
 represented in the next root election or commit.
-Peers then renew their delegations to their leaders by appending them to the
-next local commit reply.
-This approach works for replicas that change \subs over an epoch
-boundary, and even allows peers to delegate their votes to arbitrary other
-peers in the system (see replicas $r_N$ and $r_O$ in Figure~\ref{fig:system}).
-
-This approach is simple and correct, but deals poorly with leader turnovers in
-the \subs.
+Peers then renew their delegations to their leaders when a new root leader is elected.
 Consider a \sub where all peers have delegated votes to their leader
 for the next root slot.
 If that leader fails, none of the peers will be represented.
-We finesse this issue by re-defining such delegations to count
-root elections, root commits, \emph{and} root heartbeats.
-The latter means that local peers will regain their votes for the next \roo
-action if it happens after to the next heartbeat.
-
-Consider the worst-case failure situation: a majority of the majority of \subs have
-failed.
-None of the failed \sub leaders can be replaced, as none of those \subs have
-enough local peers.
-
 The first response is initiated when a replica holding delegations (or its own
 vote) times out waiting for the root heartbeat.
 That replica increments its own root term, adopts the prior system
 configuration as its own, and becomes a root candidate.
 This candidacy fails, as a majority of \sub leaders, with all of their
 delegated votes, are gone.
-Progress is not made until delegations time out.
+Progress is not made until a second root election time out occurs, causing a second
+incrementing of the root term and causing all delegations to lapse.
 In our default case where a delegation is for a single root event, this
-happens after the first root election failure.
+happens after the first root election failure and allows the entire system to vote.
 
-At the next timeout, any replica might become a candidate because delegations have
-lapsed (under our default assumptions above).
-Such a \emph{nuclear} candidate increments its root term and
-sends candidate requests to all system replicas,
-succeeding if it gathers a majority across all live replicas.
-
-The first candidacy assumed the prior system configuration in its candidacy
-announcement.
-This configuration is no longer appropriate unless some of the ``failed''
-replicas quickly regain connectivity.
-Before the replica announces its candidacy for a second time, however, many of
-the replica replies have timed out.
-The candidate alters its second proposed configuration by recasting all such
-replicas as hot spares and potentially reducing the number and size of the
-subgroups.
-Subsequent epoch changes might re-integrate the new hot spares if the replicas
-regain connectivity.
+However, if this delegate remains partitioned, it is possible that there is a concurrent
+vote from a non-delegate candidate after the disaster timeout.
+Because the \subs intersect with the \roo it is impossible for a delegate to achieve a
+majority while being partitioned, therefore the disaster candidate election will succeed.
+When the partitioned delegates rejoin the system, their root term will be lower than the
+term of the disaster candidate's, therefore they will lose their delegations and will
+rejoin the system as a non-delegate replica.
 
 \section{Implementation}
 \label{section:implementation}
@@ -809,14 +792,14 @@ ascribed to a single central tendency.
 
 \begin{figure*}[t]
     \centering
-    \minipage{0.5\textwidth}
+    \minipage{0.48\textwidth}
         \includegraphics[width=\linewidth]{figures/scaling.pdf}
-        \caption{Throughput increases with larger quorum sizes.}
+        \caption{Throughput increases with larger quorum sizes instead of decreasing.}
         \label{fig:scaling_consensus}
     \endminipage\hfill
-    \minipage{0.5\textwidth}%
+    \minipage{0.48\textwidth}%
         \includegraphics[width=\linewidth]{figures/hc_throughput_workload.pdf}
-        \caption{Alia handles larger workloads with larger system sizes.}
+        \caption{HC scales to handle workloads without coordination bottlenecks.}
         \label{fig:throughput_workload}
     \endminipage
 \end{figure*}
@@ -893,10 +876,13 @@ mitigated by adding additional subquorums to balance load.
     \endminipage
 \end{figure*}
 
-          \pjk{What heuristics/parameterization allows the system to
-            adapt in sawtooth? If we have to, go back and derive a
-            heuristic from what was actually done (was it all just
-            scripted or is there a heuristic?)}
+% PJK: What heuristics/parameterization allows the system to adapt in sawtooth? If we
+% have to, go back and derive a heuristic from what was actually done (was it all just
+% scripted or is there a heuristic?)
+%
+% BJB: It was all scripted in the original experiment, in the current implementation we
+% have simple access counting heuristics, but that wasn't there for these experiments.
+
 
 Besides pure performance and scaling, HC is also motivated by the need to adapt to
 varying environmental conditions.
@@ -909,29 +895,29 @@ lines indicate an epoch change.
 
 The first scenario, described by the time series in Figure~\ref{fig:fault_tolerance}
 shows an HC 3-replica configuration moving through two epoch changes.
-Each epoch change is triggered by the need to localize tags accessed by
+Each epoch change is triggered by the need to localize objects accessed by
 clients to nearby subquorums.
 % The experiment was run over machines with widely varying latency.
-The scenario shown starts with all clients co-located with the subquorum serving the tag
-they are accessing.
-However, clients incrementally change their access patterns first to a tag located on
-one remote subquorum, and then to the tag owned by the other.
-In both cases, the root quorum adapts the system by repartitioning the tagspace such
-that the tag defining their current focus is served by the co-located subquorum.
+The scenario shown starts with all clients co-located with the subquorum serving the
+shard of the namespace they are accessing.
+However, clients incrementally change their access patterns first to an object located
+on one remote subquorum, and then to the object owned by the other.
+In both cases, the root quorum adapts the system by repartitioning the namespace such
+that the object defining their current focus is served by the co-located subquorum.
 
 Figure~\ref{fig:fault_tolerance} shows a 3-subquorum configuration where one
 entire subquorum becomes partitioned from the others.
-After a timeout, the root uses an epoch change to re-allocate the tag of the partitioned
-subquorum over the two remaining subquorums.
+After a timeout, the root uses an epoch change to re-allocate the namespace of the
+partitioned subquorum over the two remaining subquorums.
 The partitioned subquorum eventually has an heuristic \emph{obligation timeout}, after
-which the  root quorum is not obliged to leave the tag with the current subquorum.
-The tag may then be re-assigned to any other subquorum.
+which the  root quorum is not obliged to leave the shard with the current subquorum.
+The shard may then be re-assigned to any other subquorum.
 Timeouts are structured such that by the time an obligation timeout fires, the root
-quorum has already re-mapped that subquorum's tag to other subquorums.
+quorum has already re-mapped that subquorum's shard to other subquorums.
 As a result, the system is able to recover from the partition as fast as possible.
 In this figure, the repartition occurs through two epoch changes, the first allocating
-part of the tagspace to the first subquorum, and the second allocating the rest of the
-tag to the other.
+part of the namespace to the first subquorum, and the second allocating the rest of the
+namespace to the other.
 Gaps in the graph are periods where the subquorums are electing local leaders.
 This may be optimized by having leadership assigned or maintained through root consensus.
 
@@ -1011,7 +997,7 @@ completely reconfigure the running system on the fly either on demand or
 by detecting changes in network conditions.
 
 Recent work has similarly explored a more strategic approach to data placement;
-Akkio~\cite{akkio}, for instance, optimizes shard placement using access
+Akkio~\cite{akkio,dynamic_placement}, for instance, optimizes shard placement using access
 latency as the cost function.
 HC goes a step further, offering not optimization but rather fine grain control
 over data placement, which allows applications to determine their own
@@ -1038,6 +1024,10 @@ across multiple discrete consensus instances in the wide area.
 
 \section{Discussion}
 \label{section:discussion}
+
+% this is kind of weird, but I feel like it's important so I'm leaving it here
+% we should definitely do better at this section, maybe move forward in the paper
+% in a different iteration.
 
 Alia takes a different approach to implementing geo-distributed systems, focusing
 on a system's ability to be \emph{flexible}.
@@ -1071,7 +1061,7 @@ assigned to.
 This model ensures that if a replica fails it cannot participate in some decision
 making, such as configuration, but not others, such as accesses.
 This requirement also allows us to more easily tackle complex failures; such as
-using a nuclear option (discussed in 5.3) to ensure progress even with a worst-case
+using a disaster timeout to ensure progress even with a worst-case
 failure of delegates, or ensuring that leases are either respected or replaced
 for whole subquorums that fall out of communication.
 
@@ -1093,8 +1083,6 @@ for the global system can be exported on demand.
 % broadly: fluidity, adaptivity, transparency, bigness
 % another item about how size is an advantage to leverage rather than a problem to cope with, an opportunity to scale without adding complications...
 
-% need segue to HC section
-
 % Unused content for Agile Systems subsection
 % Wants:
 % - Ability to easily modify participants in the system.
@@ -1114,9 +1102,9 @@ The next generation of distributed systems will be geographically replicated aro
 planet in order to provide better performance by preventing bottlenecks and localizing
 accesses to international and highly mobile users and to provide durability in the face
 of catastrophic failure.
-We have presented \hc, an implementation and extension of Vertical Paxos, that is
-designed to scale coordination and transparently provide strong consistency in order to
-build and deploy systems that span globe.
+We have presented \hc and \sys, an extension and implementation of Vertical Paxos, that
+are designed to scale coordination and transparently provide strong consistency in order
+to build and deploy systems that span globe.
 HC is a framework of intersecting tiers of quorums whose primary benefit is flexibility,
 which allows large systems to dynamically adapt to changing conditions, improving both
 performance and maintainability.
@@ -1140,11 +1128,13 @@ access patterns.
 
 % Future work:
 % - investigate the affect of more tiers of consensus
-% - transactions
+% - transactions!
 % - automatic adaptability using learning rather than policies and heuristics
+% - we assume static system size with hot spares, figure out replacement/joint consensus
 
 
-% TODO: Why are years being omitted from the references?!
+% NOTE: Zotero exports a date: field but for IEEETran the field in the bibtex must be
+% year: -- if Zotero does an auto export make sure to fix these changes again!
 \bibliographystyle{plain}
 \bibliography{papers}
 
