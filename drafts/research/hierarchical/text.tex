@@ -311,7 +311,7 @@ very large consensus groups across continents and oceans.
 From a logical perspective, the \roo's membership is the set of all system replicas, at
 all times.
 This ensures that all \subs intersect with the \roo such that all commands are totally
-ordered and to improve the overall fault tolerance and flexibility of the system,
+ordered, and to improve the overall fault tolerance and flexibility of the system,
 eliminating the \roo as a potential bottleneck.
 However, running consensus elections across large systems is inefficient in the best of
 cases, and prohibitively slow in a geo-replicated environment.
@@ -321,7 +321,7 @@ With leader delegation, the root membership effectively consists of the set of \
 leaders in the ideal case.
 Because \subs themselves are geographically distributed and placed to optimize system
 specific policies, the \roo represents a simplified snapshot of the overall operation
-and as the network environment and access patterns change, so to does the \roo.
+and as the network environment and access patterns change, so too does the \roo.
 To simplify the discussion of delegated voting, we assume a leader-oriented consensus
 protocol that operates similarly to Raft, using heartbeats and timeouts to detect
 failure.
@@ -335,7 +335,7 @@ delegate term, $d_t=d+j$ where $j$ defines how many root elections the delegatio
 survive.
 Usually, $j=1$, but can be increased if intermittent failure in the root quorum is
 expected (to allow the delegates to smoothly transition to new leaders without
-redelegation).
+re-delegation).
 When a delegate request is received, the replica can delegate iff $d_t>d$ and marks
 itself as delegated, otherwise it reports the current term to the delegate candidate.
 A \emph{delegate} is any replica that is able to vote in root term $r$, e.g. any replica
@@ -375,11 +375,11 @@ election (e.g. the root quorum \texttt{PREPARE}).
 If a root election timeout expires, \textbf{only a delegate can become a root candidate}
 (including replicas that vote only for themselves).
 This means that at least one root election will occur with delegation, prompting
-redelegation requests that are generally far in advance of new elections. In normal
-operation, with limited failure, all root decions are delegated.
+re-delegation requests that are generally far in advance of new elections. In normal
+operation, with limited failure, all root decisions are delegated.
 However, if the delegates representing a majority of the system fail, so long as there
 is at least one live delegate, the root term will increase until all delegations are
-busted, causing all replicas to redelgate their votes to a live replica, or to simply
+busted, causing all replicas to re-delgate their votes to a live replica, or to simply
 vote for themselves.
 There is one critical edge case, all delegates failing simultaneously, which we discuss
 in Section~\ref{section:assassination}.
@@ -395,7 +395,7 @@ regions only.
 The \roo leader can simplify this process by identifying replicas that have previously
 been highly available members of the root quorum.
 If the \roo leader identifies a poor delegation state, it simply initiates a root leader
-election for itself, incrementing $r$, and causing replicas to redelegate after the
+election for itself, incrementing $r$, and causing replicas to re-delegate after the
 election.
 On epoch change, the root leader can hint to the reconfigured \subs the best replicas
 to delegate to if they are not already delegated for the epoch.
@@ -490,13 +490,13 @@ To increase durability, data can be placed with a leader and primary backup in a
 region, and a secondary backup in a remote region (it is important with this scheme to
 modify the election rules of Raft to decrease the probability that the secondary backup
 is elected leader).
-To handle conflicting accesses across regions, ePaxos or Mencius can be used to
+To handle conflicting accesses across regions, EPaxos or Mencius can be used to
 optimistically serialize proposals across the wide area.
 \Hc requires no special modifications to \sub operation, only requiring that \subs
 intersect with the \roo and that delegation and transitions are implemented correctly.
 As a result, the \roo can specify not only the placement of namespace shards with the
 replica, but also the consensus algorithm that governs them.
-We envision the \roo as a distributed system management framework that is not only able 
+We envision the \roo as a distributed system management framework that is not only able
 to apply policy changes efficiently, but also to monitor real-time performance and to
 make adaptations on demand.
 Adaptations are the key to the protocols flexibility but also ensure that the system is
