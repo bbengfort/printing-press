@@ -700,13 +700,13 @@ As described above, HC's structure makes it more vulnerable to clustered failure
 Therefore we define a \emph{disaster timeout}, which uses direct consensus
 decision among all system replicas to tolerate any $f$ replicas
 failing out of $2f+1$ total replicas in the system.
-In particular, we are concerned about the edge case where all delgates simultaneously
+In particular, we are concerned about the edge case where all delegates simultaneously
 fail, an irregular occurrence that eliminates the root leader and all possible root
 leader candidates such that the root term would never be incremented to bust delegation.
 Because of the specificity of such a failure, we describe it as \emph{assassination}.
 
 The disaster vote is triggered by the absence of communication from the root leader for
-a time period significantly longer than it would normaly take to simply elect a new
+a time period significantly longer than it would normally take to simply elect a new
 root leader from the available delegates.
 Any replica may become a root leader candidate if this timeout occurs by incrementing
 its term for the \roo quorum such that $r > d$.
@@ -762,7 +762,7 @@ Each replica implements an event loop that responds to timing events, client req
 and messages from peers.
 Events may cause the replica to change state, modify a command log, broadcast messages
 to peers, modify the local store, or respond to a client.
-Because events are crticial to the correctness and safety of the system, all events are
+Because events are critical to the correctness and safety of the system, all events are
 serialized through a single channel so that they are handled sequentially by the primary
 process.
 
